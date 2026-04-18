@@ -1,0 +1,3415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GEF Management Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,600;1,9..144,300&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ── Variables ────────────────────────────────────────────────────────────── */
+:root {
+  --bg:          #0f1117;
+  --surface:     #181c27;
+  --surface2:    #1f2435;
+  --border:      #2a3048;
+  --border-light:#343d5a;
+  --text:        #e8eaf0;
+  --text-muted:  #7b82a0;
+  --text-dim:    #4a5270;
+  --accent:      #e8824a;
+  --accent-dim:  rgba(232,130,74,.12);
+  --accent2:     #4a8fe8;
+  --green:       #3ecf8e;
+  --green-dim:   rgba(62,207,142,.12);
+  --red:         #e85252;
+  --red-dim:     rgba(232,82,82,.12);
+  --yellow:      #e8c84a;
+  --yellow-dim:  rgba(232,200,74,.12);
+  --radius:      10px;
+  --shadow:      0 4px 24px rgba(0,0,0,.4);
+}
+
+/* ── Reset ────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+button { cursor: pointer; font-family: inherit; }
+input, select, textarea { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+
+/* ── Views ────────────────────────────────────────────────────────────────── */
+.view { display: none; }
+.view.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LOGIN PAGE
+═══════════════════════════════════════════════════════════════════════════ */
+#loginView {
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Geometric background */
+#loginView::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(232,130,74,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 20%, rgba(74,143,232,.06) 0%, transparent 60%);
+}
+
+.login-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 460px;
+  max-width: 1000px;
+  width: 100%;
+  margin: 40px;
+  gap: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+
+.login-brand {
+  background: linear-gradient(135deg, #1a2035 0%, #0f1520 100%);
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.login-brand::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  border: 1px solid rgba(232,130,74,.15);
+}
+.login-brand::before {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -40px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  border: 1px solid rgba(232,130,74,.08);
+}
+
+.brand-logo {
+  width: 52px; height: 52px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 40px;
+  position: relative;
+}
+.brand-logo::before {
+  content: 'GEF';
+  font-family: 'Fraunces', serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.brand-title {
+  font-family: 'Fraunces', serif;
+  font-size: 36px;
+  font-weight: 300;
+  line-height: 1.15;
+  color: var(--text);
+  margin-bottom: 16px;
+}
+.brand-title em { font-style: italic; color: var(--accent); }
+.brand-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 320px;
+}
+
+.brand-stats {
+  display: flex;
+  gap: 32px;
+  margin-top: 48px;
+}
+.brand-stat-val {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.brand-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.login-form-panel {
+  background: var(--surface);
+  padding: 60px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-heading {
+  font-family: 'Fraunces', serif;
+  font-size: 26px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.login-subheading {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 40px;
+}
+
+.form-field {
+  margin-bottom: 20px;
+}
+.form-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.form-field input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  color: var(--text);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-field input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.form-field input.error {
+  border-color: var(--red);
+}
+
+.login-error {
+  background: var(--red-dim);
+  border: 1px solid var(--red);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--red);
+  margin-bottom: 20px;
+  display: none;
+}
+.login-error.visible { display: block; }
+
+.btn-login {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: opacity 0.2s, transform 0.1s;
+  margin-top: 8px;
+}
+.btn-login:hover { opacity: 0.88; }
+.btn-login:active { transform: scale(0.99); }
+.btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════════════════════════════════ */
+#dashboardView {
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Top nav ───────────────────────────────────────────────────────────────── */
+.topnav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: 60px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.nav-logo {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.nav-logo::before {
+  content: 'GEF';
+  font-family: 'Fraunces', serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: #fff;
+}
+.nav-title {
+  font-family: 'Fraunces', serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+.nav-divider { width: 1px; height: 20px; background: var(--border); }
+.nav-section {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+.nav-spacer { flex: 1; }
+.nav-user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 14px 5px 6px;
+}
+.nav-avatar {
+  width: 28px; height: 28px;
+  background: var(--accent-dim);
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.nav-user-name { font-size: 13px; font-weight: 500; }
+.nav-user-role {
+  font-size: 11px;
+  color: var(--accent);
+  background: var(--accent-dim);
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  margin-left: 4px;
+}
+.btn-logout {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-muted);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+/* ── Main content ──────────────────────────────────────────────────────────── */
+.main-content {
+  flex: 1;
+  padding: 28px;
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Page header ───────────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.page-heading {
+  font-family: 'Fraunces', serif;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1.2;
+}
+.page-heading span { color: var(--accent); font-style: italic; }
+.page-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* ── Stats row ─────────────────────────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--border));
+  transition: opacity 0.2s;
+}
+.stat-card:hover { border-color: var(--border-light); }
+.stat-card.active { border-color: var(--card-accent, var(--accent)); background: var(--surface2); }
+.stat-card.active::after { opacity: 1; }
+.stat-val {
+  font-family: 'Fraunces', serif;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.stat-label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; }
+
+/* ── Toolbar ───────────────────────────────────────────────────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.search-wrap {
+  flex: 1;
+  position: relative;
+  max-width: 360px;
+}
+.search-wrap input {
+  width: 100%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 14px 9px 38px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-wrap input:focus { border-color: var(--accent); }
+.search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 14px;
+  pointer-events: none;
+}
+.filter-select {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 14px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  min-width: 180px;
+}
+.filter-select:focus { border-color: var(--accent); }
+.toolbar-spacer { flex: 1; }
+.badge-count {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  white-space: nowrap;
+}
+
+/* ── Table ─────────────────────────────────────────────────────────────────── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+thead th {
+  background: var(--surface2);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+td {
+  padding: 13px 16px;
+  font-size: 13px;
+  vertical-align: middle;
+}
+.td-id { color: var(--text-muted); font-family: monospace; font-size: 12px; }
+.td-name { font-weight: 500; }
+.td-email { color: var(--text-muted); font-size: 12px; }
+.td-school { color: var(--text-muted); }
+.td-date { color: var(--text-muted); font-size: 12px; white-space: nowrap; }
+
+/* Status badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.status-badge::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.7;
+}
+.s-NEW_APPLICATION      { background: rgba(123,130,160,.15); color: #9ba3c0; }
+.s-UNDER_REVIEW         { background: var(--yellow-dim);     color: var(--yellow); }
+.s-DOCUMENT_PENDING     { background: rgba(232,130,74,.15);  color: var(--accent); }
+.s-INTERVIEW_SCHEDULED  { background: rgba(74,143,232,.15);  color: var(--accent2); }
+.s-INTERVIEW_DONE       { background: rgba(74,143,232,.1);   color: #7aadee; }
+.s-APPROVED             { background: var(--green-dim);      color: var(--green); }
+.s-REJECTED             { background: var(--red-dim);        color: var(--red); }
+.s-LOAN_DISBURSED       { background: var(--green-dim);      color: #60e0a8; }
+.s-REPAYMENT_STARTED    { background: rgba(62,207,142,.08);  color: #50c898; }
+.s-CLOSED               { background: rgba(255,255,255,.05); color: var(--text-dim); }
+
+/* Row action */
+.btn-view {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-view:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+
+/* Empty / loading states */
+.table-loading, .table-empty {
+  padding: 60px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+.spinner {
+  width: 32px; height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Pagination ────────────────────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+}
+.pag-info { font-size: 12px; color: var(--text-muted); }
+.pag-btns { display: flex; gap: 6px; }
+.pag-btn {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-muted);
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.pag-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DETAIL MODAL
+═══════════════════════════════════════════════════════════════════════════ */
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  z-index: 200;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  backdrop-filter: blur(3px);
+}
+.modal-backdrop.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  width: 100%;
+  max-width: 900px;
+  box-shadow: 0 32px 100px rgba(0,0,0,.6);
+  animation: modalIn 0.22s ease;
+  margin: auto;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+
+.modal-header {
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+.modal-id-badge {
+  background: var(--accent-dim);
+  border: 1px solid rgba(232,130,74,.3);
+  border-radius: 7px;
+  padding: 4px 10px;
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--accent);
+  white-space: nowrap;
+}
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-size: 22px;
+  font-weight: 500;
+  flex: 1;
+}
+.modal-status-wrap { display: flex; align-items: center; gap: 10px; }
+.btn-close-modal {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-muted);
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.btn-close-modal:hover { border-color: var(--red); color: var(--red); }
+
+/* Modal tabs */
+.modal-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+}
+.modal-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: -1px;
+  transition: all 0.2s;
+}
+.modal-tab:hover { color: var(--text); }
+.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.modal-body {
+  padding: 24px 28px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.modal-tab-panel { display: none; }
+.modal-tab-panel.active { display: block; }
+
+/* Detail grid */
+.detail-section {
+  margin-bottom: 28px;
+}
+.detail-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--accent);
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.detail-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.detail-item {}
+.detail-label {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 3px;
+}
+.detail-value {
+  font-size: 13px;
+  color: var(--text);
+  word-break: break-word;
+}
+.detail-value.mono { font-family: monospace; font-size: 12px; }
+
+/* Expense table in modal */
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: 8px;
+}
+.expense-table th {
+  background: var(--surface2);
+  padding: 8px 12px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+.expense-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.expense-table tr:last-child td { border-bottom: none; }
+.expense-table .num { text-align: right; font-family: monospace; }
+.expense-table .total { font-weight: 600; color: var(--accent); }
+
+/* Workflow timeline */
+.workflow-timeline { display: flex; flex-direction: column; gap: 12px; }
+.workflow-item {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.workflow-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--border-light);
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  margin-top: 4px;
+  position: relative;
+}
+.workflow-dot.current { background: var(--accent); border-color: var(--accent); }
+.workflow-connector {
+  position: absolute;
+  top: 10px; left: 3px;
+  width: 2px;
+  height: calc(100% + 12px);
+  background: var(--border);
+}
+.workflow-item:last-child .workflow-connector { display: none; }
+.workflow-info { flex: 1; }
+.workflow-arrow { font-size: 12px; color: var(--text-muted); }
+.workflow-status-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.workflow-meta { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+.workflow-remarks {
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* Modal footer / action panel */
+.modal-footer {
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  border-radius: 0 0 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.transition-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
+}
+.transition-select {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  flex: 1;
+  min-width: 180px;
+  transition: border-color 0.2s;
+}
+.transition-select:focus { border-color: var(--accent); }
+.remarks-input {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  flex: 2;
+  min-width: 200px;
+  transition: border-color 0.2s;
+}
+.remarks-input:focus { border-color: var(--accent); }
+.btn-transition {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  padding: 9px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.btn-transition:hover { opacity: 0.88; }
+.btn-transition:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── Appraisal form action buttons ── */
+.btn-save {
+  background: var(--surface2);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 11px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  white-space: nowrap;
+}
+.btn-save:hover { border-color: var(--accent); background: var(--accent-dim); }
+
+.btn-submit {
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  padding: 11px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: pointer;
+  letter-spacing: .3px;
+  transition: opacity .2s, transform .1s;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(232,130,74,.35);
+}
+.btn-submit:hover { opacity: .88; }
+.btn-submit:active { transform: scale(.98); }
+.btn-submit:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: 28px; right: 28px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  max-width: 360px;
+}
+.toast.show { transform: none; opacity: 1; }
+.toast.success { border-color: var(--green); }
+.toast.error   { border-color: var(--red); }
+.toast-icon { font-size: 16px; }
+
+@media (max-width: 768px) {
+  .login-grid { grid-template-columns: 1fr; margin: 16px; }
+  .login-brand { display: none; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  .modal-footer { flex-direction: column; align-items: stretch; }
+}
+
+/* ── NAV TABS ── */
+.nav-tabs { display:flex; gap:2px; }
+.nav-tab { background:none; border:none; border-bottom:2px solid transparent; color:var(--text-muted); padding:0 14px; height:60px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; }
+.nav-tab:hover { color:var(--text); }
+.nav-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+
+/* ── VIEW PANELS ── */
+.view-panel { display:none; }
+.view-panel.active { display:block; animation:fadeIn .25s ease; }
+
+/* ── APPRAISAL LIST ── */
+.appraisal-list-table { width:100%; border-collapse:collapse; }
+.appraisal-list-table th { background:var(--surface2); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); border-bottom:1px solid var(--border); }
+.appraisal-list-table td { padding:12px 14px; border-bottom:1px solid var(--border); font-size:13px; vertical-align:middle; }
+.appraisal-list-table tbody tr:hover { background:var(--surface2); cursor:pointer; }
+.appraisal-list-table tr:last-child td { border-bottom:none; }
+.ars-pending  { background:rgba(232,200,74,.15); color:var(--yellow); }
+.ars-partial  { background:rgba(74,143,232,.15);  color:var(--accent2); }
+.ars-complete { background:rgba(62,207,142,.15);  color:var(--green); }
+
+/* ── BUTTONS ── */
+.btn-appraise { background:var(--green-dim); border:1px solid var(--green); border-radius:6px; color:var(--green); padding:4px 10px; font-size:11px; font-weight:600; transition:all .2s; white-space:nowrap; }
+.btn-appraise:hover { background:var(--green); color:#fff; }
+.btn-create { background:var(--accent); border:none; border-radius:8px; color:#fff; padding:9px 18px; font-size:13px; font-weight:600; transition:opacity .2s; }
+.btn-create:hover { opacity:.88; }
+.page-header-actions { display:flex; align-items:center; gap:10px; }
+
+/* ── MENTOR ASSIGNMENT ── */
+.assign-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; margin-bottom:20px; }
+.assign-title { font-family:'Fraunces',serif; font-size:18px; font-weight:400; margin-bottom:16px; }
+.assign-form { display:grid; grid-template-columns:1fr 1fr 180px 180px auto; gap:12px; align-items:end; }
+.assign-field { display:flex; flex-direction:column; gap:6px; }
+.assign-field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.assign-field select { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; padding:9px 12px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
+.assign-field select:focus { border-color:var(--accent); }
+.btn-assign { background:var(--accent); border:none; border-radius:8px; color:#fff; padding:10px 20px; font-size:13px; font-weight:600; white-space:nowrap; transition:opacity .2s; }
+.btn-assign:hover { opacity:.88; }
+.assign-table { width:100%; border-collapse:collapse; margin-top:16px; }
+.assign-table th { background:var(--surface2); padding:10px 14px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); border-bottom:1px solid var(--border); }
+.assign-table td { padding:11px 14px; border-bottom:1px solid var(--border); font-size:13px; }
+.assign-table tr:last-child td { border-bottom:none; }
+.btn-remove { background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-muted); padding:4px 10px; font-size:11px; transition:all .2s; }
+.btn-remove:hover { border-color:var(--red); color:var(--red); }
+
+/* ── CREATE APPRAISAL MODAL ── */
+.create-appraisal-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:300; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+.create-appraisal-modal.open { display:flex; }
+.cam-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px; width:500px; max-width:calc(100vw - 32px); box-shadow:0 32px 100px rgba(0,0,0,.6); animation:modalIn .22s ease; }
+.cam-title { font-family:'Fraunces',serif; font-size:20px; font-weight:500; margin-bottom:20px; }
+.cam-form { display:flex; flex-direction:column; gap:14px; }
+.cam-field { display:flex; flex-direction:column; gap:6px; }
+.cam-field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.7px; }
+.cam-field select { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; padding:10px 14px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
+.cam-field select:focus { border-color:var(--accent); }
+.cam-btns { display:flex; gap:10px; justify-content:flex-end; margin-top:8px; }
+.btn-cancel { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; color:var(--text); padding:9px 18px; font-size:13px; font-weight:600; cursor:pointer; }
+
+/* ── PORTAL CARDS ── */
+.appraisal-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px; cursor:pointer; transition:border-color .2s, transform .15s; position:relative; overflow:hidden; }
+.appraisal-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.appraisal-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--card-color, var(--border)); }
+.card-period { font-size:12px; font-weight:600; color:var(--accent); text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+.card-student-name { font-family:'Fraunces',serif; font-size:20px; font-weight:500; margin-bottom:6px; }
+.card-meta { font-size:12px; color:var(--muted); margin-bottom:16px; }
+.card-progress { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:16px; }
+.card-prog-item { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; }
+.cp-done    { background:var(--green-dim); color:var(--green); }
+.cp-pending { background:rgba(255,255,255,.05); color:var(--text-dim); }
+.card-cta { width:100%; background:var(--accent); border:none; border-radius:8px; color:#fff; padding:10px; font-size:13px; font-weight:600; transition:opacity .2s; }
+.card-cta:hover { opacity:.88; }
+.card-cta-secondary { background:var(--surface2); border:1.5px solid var(--border); color:var(--text); }
+.card-cta-secondary:hover { border-color:var(--accent); opacity:1; }
+
+/* ── PORTAL FORM ── */
+.pf-tab { background:none; border:none; border-radius:8px; color:var(--muted); padding:10px 20px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; letter-spacing:.2px; }
+.pf-tab:hover { color:var(--text); background:var(--surface2); }
+.pf-tab.active { background:var(--accent); color:#fff; box-shadow: 0 2px 8px rgba(232,130,74,.3); }
+.pf-panel { display:none; }
+.pf-panel.active { display:block; animation:fadeIn .2s ease; }
+.pf-role-badge { display:inline-flex; align-items:center; padding:3px 9px; border-radius:10px; font-size:11px; font-weight:600; }
+.pf-student { background:var(--yellow-dim); color:var(--yellow); }
+.pf-mentor  { background:var(--blue-dim); color:var(--blue); }
+.hf { display:flex; flex-direction:column; gap:5px; }
+.hf label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); }
+.hf input { background:var(--surface2); border:1.5px solid var(--border); border-radius:7px; padding:8px 12px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
+.hf input:focus { border-color:var(--accent); }
+.hf input:disabled { opacity:.5; cursor:not-allowed; }
+.btn-back-portal { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; color:var(--text-muted); padding:8px 16px; font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; white-space:nowrap; }
+.btn-back-portal:hover { border-color:var(--text); color:var(--text); }
+.no-appraisals { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:48px; text-align:center; color:var(--muted); }
+.no-appraisals h3 { font-family:'Fraunces',serif; font-size:22px; font-weight:400; margin-bottom:8px; color:var(--text); }
+
+/* ── APPRAISAL FORM: section cards ── */
+.section-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); margin-bottom:16px; overflow:hidden; }
+.section-header { background:var(--surface2); padding:13px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); }
+.section-body { padding:20px; }
+
+/* ── APPRAISAL FORM: shared input / textarea / select base ── */
+.appraisal-input,
+.academic-inp,
+.rating-input,
+.rationale-input,
+.comment-textarea {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 13px;
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+  transition: border-color .2s, box-shadow .2s;
+  resize: vertical;
+}
+.appraisal-input:focus,
+.academic-inp:focus,
+.rating-input:focus,
+.rationale-input:focus,
+.comment-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
+.appraisal-input:disabled,
+.academic-inp:disabled,
+.rating-input:disabled,
+.rationale-input:disabled,
+.comment-textarea:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+  resize: none;
+}
+.appraisal-input::placeholder,
+.academic-inp::placeholder,
+.rating-input::placeholder,
+.rationale-input::placeholder,
+.comment-textarea::placeholder { color: var(--dim); }
+
+/* Rating input — narrow fixed width */
+.rating-input { width: 90px; resize: none; text-align: center; }
+
+/* Rationale / comment — taller */
+.rationale-input { min-height: 64px; }
+.comment-textarea { min-height: 80px; }
+
+/* ── APPRAISAL FORM: academic table ── */
+.academic-table { width:100%; border-collapse:collapse; }
+.academic-table thead th {
+  background: var(--surface2);
+  padding: 10px 13px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.academic-table tbody td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.academic-table tbody tr:last-child td { border-bottom: none; }
+.academic-table tbody tr:hover { background: var(--surface2); }
+.academic-table .academic-inp { padding: 7px 10px; border-radius: 7px; }
+.academic-table tfoot .sgpa-row td {
+  background: var(--surface2);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 10px 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ── APPRAISAL FORM: add subject button ── */
+.btn-add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  background: none;
+  border: 1.5px dashed var(--border-light);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 8px 18px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .2s, color .2s, background .2s;
+}
+.btn-add-row:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-style: solid;
+}
+
+/* ── APPRAISAL FORM: evaluation table ── */
+.eval-table { width:100%; border-collapse:collapse; }
+.eval-table thead th {
+  background: var(--surface2);
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+.eval-table tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.eval-table tbody tr:last-child td { border-bottom: none; }
+.col-student { background: rgba(232,200,74,.04); }
+.col-mentor  { background: rgba(74,143,232,.04); }
+.col-domain  { background: rgba(62,207,142,.04); }
+.factor-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.factor-desc { font-size: 11px; color: var(--muted); line-height: 1.55; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     LOGIN VIEW
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="view active" id="loginView">
+  <div class="login-grid">
+    <div class="login-brand">
+      <div>
+        <div class="brand-logo"></div>
+        <div class="brand-title">Guruji<br><em>Education</em><br>Foundation</div>
+        <p class="brand-sub">Management platform for evaluating and sponsoring deserving students across India.</p>
+      </div>
+      <div class="brand-stats">
+        <div>
+          <div class="brand-stat-val" id="loginStatTotal">—</div>
+          <div class="brand-stat-label">Applications</div>
+        </div>
+        <div>
+          <div class="brand-stat-val" id="loginStatPending">—</div>
+          <div class="brand-stat-label">Pending Review</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="login-form-panel">
+      <div class="login-heading">Sign in</div>
+      <div class="login-subheading">Management access only</div>
+
+      <div class="login-error" id="loginError"></div>
+
+      <div class="form-field">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com" autocomplete="email" />
+      </div>
+      <div class="form-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-login" id="btnLogin" onclick="doLogin()">Sign In</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DASHBOARD VIEW
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="dashboardView">
+
+  <!-- Top Nav -->
+  <nav class="topnav">
+    <div class="nav-logo"></div>
+    <span class="nav-title">GEF Platform</span>
+    <div class="nav-divider"></div>
+    <div class="nav-tabs" id="navTabs">
+      <button class="nav-tab active" onclick="switchView('applications')" id="tab-applications">Applications</button>
+      <button class="nav-tab" onclick="switchView('appraisals')" id="tab-appraisals">Appraisals</button>
+      <button class="nav-tab" id="tab-assignments" onclick="switchView('assignments')" style="display:none">Mentor Assignments</button>
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-user-pill">
+      <div class="nav-avatar" id="navAvatar">SP</div>
+      <span class="nav-user-name" id="navUserName">Sunil Patil</span>
+      <span class="nav-user-role" id="navUserRole">EVALUATOR</span>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-content">
+
+    <!-- ── APPLICATIONS PANEL ── -->
+    <div class="view-panel active" id="panel-applications">
+
+    <div class="page-header">
+      <div>
+        <div class="page-heading">Student <span>Applications</span></div>
+        <div class="page-meta" id="pageMetaText">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card" style="--card-accent:#9ba3c0" onclick="filterByStatus('')">
+        <div class="stat-val" id="stat-total" style="color:#9ba3c0">—</div>
+        <div class="stat-label">All</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#e8c84a" onclick="filterByStatus('NEW_APPLICATION')">
+        <div class="stat-val" id="stat-new" style="color:var(--yellow)">—</div>
+        <div class="stat-label">New</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#4a8fe8" onclick="filterByStatus('UNDER_REVIEW')">
+        <div class="stat-val" id="stat-review" style="color:var(--accent2)">—</div>
+        <div class="stat-label">Under Review</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#3ecf8e" onclick="filterByStatus('APPROVED')">
+        <div class="stat-val" id="stat-approved" style="color:var(--green)">—</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat-card" style="--card-accent:#e85252" onclick="filterByStatus('REJECTED')">
+        <div class="stat-val" id="stat-rejected" style="color:var(--red)">—</div>
+        <div class="stat-label">Rejected</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search by name or email…"
+               oninput="onSearchInput()" />
+      </div>
+      <select class="filter-select" id="statusFilter" onchange="onStatusFilterChange()">
+        <option value="">All Statuses</option>
+        <option value="NEW_APPLICATION">New Application</option>
+        <option value="UNDER_REVIEW">Under Review</option>
+        <option value="DOCUMENT_PENDING">Document Pending</option>
+        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+        <option value="INTERVIEW_DONE">Interview Done</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+        <option value="LOAN_DISBURSED">Loan Disbursed</option>
+        <option value="REPAYMENT_STARTED">Repayment Started</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+      <div class="toolbar-spacer"></div>
+      <div class="badge-count" id="resultCount">— records</div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table id="appTable">
+        <thead>
+          <tr>
+            <th>#ID</th>
+            <th>Student Name</th>
+            <th>Email / Mobile</th>
+            <th>Recent Institution</th>
+            <th>Target College</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="appTableBody">
+          <tr><td colspan="8"><div class="table-loading"><div class="spinner"></div>Loading applications…</div></td></tr>
+        </tbody>
+      </table>
+      <div class="pagination" id="paginationBar">
+        <div class="pag-info" id="pagInfo">—</div>
+        <div class="pag-btns" id="pagBtns"></div>
+      </div>
+    </div><!-- /table-wrap -->
+    </div><!-- /panel-applications -->
+
+    <!-- ── APPRAISALS PANEL ── -->
+    <div class="view-panel" id="panel-appraisals">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Student <span>Appraisals</span></div>
+          <div class="page-meta">Monthly appraisals for approved students</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-create" id="btnManagePeriods" onclick="togglePeriodPanel()" style="display:none;background:var(--surface2);border:1.5px solid var(--border);color:var(--text);">⚙ Manage Periods</button>
+        </div>
+      </div>
+
+      <!-- Period management (ADMIN only, collapsible) -->
+      <div id="periodPanel" style="display:none;margin-bottom:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Appraisal Periods</div>
+          <!-- Create new period form -->
+          <div style="display:grid;grid-template-columns:1fr 160px 160px auto;gap:12px;align-items:end;margin-bottom:16px;">
+            <div class="assign-field">
+              <label>Period Label</label>
+              <input type="text" id="newPeriodLabel" placeholder="e.g. Apr 2025 – Sep 2025" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>From</label>
+              <input type="date" id="newPeriodFrom" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>To</label>
+              <input type="date" id="newPeriodTo" style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <button class="btn-assign" onclick="doCreatePeriod()">Create Period</button>
+          </div>
+          <!-- Existing periods list -->
+          <table class="assign-table" id="periodsTable">
+            <thead><tr><th>#</th><th>Label</th><th>From</th><th>To</th><th>Status</th><th></th></tr></thead>
+            <tbody id="periodsTableBody">
+              <tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:16px;">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="appraisal-list-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Student</th><th>Period</th>
+              <th>Location Mentor</th><th>Domain Mentor</th>
+              <th>Student</th><th>Loc. Mentor</th><th>Dom. Mentor</th>
+              <th>Created</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="appraisalTableBody">
+            <tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-appraisals -->
+
+    <!-- ── MENTOR ASSIGNMENTS PANEL (ADMIN only) ── -->
+    <div class="view-panel" id="panel-assignments">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Mentor <span>Assignments</span></div>
+          <div class="page-meta">Assign Location and Domain Mentors to approved students</div>
+        </div>
+      </div>
+      <div class="assign-card">
+        <div class="assign-title">Assign a Mentor</div>
+        <div class="assign-form">
+          <div class="assign-field">
+            <label>Application (Student)</label>
+            <select id="assignAppSelect" onchange="loadAssignmentsForApp()"><option value="">Select application…</option></select>
+          </div>
+          <div class="assign-field">
+            <label>Mentor</label>
+            <select id="assignMentorSelect"><option value="">Select mentor…</option></select>
+          </div>
+          <div class="assign-field">
+            <label>Mentor Role</label>
+            <select id="assignMentorRole">
+              <option value="LOCATION_MENTOR">Location Mentor</option>
+              <option value="DOMAIN_MENTOR">Domain Mentor</option>
+            </select>
+          </div>
+          <div class="assign-field" style="align-self:flex-end;">
+            <button class="btn-assign" onclick="doAssignMentor()">Assign →</button>
+          </div>
+        </div>
+        <table class="assign-table">
+          <thead>
+            <tr><th>Student</th><th>App #</th><th>Mentor</th><th>Role</th><th>Assigned</th></tr>
+          </thead>
+          <tbody id="assignmentTableBody">
+            <tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:20px;">Select an application above</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-assignments -->
+
+  </div><!-- /main-content -->
+</div><!-- /dashboardView -->
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     PORTAL VIEW  (Students, Location Mentors, Domain Mentors)
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="view" id="portalView">
+
+  <nav class="topnav">
+    <div class="nav-logo"></div>
+    <span class="nav-title">GEF Portal</span>
+    <div class="nav-divider"></div>
+    <span class="nav-section" id="portalNavSection">My Appraisals</span>
+    <div class="nav-spacer"></div>
+    <div class="nav-user-pill">
+      <div class="nav-avatar" id="portalAvatar">?</div>
+      <span class="nav-user-name" id="portalUserName"></span>
+      <span class="nav-user-role" id="portalUserRole"></span>
+    </div>
+    <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+  </nav>
+
+  <div class="main-content">
+
+    <!-- ── Appraisal list / CTA ── -->
+    <div id="portalAppraisalList">
+      <!-- My Application status banner (student only) -->
+      <div id="myApplicationBanner" style="display:none;margin-bottom:24px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:4px;">My Application</div>
+            <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:500;" id="myAppName">—</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="myAppStatus"></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn-save" onclick="openMyApplication()" style="font-size:12px;padding:8px 16px;">View / Edit Application</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-header" style="margin-bottom:24px;">
+        <div>
+          <div class="page-heading" id="portalHeading">My <span>Appraisals</span></div>
+          <div class="page-meta" id="portalSubheading">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Appraisal cards grid -->
+      <div id="portalCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px;"></div>
+    </div>
+
+    <!-- ── Inline appraisal form (shown when a card is opened) ── -->
+    <div id="portalFormWrap" style="display:none;">
+
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+        <button class="btn-back-portal" onclick="closePortalForm()">← Back to list</button>
+        <div>
+          <div class="page-heading" id="pfStudentName" style="font-size:22px;">—</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="pfPeriod">—</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;" id="pfSubmitStamps"></div>
+      </div>
+
+      <!-- ── SECTION TABS ── -->
+      <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;">
+        <button class="pf-tab active" onclick="pfSwitchTab('academic')"   id="pft-academic">Academic Record</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('evaluation')" id="pft-evaluation">Reflective Evaluation</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('comments')"   id="pft-comments">Comments</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('actionplan')" id="pft-actionplan">Action Plan</button>
+      </div>
+
+      <!-- Academic Record tab -->
+      <div class="pf-panel active" id="pfp-academic">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Academic Performance — Last Semester</div>
+            <span class="pf-role-badge pf-student">Student fills this section</span>
+          </div>
+          <div class="section-body" style="padding:0;">
+            <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+              <div class="hf"><label>CGPA Last Semester</label><input type="number" id="pf-cgpaLast" step="0.01" min="0" max="10" placeholder="e.g. 7.58" /></div>
+              <div class="hf"><label>CGPA Today</label><input type="number" id="pf-cgpaToday" step="0.01" min="0" max="10" placeholder="e.g. 7.38" /></div>
+              <div class="hf"><label>Domicile Address</label><input type="text" id="pf-domicile" placeholder="Home address" /></div>
+              <div class="hf"><label>Current Address</label><input type="text" id="pf-current" placeholder="Current address" /></div>
+            </div>
+            <table class="academic-table" style="margin:0;">
+              <thead><tr><th style="width:44px">No.</th><th>Course</th><th style="width:80px">ISE 1</th><th style="width:80px">ISE 2</th><th style="width:80px">ESE</th><th style="width:80px">Grade</th></tr></thead>
+              <tbody id="pf-academicBody"></tbody>
+              <tfoot>
+                <tr class="sgpa-row">
+                  <td colspan="3" style="text-align:right;padding-right:12px;font-size:12px;">SGPA =</td>
+                  <td><input type="number" id="pf-sgpa" step="0.01" min="0" max="10" placeholder="—" class="rating-input" style="width:70px;" /></td>
+                  <td style="text-align:right;font-size:12px;">CGPA =</td>
+                  <td><input type="number" id="pf-cgpa" step="0.01" min="0" max="10" placeholder="—" class="rating-input" style="width:70px;" /></td>
+                </tr>
+              </tfoot>
+            </table>
+            <div style="padding:12px 20px;">
+              <button class="btn-add-row" id="pf-btnAddRow" onclick="pfAddRow()">+ Add Subject</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reflective Evaluation tab -->
+      <div class="pf-panel" id="pfp-evaluation">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Reflective Evaluation</div>
+            <span class="pf-role-badge pf-student" style="margin-right:6px;">Student → self</span>
+            <span class="pf-role-badge pf-mentor" style="margin-right:6px;">Location Mentor</span>
+            <span class="pf-role-badge pf-mentor" style="background:var(--green-dim);color:var(--green);">Domain Mentor</span>
+          </div>
+          <div class="section-body" style="padding:0;overflow-x:auto;">
+            <table class="eval-table" id="pf-evalTable">
+              <thead>
+                <tr>
+                  <th style="min-width:140px;">Factor</th>
+                  <th style="min-width:220px;">Description</th>
+                  <th class="col-student" style="width:80px;">Self<br>Rating<br><small style="font-weight:400;font-size:10px;text-transform:none;">(1-5)</small></th>
+                  <th class="col-student" style="min-width:160px;">Self Rationale</th>
+                  <th class="col-mentor" style="width:80px;">Loc. Mentor<br>Rating</th>
+                  <th class="col-mentor" style="min-width:160px;">Loc. Mentor Rationale</th>
+                  <th class="col-domain" style="width:80px;">Dom. Mentor<br>Rating</th>
+                  <th class="col-domain" style="min-width:160px;">Dom. Mentor Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="pf-evalBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments tab -->
+      <div class="pf-panel" id="pfp-comments">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Comments &amp; Observations</div></div>
+          <div class="section-body">
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-student">Student</span> Mentee's Comments</div>
+              <textarea class="comment-textarea" id="pf-studentComments" placeholder="Student's overall reflections…"></textarea>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-mentor">Location Mentor</span> Location Mentor's Comments</div>
+              <textarea class="comment-textarea" id="pf-locComments" placeholder="Location mentor's observations…"></textarea>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-mentor">Domain Mentor</span> Domain Mentor's Comments</div>
+              <textarea class="comment-textarea" id="pf-domComments" placeholder="Domain mentor's observations…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Plan tab -->
+      <div class="pf-panel" id="pfp-actionplan">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Facilitating &amp; Inhibiting Factors</div></div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px;">
+              <div style="padding:16px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-student">Student / Appraisee</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Self</div>
+                <textarea class="comment-textarea" id="pf-facSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Environmental</div>
+                <textarea class="comment-textarea" id="pf-facEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Self</div>
+                <textarea class="comment-textarea" id="pf-inhSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Environmental</div>
+                <textarea class="comment-textarea" id="pf-inhEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Support Required from Foundation</div>
+                <textarea class="comment-textarea" id="pf-support" style="min-height:60px;" placeholder="…"></textarea>
+              </div>
+              <div style="padding:16px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-mentor">Location Mentor</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
+                <textarea class="comment-textarea" id="pf-locFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
+                <textarea class="comment-textarea" id="pf-locSupport" style="min-height:100px;" placeholder="…"></textarea>
+              </div>
+              <div style="padding:16px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-mentor">Domain Mentor</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
+                <textarea class="comment-textarea" id="pf-domFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
+                <textarea class="comment-textarea" id="pf-domSupport" style="min-height:100px;" placeholder="…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">New Action Plan</div><span style="font-size:12px;color:var(--muted);margin-left:8px;">Student fills; mentors review in discussion</span></div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Curricular</div>
+                <textarea class="comment-textarea" id="pf-acCurricular" style="min-height:90px;" placeholder="Academic goals…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Co-Curricular</div>
+                <textarea class="comment-textarea" id="pf-acCo" style="min-height:90px;" placeholder="Technical / project goals…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Extra-Curricular</div>
+                <textarea class="comment-textarea" id="pf-acExtra" style="min-height:90px;" placeholder="Sports, arts, clubs…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Reading</div>
+                <textarea class="comment-textarea" id="pf-acReading" style="min-height:90px;" placeholder="Books, podcasts, YouTube…"></textarea>
+              </div>
+              <div style="padding:14px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Networking</div>
+                <textarea class="comment-textarea" id="pf-acNetworking" style="min-height:90px;" placeholder="Connections to build…"></textarea>
+              </div>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label" style="font-size:11px;">Central Mentoring Team Comments</div>
+              <textarea class="comment-textarea" id="pf-centralComments" placeholder="Central team observations…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
+        <div id="pf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
+        <div style="display:flex;gap:12px;flex-shrink:0;">
+          <button class="btn-save" onclick="pfSave(false)">Save Draft</button>
+          <button class="btn-submit" id="pf-btnSubmit" onclick="pfSave(true)">Start / Update Appraisal ✓</button>
+        </div>
+      </div>
+    </div><!-- /portalFormWrap -->
+
+    <!-- ── Inline application viewer / editor ── -->
+    <div id="portalAppWrap" style="display:none;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+        <button class="btn-back-portal" onclick="closeMyApplication()">← Back to Portal</button>
+        <div>
+          <div class="page-heading" style="font-size:22px;">My <span>Application</span></div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="appViewStatus"></div>
+        </div>
+      </div>
+
+      <!-- Application detail display -->
+      <div id="appViewContent">
+        <div style="color:var(--muted);padding:40px;text-align:center;">Loading…</div>
+      </div>
+
+      <!-- Edit link -->
+      <div style="margin-top:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+        <div style="font-size:13px;color:var(--muted);">Need to update your application? Open the full form to make changes.</div>
+        <a id="editAppLink" href="guruji_admission_form.html?edit=true" target="_blank"
+           style="background:var(--accent);color:#fff;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;text-decoration:none;white-space:nowrap;">
+          Edit Application ↗
+        </a>
+      </div>
+    </div><!-- /portalAppWrap -->
+
+  </div><!-- /main-content -->
+</div><!-- /portalView -->
+
+<!-- Create Appraisal Modal (student portal — period picker only) -->
+<div class="create-appraisal-modal" id="createAppraisalModal">
+  <div class="cam-box">
+    <div class="cam-title">Start New Appraisal</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">
+      Select the appraisal period you want to start. Your application and mentor
+      assignments will be resolved automatically.
+    </div>
+    <div class="cam-form">
+      <div class="cam-field">
+        <label>Appraisal Period</label>
+        <select id="camPeriodSelect"><option value="">Loading…</option></select>
+      </div>
+    </div>
+    <div class="cam-btns">
+      <button class="btn-cancel" onclick="closeCreateAppraisalModal()">Cancel</button>
+      <button class="btn-create" onclick="doCreateAppraisal()">Start →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     DETAIL MODAL
+══════════════════════════════════════════════════════════════════════════ -->
+<div class="modal-backdrop" id="modalBackdrop" onclick="onBackdropClick(event)">
+  <div class="modal" id="detailModal">
+
+    <div class="modal-header">
+      <div class="modal-id-badge" id="modalIdBadge">#—</div>
+      <div>
+        <div class="modal-title" id="modalStudentName">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px" id="modalEmail">—</div>
+      </div>
+      <div class="modal-status-wrap">
+        <span class="status-badge" id="modalStatusBadge">—</span>
+      </div>
+      <button class="btn-close-modal" onclick="closeModal()">✕</button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" onclick="switchTab('personal')">Personal</button>
+      <button class="modal-tab" onclick="switchTab('academic')">Academic</button>
+      <button class="modal-tab" onclick="switchTab('family')">Family</button>
+      <button class="modal-tab" onclick="switchTab('expenses')">Expenses</button>
+      <button class="modal-tab" onclick="switchTab('references')">References</button>
+      <button class="modal-tab" onclick="switchTab('workflow')">Workflow</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Personal Tab -->
+      <div class="modal-tab-panel active" id="tab-personal">
+        <div class="detail-section">
+          <div class="detail-section-title">Personal Information</div>
+          <div class="detail-grid" id="dp-personal"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Declaration</div>
+          <div class="detail-grid" id="dp-declaration"></div>
+        </div>
+      </div>
+
+      <!-- Academic Tab -->
+      <div class="modal-tab-panel" id="tab-academic">
+        <div class="detail-section">
+          <div class="detail-section-title">Most Recent Year</div>
+          <div class="detail-grid" id="dp-y1"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Year Prior</div>
+          <div class="detail-grid" id="dp-y2"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Two Years Prior</div>
+          <div class="detail-grid" id="dp-y3"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Career &amp; Entrance Exams</div>
+          <div class="detail-grid" id="dp-career"></div>
+          <!-- Entrance exam detail table -->
+          <div style="margin-top:16px;">
+            <table class="expense-table" id="entranceDetailTable">
+              <thead>
+                <tr>
+                  <th>Exam</th>
+                  <th>Appeared</th>
+                  <th>Period / Attempt</th>
+                  <th>Score / Marks</th>
+                  <th>Mark Sheet</th>
+                </tr>
+              </thead>
+              <tbody id="entranceDetailBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Family Tab -->
+      <div class="modal-tab-panel" id="tab-family">
+        <div id="dp-family"></div>
+        <div class="detail-section" style="margin-top:20px">
+          <div class="detail-section-title">Relative Support</div>
+          <div id="dp-relative"></div>
+        </div>
+      </div>
+
+      <!-- Expenses Tab -->
+      <div class="modal-tab-panel" id="tab-expenses">
+        <div class="detail-section">
+          <div class="detail-section-title">3-Year Financial Estimate</div>
+          <table class="expense-table" id="expenseTable">
+            <thead>
+              <tr>
+                <th>Year</th><th>Class</th><th class="num">College Fee</th>
+                <th class="num">Hostel</th><th class="num">Mess</th>
+                <th class="num">Pocket</th><th class="num">Family Contrib.</th>
+                <th class="num">Total</th><th class="num">Net Req.</th>
+              </tr>
+            </thead>
+            <tbody id="expenseBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- References Tab -->
+      <div class="modal-tab-panel" id="tab-references">
+        <div class="detail-section">
+          <div class="detail-section-title">Reference 1</div>
+          <div class="detail-grid" id="dp-ref1"></div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">Reference 2</div>
+          <div class="detail-grid" id="dp-ref2"></div>
+        </div>
+      </div>
+
+      <!-- Workflow Tab -->
+      <div class="modal-tab-panel" id="tab-workflow">
+        <div class="detail-section">
+          <div class="detail-section-title">History</div>
+          <div class="workflow-timeline" id="dp-workflow"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer action bar -->
+    <div class="modal-footer">
+      <span class="transition-label">Move to</span>
+      <select class="transition-select" id="transitionSelect">
+        <option value="">— select status —</option>
+        <option value="UNDER_REVIEW">Under Review</option>
+        <option value="DOCUMENT_PENDING">Document Pending</option>
+        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+        <option value="INTERVIEW_DONE">Interview Done</option>
+        <option value="APPROVED">Approved</option>
+        <option value="REJECTED">Rejected</option>
+        <option value="LOAN_DISBURSED">Loan Disbursed</option>
+        <option value="REPAYMENT_STARTED">Repayment Started</option>
+        <option value="CLOSED">Closed</option>
+      </select>
+      <input class="remarks-input" id="transitionRemarks" placeholder="Remarks (optional)" />
+      <button class="btn-transition" id="btnTransition" onclick="doTransition()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toastIcon">✓</span>
+  <span id="toastMsg">Done</span>
+</div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
+const PAGE_SIZE = 20;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let authToken   = localStorage.getItem('gef_token') || null;
+let currentUser = JSON.parse(localStorage.getItem('gef_user') || 'null');
+let currentPage = 0;
+let totalPages  = 0;
+let totalElements = 0;
+let currentStatus = '';
+let searchTerm    = '';
+let currentAppId  = null;
+let searchTimer   = null;
+let allApps       = [];   // cached current page rows for client-side search
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+(function init() {
+  if (authToken && currentUser) {
+    routeByRole();
+  }
+  document.getElementById('loginPassword')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.getElementById('loginEmail')
+    .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+})();
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl    = document.getElementById('loginError');
+  const btnEl    = document.getElementById('btnLogin');
+
+  errEl.classList.remove('visible');
+  if (!email || !password) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btnEl.disabled = true;
+  btnEl.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Login failed');
+
+    authToken   = data.token;
+    currentUser = { email: data.email, fullName: data.fullName, roles: data.roles };
+    localStorage.setItem('gef_token', authToken);
+    localStorage.setItem('gef_user', JSON.stringify(currentUser));
+    routeByRole();
+
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.add('visible');
+  } finally {
+    btnEl.disabled = false;
+    btnEl.textContent = 'Sign In';
+  }
+}
+
+function doLogout() {
+  authToken = null; currentUser = null;
+  localStorage.removeItem('gef_token');
+  localStorage.removeItem('gef_user');
+  ['dashboardView','portalView'].forEach(id =>
+    document.getElementById(id).classList.remove('active'));
+  document.getElementById('loginView').classList.add('active');
+  document.getElementById('loginPassword').value = '';
+}
+
+/**
+ * Route after login:
+ * - ADMIN / EVALUATOR / REVIEWER  → management dashboard
+ * - STUDENT / LOCATION_MENTOR / DOMAIN_MENTOR  → appraisal portal
+ */
+function routeByRole() {
+  const roles = (currentUser?.roles || []);
+  const isMgmt = roles.some(r => ['ADMIN','EVALUATOR','REVIEWER'].includes(r));
+  const isPortal = roles.some(r => ['STUDENT','LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
+
+  if (isMgmt) {
+    showDashboard();
+  } else if (isPortal) {
+    showPortal();
+  } else {
+    // Unknown role — default to portal
+    showPortal();
+  }
+}
+
+// ── View switching ─────────────────────────────────────────────────────────────
+function showDashboard() {
+  document.getElementById('loginView').classList.remove('active');
+  document.getElementById('dashboardView').classList.add('active');
+
+  const name  = currentUser.fullName || currentUser.email;
+  const roles = currentUser.roles || [];
+
+  document.getElementById('navUserName').textContent = name;
+  document.getElementById('navAvatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('navUserRole').textContent = roles[0] || 'USER';
+
+  // Role-aware tab visibility
+  const isAdmin = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  if (isAdmin) {
+    document.getElementById('tab-assignments').style.display = '';
+    document.getElementById('btnManagePeriods').style.display = '';
+  }
+
+  loadStats();
+  loadApplications();
+  loadAppraisals();
+  if (isAdmin) loadAssignmentDropdowns();
+}
+
+function switchView(view) {
+  document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + view).classList.add('active');
+  document.getElementById('tab-' + view).classList.add('active');
+  if (view === 'appraisals') loadAppraisals();
+}
+
+// ── API helpers ────────────────────────────────────────────────────────────────
+function authHeaders() {
+  return { 'Authorization': `Bearer ${authToken}`, 'Content-Type': 'application/json' };
+}
+
+async function apiFetch(url, options = {}) {
+  const res = await fetch(url, { ...options, headers: authHeaders() });
+  if (res.status === 401) { doLogout(); throw new Error('Session expired'); }
+  return res;
+}
+
+// ── Stats ──────────────────────────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const res  = await apiFetch(`${API}/management/applications/counts`);
+    const data = await res.json();
+
+    document.getElementById('stat-total').textContent    = data.total        || 0;
+    document.getElementById('stat-new').textContent      = data.newApplication|| 0;
+    document.getElementById('stat-review').textContent   = data.underReview  || 0;
+    document.getElementById('stat-approved').textContent = data.approved      || 0;
+    document.getElementById('stat-rejected').textContent = data.rejected      || 0;
+
+    // Login screen stats
+    document.getElementById('loginStatTotal').textContent   = data.total         || 0;
+    document.getElementById('loginStatPending').textContent = data.newApplication || 0;
+  } catch (e) {
+    console.warn('Could not load stats:', e);
+  }
+}
+
+// ── Applications list ──────────────────────────────────────────────────────────
+async function loadApplications() {
+  const tbody = document.getElementById('appTableBody');
+  tbody.innerHTML = '<tr><td colspan="8"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>';
+
+  try {
+    let url = `${API}/management/applications?page=${currentPage}&size=${PAGE_SIZE}`;
+    if (currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
+
+    const res  = await apiFetch(url);
+    const data = await res.json();
+
+    allApps       = data.content || [];
+    totalPages    = data.totalPages || 0;
+    totalElements = data.totalElements || 0;
+
+    renderTable(allApps);
+    renderPagination();
+
+    document.getElementById('pageMetaText').textContent =
+      `${totalElements.toLocaleString()} application${totalElements !== 1 ? 's' : ''} found`;
+    document.getElementById('resultCount').textContent =
+      `${totalElements.toLocaleString()} record${totalElements !== 1 ? 's' : ''}`;
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="table-empty">⚠ Failed to load: ${err.message}</div></td></tr>`;
+  }
+}
+
+function renderTable(rows) {
+  const tbody = document.getElementById('appTableBody');
+
+  // Apply client-side search filter
+  const term = searchTerm.toLowerCase();
+  const filtered = term
+    ? rows.filter(r =>
+        (r.studentFullName || '').toLowerCase().includes(term) ||
+        (r.email || '').toLowerCase().includes(term) ||
+        (r.studentMobile || '').includes(term))
+    : rows;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8"><div class="table-empty">No applications found.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(app => `
+    <tr onclick="openApplication(${app.id})">
+      <td class="td-id">#${app.id}</td>
+      <td class="td-name">${esc(app.studentFullName)}</td>
+      <td>
+        <div class="td-email">${esc(app.email)}</div>
+        <div style="color:var(--text-muted);font-size:11px;margin-top:2px">${esc(app.studentMobile || '')}</div>
+      </td>
+      <td class="td-school">${esc(app.recentSchoolName || '—')}</td>
+      <td>${esc(app.targetCollege || '—')}</td>
+      <td><span class="status-badge ${statusClass(app.currentStatus)}">${fmtStatus(app.currentStatus)}</span></td>
+      <td class="td-date">${fmtDate(app.submittedAt)}</td>
+      <td style="white-space:nowrap;display:flex;gap:6px;align-items:center;">
+        <button class="btn-view" onclick="event.stopPropagation();openApplication(${app.id})">View →</button>
+      </td>
+    </tr>`).join('');
+}
+
+function renderPagination() {
+  const info = document.getElementById('pagInfo');
+  const btns = document.getElementById('pagBtns');
+
+  const from = totalElements === 0 ? 0 : currentPage * PAGE_SIZE + 1;
+  const to   = Math.min((currentPage + 1) * PAGE_SIZE, totalElements);
+  info.textContent = `Showing ${from}–${to} of ${totalElements.toLocaleString()}`;
+
+  let html = `<button class="pag-btn" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''}>← Prev</button>`;
+
+  // Show page buttons
+  const start = Math.max(0, currentPage - 2);
+  const end   = Math.min(totalPages - 1, currentPage + 2);
+  for (let i = start; i <= end; i++) {
+    html += `<button class="pag-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i+1}</button>`;
+  }
+  html += `<button class="pag-btn" onclick="goPage(${currentPage+1})" ${currentPage>=totalPages-1?'disabled':''}>Next →</button>`;
+  btns.innerHTML = html;
+}
+
+function goPage(p) {
+  if (p < 0 || p >= totalPages) return;
+  currentPage = p;
+  loadApplications();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Filters ────────────────────────────────────────────────────────────────────
+function filterByStatus(status) {
+  currentStatus = status;
+  currentPage = 0;
+  document.getElementById('statusFilter').value = status;
+  // Highlight active stat card
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  const cardMap = {
+    '':                 0,
+    'NEW_APPLICATION':  1,
+    'UNDER_REVIEW':     2,
+    'APPROVED':         3,
+    'REJECTED':         4,
+  };
+  const idx = cardMap[status];
+  if (idx !== undefined) {
+    const cards = document.querySelectorAll('.stat-card');
+    if (cards[idx]) cards[idx].classList.add('active');
+  }
+  loadApplications();
+}
+
+function onStatusFilterChange() {
+  currentStatus = document.getElementById('statusFilter').value;
+  currentPage = 0;
+  // Clear stat card highlights when using the dropdown
+  document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+  loadApplications();
+}
+
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    searchTerm = document.getElementById('searchInput').value.trim();
+    renderTable(allApps);
+  }, 250);
+}
+
+// ── Application detail modal ────────────────────────────────────────────────────
+async function openApplication(id) {
+  currentAppId = id;
+  document.getElementById('modalBackdrop').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Reset UI
+  switchTab('personal');
+  document.getElementById('modalStudentName').textContent = 'Loading…';
+  document.getElementById('modalIdBadge').textContent = '#' + id;
+  document.getElementById('transitionSelect').value = '';
+  document.getElementById('transitionRemarks').value = '';
+
+  try {
+    const res  = await apiFetch(`${API}/management/applications/${id}`);
+    const app  = await res.json();
+    populateModal(app);
+  } catch (err) {
+    showToast('Failed to load application: ' + err.message, 'error');
+    closeModal();
+  }
+}
+
+function populateModal(app) {
+  // Header
+  document.getElementById('modalStudentName').textContent = app.studentFullName || '—';
+  document.getElementById('modalEmail').textContent = app.email + ' · ' + (app.studentMobile || '');
+
+  // Current status from workflow
+  const wf = app.workflowHistory || [];
+  const status = wf.length ? wf[wf.length-1].toStatus : 'NEW_APPLICATION';
+  const badge = document.getElementById('modalStatusBadge');
+  badge.className = `status-badge ${statusClass(status)}`;
+  badge.textContent = fmtStatus(status);
+
+  // Personal
+  setGrid('dp-personal', [
+    ['Date of Birth',      fmtDate(app.dateOfBirth, true)],
+    ['Mobile',             app.studentMobile],
+    ['Alt Mobile',         app.altMobile || '—'],
+    ['Email',              app.email],
+    ['Alt Email',          app.altEmail || '—'],
+    ['Parent Address',     app.parentAddress],
+    ['Student Address',    app.studentAddress],
+    ['Recent School',      app.recentSchoolName],
+    ['Target College',     app.targetCollege],
+    ['Next Year College',  app.nextYearCollege],
+  ]);
+  setGrid('dp-declaration', [
+    ['Distress Reasons',        app.distressReasons || '—'],
+    ['Distress Detail',         app.distressDetail  || '—'],
+    ['Completeness Confirmed',  app.completenessConfirmed ? '✓ Yes' : '✗ No'],
+    ['Loan Agreement',          app.loanAgreementConfirmed ? '✓ Yes' : '✗ No'],
+    ['Parent Declaration',      app.parentDeclarationAgreed ? '✓ Yes' : '✗ No'],
+  ]);
+
+  // Academic
+  setGrid('dp-y1', [
+    ['Class', app.y1Class], ['Institution', app.y1College],
+    ['Performance', app.y1Performance], ['Remarks', app.y1Remarks],
+  ]);
+  setGrid('dp-y2', [
+    ['Class', app.y2Class], ['Institution', app.y2College],
+    ['Performance', app.y2Performance], ['Remarks', app.y2Remarks],
+  ]);
+  setGrid('dp-y3', [
+    ['Class', app.y3Class], ['Institution', app.y3College],
+    ['Performance', app.y3Performance], ['Remarks', app.y3Remarks],
+  ]);
+  setGrid('dp-career', [
+    ['Career Goal',       app.careerGoal],
+    ['Aptitude Test Done', app.aptitudeTestDone ? '✓ Yes' : 'No'],
+  ]);
+
+  // Entrance exam detail table
+  const EXAMS = [
+    { key: 'CET',          label: 'CET',          mr: 'सीईटी',          period: app.cetPeriod,         score: app.cetScore,         path: app.cetMarksheetPath },
+    { key: 'JEE_MAINS',    label: 'JEE Mains',    mr: 'जेईई मेन्स',     period: app.jeeMainsPeriod,    score: app.jeeMainsScore,    path: app.jeeMainsMarksheetPath },
+    { key: 'JEE_ADVANCED', label: 'JEE Advanced',  mr: 'जेईई अॅडव्हान्स्ड', period: app.jeeAdvancedPeriod, score: app.jeeAdvancedScore, path: app.jeeAdvancedMarksheetPath },
+    { key: 'NEET',         label: 'NEET',          mr: 'निट',            period: app.neetPeriod,        score: app.neetScore,        path: app.neetMarksheetPath },
+  ];
+  const appearedSet = new Set((app.entranceTests || '').split(',').map(s => s.trim()).filter(Boolean));
+  const isNone = appearedSet.has('NONE');
+
+  document.getElementById('entranceDetailBody').innerHTML = EXAMS.map(ex => {
+    const appeared = !isNone && appearedSet.has(ex.key);
+    const tick = appeared
+      ? '<span style="color:var(--green);font-weight:700">✓ Yes</span>'
+      : '<span style="color:var(--text-dim)">—</span>';
+    const period = appeared && ex.period ? esc(ex.period) : '<span style="color:var(--text-dim)">—</span>';
+    const score  = appeared && ex.score  ? esc(ex.score)  : '<span style="color:var(--text-dim)">—</span>';
+    const sheet  = appeared && ex.path
+      ? `<a href="/uploads/${esc(ex.path)}" target="_blank"
+            style="color:var(--accent2);font-size:12px;text-decoration:underline;">View ↗</a>`
+      : '<span style="color:var(--text-dim)">—</span>';
+    return `<tr>
+      <td>
+        <span style="font-weight:600;font-size:13px">${ex.label}</span>
+        <span style="display:block;font-size:11px;color:var(--text-muted)">${ex.mr}</span>
+      </td>
+      <td>${tick}</td>
+      <td>${period}</td>
+      <td>${score}</td>
+      <td>${sheet}</td>
+    </tr>`;
+  }).join('') + (isNone ? `<tr><td colspan="5" style="color:var(--text-muted);font-style:italic;font-size:13px">
+    Student did not appear for any entrance exam.</td></tr>` : '');
+
+  // Family
+  const famEl = document.getElementById('dp-family');
+  const members = app.familyMembers || [];
+  famEl.innerHTML = members.map((m, i) => `
+    <div class="detail-section">
+      <div class="detail-section-title">Member ${i+1} — ${esc(m.relation)}</div>
+      <div class="detail-grid">
+        ${dItem('Name', m.fullName)}${dItem('Age', m.age)}
+        ${dItem('Education', m.education)}${dItem('Profession', m.profession)}
+        ${dItem('Annual Income', m.annualIncome)}${dItem('Contact', m.contactNumber)}
+        ${dItem('Disability / Skills', m.disabilityOrSkill)}
+      </div>
+    </div>`).join('') || '<p style="color:var(--text-muted);font-size:13px">No family members recorded.</p>';
+
+  document.getElementById('dp-relative').innerHTML =
+    `<p style="font-size:13px;line-height:1.7;color:var(--text)">${esc(app.relativeSupportDetail || '—')}</p>`;
+
+  // Expenses
+  const expBody = document.getElementById('expenseBody');
+  const years = [
+    ['2025-26', 'expY1Class', 'expY1CollegeFee','expY1HostelFee','expY1MessFee','expY1PocketMoney','expY1FamilyContribution','expY1TotalFee','expY1NetRequirement'],
+    ['2026-27', 'expY2Class', 'expY2CollegeFee','expY2HostelFee','expY2MessFee','expY2PocketMoney','expY2FamilyContribution','expY2TotalFee','expY2NetRequirement'],
+    ['2027-28', 'expY3Class', 'expY3CollegeFee','expY3HostelFee','expY3MessFee','expY3PocketMoney','expY3FamilyContribution','expY3TotalFee','expY3NetRequirement'],
+  ];
+  expBody.innerHTML = years.map(([yr, cls, cf, hf, mf, pm, fc, tf, nf]) => `
+    <tr>
+      <td>${yr}</td>
+      <td>${esc(app[cls] || '—')}</td>
+      <td class="num">₹${fmt(app[cf])}</td>
+      <td class="num">₹${fmt(app[hf])}</td>
+      <td class="num">₹${fmt(app[mf])}</td>
+      <td class="num">₹${fmt(app[pm])}</td>
+      <td class="num">₹${fmt(app[fc])}</td>
+      <td class="num total">₹${fmt(app[tf])}</td>
+      <td class="num total">₹${fmt(app[nf])}</td>
+    </tr>`).join('');
+
+  // References
+  setGrid('dp-ref1', [
+    ['Name', app.ref1Name], ['Relation', app.ref1Relation],
+    ['Education', app.ref1Education], ['Contact', app.ref1Contact],
+    ['Address', app.ref1Address],
+  ]);
+  setGrid('dp-ref2', [
+    ['Name', app.ref2Name], ['Relation', app.ref2Relation],
+    ['Education', app.ref2Education], ['Contact', app.ref2Contact],
+    ['Address', app.ref2Address],
+  ]);
+
+  // Workflow timeline
+  const wfEl = document.getElementById('dp-workflow');
+  wfEl.innerHTML = wf.length ? wf.map((w, i) => `
+    <div class="workflow-item">
+      <div class="workflow-dot ${i===wf.length-1?'current':''}">
+        ${i<wf.length-1 ? '<div class="workflow-connector"></div>' : ''}
+      </div>
+      <div class="workflow-info">
+        <div class="workflow-status-line">
+          ${w.fromStatus ? `<span class="status-badge ${statusClass(w.fromStatus)}">${fmtStatus(w.fromStatus)}</span>
+          <span class="workflow-arrow">→</span>` : ''}
+          <span class="status-badge ${statusClass(w.toStatus)}">${fmtStatus(w.toStatus)}</span>
+        </div>
+        <div class="workflow-meta">${fmtDate(w.changedAt)} · by ${esc(w.changedBy || 'SYSTEM')}</div>
+        ${w.remarks ? `<div class="workflow-remarks">${esc(w.remarks)}</div>` : ''}
+      </div>
+    </div>`).join('')
+    : '<p style="font-size:13px;color:var(--text-muted)">No workflow history.</p>';
+}
+
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('open');
+  document.body.style.overflow = '';
+  currentAppId = null;
+}
+
+function onBackdropClick(e) {
+  if (e.target === document.getElementById('modalBackdrop')) closeModal();
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.modal-tab').forEach((t, i) => {
+    const names = ['personal','academic','family','expenses','references','workflow'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.modal-tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + name);
+  });
+}
+
+// ── Workflow transition ────────────────────────────────────────────────────────
+async function doTransition() {
+  const toStatus = document.getElementById('transitionSelect').value;
+  const remarks  = document.getElementById('transitionRemarks').value.trim();
+  if (!toStatus) { showToast('Please select a target status', 'error'); return; }
+
+  const btn = document.getElementById('btnTransition');
+  btn.disabled = true;
+  btn.textContent = 'Updating…';
+
+  try {
+    const res = await apiFetch(`${API}/management/applications/${currentAppId}/transition`, {
+      method: 'POST',
+      body: JSON.stringify({ toStatus, remarks })
+    });
+    if (!res.ok) throw new Error('Transition failed');
+
+    showToast(`Status updated to ${fmtStatus(toStatus)}`, 'success');
+    // Refresh the modal and the list
+    const detailRes = await apiFetch(`${API}/management/applications/${currentAppId}`);
+    populateModal(await detailRes.json());
+    loadApplications();
+    loadStats();
+    document.getElementById('transitionSelect').value = '';
+    document.getElementById('transitionRemarks').value = '';
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update Status';
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function statusClass(s) { return 's-' + (s || 'NEW_APPLICATION'); }
+
+function fmtStatus(s) {
+  return (s || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function fmtDate(d, dateOnly = false) {
+  if (!d) return '—';
+  try {
+    const dt = new Date(d);
+    if (dateOnly) return dt.toLocaleDateString('en-IN');
+    return dt.toLocaleDateString('en-IN') + ' ' + dt.toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+  } catch { return d; }
+}
+
+function fmt(n) {
+  if (n === null || n === undefined) return '—';
+  return Number(n).toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
+
+function esc(s) {
+  if (!s) return '—';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function dItem(label, value) {
+  return `<div class="detail-item">
+    <div class="detail-label">${label}</div>
+    <div class="detail-value">${esc(value)}</div>
+  </div>`;
+}
+
+function setGrid(elId, pairs) {
+  document.getElementById(elId).innerHTML = pairs.map(([l, v]) => dItem(l, v)).join('');
+}
+
+function showToast(msg, type = 'success') {
+  const el   = document.getElementById('toast');
+  const icon = document.getElementById('toastIcon');
+  const txt  = document.getElementById('toastMsg');
+  el.className = `toast ${type}`;
+  icon.textContent = type === 'success' ? '✓' : '⚠';
+  txt.textContent  = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PORTAL  (Student / Mentor landing + inline appraisal form)
+// ══════════════════════════════════════════════════════════════════════════════
+
+let pfCurrentAppraisal = null; // the appraisal object currently open in the form
+let pfRowCount = 0;
+
+// Default 12 evaluation factors (from GEF appraisal form, Excel rows A15–A26).
+// Used as a client-side fallback when the server returns an empty evaluationFactors list.
+const DEFAULT_EVAL_FACTORS = [
+  { name: 'Academic Performance',
+    desc: 'Improvements in the overall score; any specific areas that require more improvements; any specific strong areas that require leverage' },
+  { name: 'English Skills',
+    desc: 'How are spoken and written English skills?' },
+  { name: 'Professional Development',
+    desc: 'Having an understanding of the profession in which the mentee will enter. Reflected in real-life projects, co-curricular activities and professional society activities.' },
+  { name: 'Personality Development',
+    desc: 'Does he come across as a person with confidence and positivity? Reflected in extra-curricular activities. How are the expression and communication skills?' },
+  { name: 'Spirituality Development',
+    desc: 'It involves the realization that we are much beyond the body and the mind. Reflected in overall equanimity, calmness, gratitude, empathy, and sensitivity.' },
+  { name: 'Discipline',
+    desc: 'Following frameworks of GEF (monthly thinking exercise, stream meetings, accounts process, using money carefully) and academic institutions.' },
+  { name: 'Engagement with GEF',
+    desc: 'The student is engaged with GEF and acts as a good ambassador for GEF. Reflects in initiatives that the mentee takes.' },
+  { name: 'Networking',
+    desc: 'Is the student able to connect with new people by transcending barriers?' },
+  { name: 'Developing Knowledge',
+    desc: 'The efforts in terms of reading books or using different instruments such as YouTube, Podcasts, and writing their reviews.' },
+  { name: 'Physical Health',
+    desc: 'All the health parameters are good and there are no medical issues.' },
+  { name: 'Thinking Ability',
+    desc: 'Reflected in various ideas and their solutions.' },
+  { name: 'Teaming Ability',
+    desc: 'Can team with heterogeneous people.' },
+];
+
+// ── Show portal ───────────────────────────────────────────────────────────────
+function showPortal() {
+  document.getElementById('loginView').classList.remove('active');
+  document.getElementById('dashboardView').classList.remove('active');
+  document.getElementById('portalView').classList.add('active');
+
+  const name  = currentUser.fullName || currentUser.email;
+  const roles = currentUser.roles || [];
+
+  document.getElementById('portalUserName').textContent = name;
+  document.getElementById('portalAvatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  document.getElementById('portalUserRole').textContent = roles.join(', ');
+
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+
+  if (isStudent) {
+    document.getElementById('portalHeading').innerHTML = 'My <span>Appraisals</span>';
+    document.getElementById('portalSubheading').textContent =
+      'Select a period below to start or continue your appraisal';
+    // Load banner first so _myAppCurrentStatus is set before cards render
+    loadMyApplicationBanner().then(() => loadPortalAppraisals());
+  } else if (isLoc || isDom) {
+    document.getElementById('portalHeading').innerHTML = 'Assigned <span>Students</span>';
+    document.getElementById('portalSubheading').textContent =
+      'Students who have started their appraisal will appear here';
+    loadPortalAppraisals();
+  } else {
+    loadPortalAppraisals();
+  }
+}
+
+// ── Load appraisal cards ──────────────────────────────────────────────────────
+async function loadPortalAppraisals() {
+  const cards = document.getElementById('portalCards');
+  cards.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Loading…</div>';
+  closePortalForm();
+
+  const roles     = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+
+  try {
+    // Fetch existing appraisals for this user
+    const res  = await apiFetch(`${API}/appraisal`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json();
+
+    if (isStudent) {
+      // Also fetch active periods so we can show "Start" for periods with no appraisal yet
+      const pRes    = await apiFetch(`${API}/appraisal/periods`);
+      const periods = pRes.ok ? await pRes.json() : [];
+      renderPortalCards(list, periods);
+    } else {
+      renderPortalCards(list, []);
+    }
+  } catch(e) {
+    cards.innerHTML = `<div class="no-appraisals"><h3>Could not load appraisals</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function renderPortalCards(list, activePeriods) {
+  const cards     = document.getElementById('portalCards');
+  const roles     = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+
+  // For students, derive approval status from _myAppCurrentStatus
+  // (set by loadMyApplicationBanner before this function is called)
+  const isApproved = isStudent ? (_myAppCurrentStatus === 'APPROVED') : true;
+
+  let html = '';
+
+  if (isStudent) {
+    const existingByPeriod = {};
+    list.forEach(a => {
+      if (a.appraisalPeriod?.id) existingByPeriod[a.appraisalPeriod.id] = a;
+    });
+
+    if (!activePeriods.length && !list.length) {
+      cards.innerHTML = `<div class="no-appraisals">
+        <h3>No active appraisal periods</h3>
+        <p>Your mentor or administrator will open an appraisal period. Check back soon.</p>
+      </div>`;
+      return;
+    }
+
+    if (!isApproved) {
+      // Show locked message for every active period + any existing appraisals
+      const appStatus = _myAppCurrentStatus || 'NEW_APPLICATION';
+      activePeriods.forEach(p => {
+        html += `<div class="appraisal-card" style="--card-color:var(--border);">
+          <div class="card-period">${esc(p.periodLabel)}</div>
+          <div class="card-meta" style="margin-bottom:16px;">
+            ${fmtDate(p.periodFrom, true)} → ${fmtDate(p.periodTo, true)}
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+            🔒 Appraisals are available once your application is approved.
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:12px;color:var(--muted);">
+            Current status: <span class="status-badge ${statusClass(appStatus)}" style="font-size:11px;">${fmtStatus(appStatus)}</span>
+          </div>
+        </div>`;
+      });
+      // Still show any existing appraisals (read-only view) but without CTA
+      list.forEach(a => { html += buildAppraisalCard(a, isStudent, isLoc, isDom, false); });
+      cards.innerHTML = html || `<div class="no-appraisals"><h3>Nothing to show</h3></div>`;
+      return;
+    }
+
+    // Application is APPROVED — show full cards
+    activePeriods.forEach(p => {
+      const existing = existingByPeriod[p.id];
+      if (existing) {
+        html += buildAppraisalCard(existing, isStudent, isLoc, isDom, true);
+      } else {
+        html += `<div class="appraisal-card" style="--card-color:var(--accent);">
+          <div class="card-period">${esc(p.periodLabel)}</div>
+          <div class="card-meta" style="margin-bottom:16px;">
+            ${fmtDate(p.periodFrom, true)} → ${fmtDate(p.periodTo, true)}
+          </div>
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+            You have not started your appraisal for this period yet.
+          </div>
+          <button class="card-cta" onclick="startAppraisal(${p.id})">
+            ▶ Start My Appraisal
+          </button>
+        </div>`;
+      }
+    });
+    list.filter(a => !activePeriods.find(p => p.id === a.appraisalPeriod?.id))
+        .forEach(a => { html += buildAppraisalCard(a, isStudent, isLoc, isDom, true); });
+
+  } else {
+    if (!list.length) {
+      cards.innerHTML = `<div class="no-appraisals">
+        <h3>No appraisals yet</h3>
+        <p>Your assigned students have not started their appraisals yet. They will appear here once a student begins.</p>
+      </div>`;
+      return;
+    }
+    list.forEach(a => { html += buildAppraisalCard(a, isStudent, isLoc, isDom, true); });
+  }
+
+  cards.innerHTML = html || `<div class="no-appraisals"><h3>Nothing to show</h3></div>`;
+}
+
+function buildAppraisalCard(a, isStudent, isLoc, isDom, canAct) {
+  const stuDone = !!a.studentSubmittedAt;
+  const locDone = !!a.locationMentorSubmittedAt;
+  const domDone = !!a.domainMentorSubmittedAt;
+  const period  = a.appraisalPeriod?.periodLabel || 'Appraisal';
+  const student = a.studentUser?.fullName || a.studentUser?.email || '—';
+
+  let ctaLabel, ctaClass, myDone, canOpen;
+
+  if (isStudent) {
+    myDone   = stuDone;
+    canOpen  = canAct;
+    ctaLabel = stuDone ? '✓ View / Update Appraisal' : '▶ Start / Update Appraisal';
+    ctaClass = stuDone ? 'card-cta card-cta-secondary' : 'card-cta';
+  } else if (isLoc) {
+    myDone  = locDone;
+    canOpen = stuDone;
+    if (!stuDone) {
+      ctaLabel = '⏳ Waiting for student to submit first';
+      ctaClass = 'card-cta card-cta-secondary';
+    } else {
+      ctaLabel = locDone ? '✓ Submitted — View / Edit' : '▶ Add My Review';
+      ctaClass = locDone ? 'card-cta card-cta-secondary' : 'card-cta';
+    }
+  } else {
+    myDone  = domDone;
+    canOpen = stuDone;
+    if (!stuDone) {
+      ctaLabel = '⏳ Waiting for student to submit first';
+      ctaClass = 'card-cta card-cta-secondary';
+    } else {
+      ctaLabel = domDone ? '✓ Submitted — View / Edit' : '▶ Add My Review';
+      ctaClass = domDone ? 'card-cta card-cta-secondary' : 'card-cta';
+    }
+  }
+
+  const cardColor = myDone ? 'var(--green)' : stuDone ? 'var(--accent)' : 'var(--border-light)';
+
+  return `<div class="appraisal-card" style="--card-color:${cardColor}">
+    <div class="card-period">${esc(period)}</div>
+    ${!isStudent ? `<div class="card-student-name">${esc(student)}</div>` : ''}
+    <div class="card-meta">
+      ${!isStudent ? `<span style="color:var(--muted);">${esc(a.studentUser?.email || '')}</span><br>` : ''}
+      Loc: ${esc(a.locationMentorUser?.fullName || '—')} &nbsp;|&nbsp; Dom: ${esc(a.domainMentorUser?.fullName || '—')}
+    </div>
+    <div class="card-progress">
+      <span class="card-prog-item ${stuDone ? 'cp-done' : 'cp-pending'}">${stuDone ? '✓' : '○'} Student</span>
+      <span class="card-prog-item ${locDone ? 'cp-done' : 'cp-pending'}">${locDone ? '✓' : '○'} Location Mentor</span>
+      <span class="card-prog-item ${domDone ? 'cp-done' : 'cp-pending'}">${domDone ? '✓' : '○'} Domain Mentor</span>
+    </div>
+    <button class="${ctaClass}" onclick="${canOpen ? `openPortalForm(${a.id})` : ''}"
+      ${!canOpen ? 'disabled style="opacity:.5;cursor:not-allowed;"' : ''}>${ctaLabel}</button>
+  </div>`;
+}
+
+// ── Open inline appraisal form ────────────────────────────────────────────────
+async function openPortalForm(appraisalId) {
+  document.getElementById('portalAppraisalList').style.display = 'none';
+  document.getElementById('portalFormWrap').style.display = 'block';
+  document.getElementById('pf-submitInfo').textContent = 'Loading…';
+
+  try {
+    const res = await apiFetch(`${API}/appraisal/${appraisalId}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    pfCurrentAppraisal = await res.json();
+    pfPopulateForm(pfCurrentAppraisal);
+  } catch(e) {
+    showToast('Failed to load appraisal: ' + e.message, 'error');
+    closePortalForm();
+  }
+}
+
+function closePortalForm() {
+  document.getElementById('portalAppraisalList').style.display = '';
+  document.getElementById('portalFormWrap').style.display = 'none';
+  pfCurrentAppraisal = null;
+  pfRowCount = 0;
+}
+
+// ── Populate form from appraisal data ─────────────────────────────────────────
+function pfPopulateForm(a) {
+  const roles     = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+
+  // Header
+  document.getElementById('pfStudentName').textContent =
+    a.studentUser?.fullName || a.studentUser?.email || '—';
+  document.getElementById('pfPeriod').textContent =
+    (a.appraisalPeriod?.periodLabel || '—') + ' · ' +
+    'Loc: ' + (a.locationMentorUser?.fullName || '—') + ' · ' +
+    'Dom: ' + (a.domainMentorUser?.fullName || '—');
+
+  // Submission stamps
+  const stamps = [];
+  if (a.studentSubmittedAt)
+    stamps.push(`<span class="submitted-stamp">✓ Student ${fmtDate(a.studentSubmittedAt)}</span>`);
+  if (a.locationMentorSubmittedAt)
+    stamps.push(`<span class="submitted-stamp">✓ Loc Mentor ${fmtDate(a.locationMentorSubmittedAt)}</span>`);
+  if (a.domainMentorSubmittedAt)
+    stamps.push(`<span class="submitted-stamp">✓ Dom Mentor ${fmtDate(a.domainMentorSubmittedAt)}</span>`);
+  document.getElementById('pfSubmitStamps').innerHTML = stamps.join(' ');
+
+  // Header fields — student edits, others read-only
+  const stuRO = !isStudent;
+  pfSet('pf-cgpaLast',  a.cgpaLastSemester,  stuRO);
+  pfSet('pf-cgpaToday', a.cgpaToday,          stuRO);
+  pfSet('pf-domicile',  a.domicileAddress,    stuRO);
+  pfSet('pf-current',   a.currentAddress,     stuRO);
+  document.getElementById('pf-btnAddRow').style.display = isStudent ? '' : 'none';
+
+  // Academic records
+  pfRowCount = 0;
+  document.getElementById('pf-academicBody').innerHTML = '';
+  const records = a.academicRecords || [];
+  if (!records.length && isStudent) {
+    for (let i = 0; i < 8; i++) pfAddRow({}, !isStudent);
+  } else {
+    records.forEach(r => pfAddRow(r, !isStudent));
+  }
+  pfSet('pf-sgpa', records[0]?.sgpa || '', !isStudent);
+  pfSet('pf-cgpa', a.cgpaToday || '', !isStudent);
+
+  // Evaluation factors — 7 columns: Factor | Desc | Self Rating | Self Rationale |
+  //   Loc Mentor Rating | Loc Mentor Rationale | Dom Mentor Rating | Dom Mentor Rationale
+  const efBody = document.getElementById('pf-evalBody');
+  efBody.innerHTML = '';
+
+  // Debug: log what came back from the server
+  console.log('[GEF] pfPopulateForm appraisal id=' + a.id +
+    ' evaluationFactors count=' + (a.evaluationFactors || []).length);
+
+  // If the server returned no factors (e.g. old appraisal before migration,
+  // or @PostLoad not yet in effect), seed with the 12 default factors client-side
+  const factors = (a.evaluationFactors && a.evaluationFactors.length > 0)
+    ? a.evaluationFactors
+    : DEFAULT_EVAL_FACTORS.map((f, i) => ({
+        factorName: f.name, description: f.desc,
+        selfRating: null, selfRationale: '',
+        locationMentorRating: null, locationMentorRationale: '',
+        domainMentorRating:   null, domainMentorRationale:   '',
+      }));
+
+  factors.forEach((f, i) => {
+    const selfRO   = !isStudent;
+    const locRO    = !isLoc;
+    const domRO    = !isDom;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="factor-name">${esc(f.factorName)}</div></td>
+      <td><div class="factor-desc">${esc(f.description || '')}</div></td>
+      <td class="col-student">
+        <input type="number" class="rating-input" id="pf-sr-${i}" min="1" max="5" step="0.5"
+          value="${f.selfRating || ''}" placeholder="1–5" ${selfRO ? 'disabled' : ''} />
+      </td>
+      <td class="col-student">
+        <textarea class="rationale-input" id="pf-srat-${i}" ${selfRO ? 'disabled' : ''}
+          placeholder="Your rationale…">${esc(f.selfRationale || '')}</textarea>
+      </td>
+      <td class="col-mentor">
+        <input type="number" class="rating-input" id="pf-lmr-${i}" min="1" max="5" step="0.5"
+          value="${f.locationMentorRating || ''}" placeholder="1–5" ${locRO ? 'disabled' : ''} />
+      </td>
+      <td class="col-mentor">
+        <textarea class="rationale-input" id="pf-lmrat-${i}" ${locRO ? 'disabled' : ''}
+          placeholder="Location mentor rationale…">${esc(f.locationMentorRationale || '')}</textarea>
+      </td>
+      <td class="col-domain">
+        <input type="number" class="rating-input" id="pf-dmr-${i}" min="1" max="5" step="0.5"
+          value="${f.domainMentorRating || ''}" placeholder="1–5" ${domRO ? 'disabled' : ''} />
+      </td>
+      <td class="col-domain">
+        <textarea class="rationale-input" id="pf-dmrat-${i}" ${domRO ? 'disabled' : ''}
+          placeholder="Domain mentor rationale…">${esc(f.domainMentorRationale || '')}</textarea>
+      </td>`;
+    efBody.appendChild(tr);
+  });
+
+  // Comments — each role edits their own, reads others
+  pfSetTA('pf-studentComments', a.studentComments,       !isStudent);
+  pfSetTA('pf-locComments',     a.locationMentorComments, !isLoc);
+  pfSetTA('pf-domComments',     a.domainMentorComments,   !isDom);
+
+  // Action plan fields
+  const ap = a.actionPlan || {};
+  pfSetTA('pf-facSelf',  ap.facilitatingSelf,    !isStudent);
+  pfSetTA('pf-facEnv',   ap.facilitatingEnv,     !isStudent);
+  pfSetTA('pf-inhSelf',  ap.inhibitingSelf,       !isStudent);
+  pfSetTA('pf-inhEnv',   ap.inhibitingEnv,        !isStudent);
+  pfSetTA('pf-support',  ap.supportRequiredAppraisee, !isStudent);
+  pfSetTA('pf-acCurricular',  ap.actionCurricular,      !isStudent);
+  pfSetTA('pf-acCo',          ap.actionCocurricular,     !isStudent);
+  pfSetTA('pf-acExtra',       ap.actionExtracurricular,  !isStudent);
+  pfSetTA('pf-acReading',     ap.actionReading,          !isStudent);
+  pfSetTA('pf-acNetworking',  ap.actionNetworking,       !isStudent);
+  pfSetTA('pf-locFactors',    ap.locationMentorFactorComments,  !isLoc);
+  pfSetTA('pf-locSupport',    ap.locationMentorSupportComments, !isLoc);
+  pfSetTA('pf-domFactors',    ap.domainMentorFactorComments,    !isDom);
+  pfSetTA('pf-domSupport',    ap.domainMentorSupportComments,   !isDom);
+  pfSetTA('pf-centralComments', ap.centralTeamComments, true); // admin-only
+
+  // Submit button label
+  const mySubmitted = (isStudent && a.studentSubmittedAt) ||
+                      (isLoc && a.locationMentorSubmittedAt) ||
+                      (isDom && a.domainMentorSubmittedAt);
+  document.getElementById('pf-btnSubmit').textContent =
+    mySubmitted ? '✓ Update Appraisal' : 'Start / Update Appraisal ✓';
+  document.getElementById('pf-submitInfo').textContent =
+    mySubmitted ? 'You have already submitted. You can update and re-submit.' : 'Fill your section then submit.';
+
+  pfSwitchTab('academic');
+}
+
+// ── Academic row helpers ──────────────────────────────────────────────────────
+function pfAddRow(data = {}, readOnly = false) {
+  pfRowCount++;
+  const d = readOnly ? 'disabled' : '';
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td style="color:var(--muted);text-align:center;">${pfRowCount}</td>
+    <td><input type="text"   data-row="${pfRowCount}" data-field="courseName"
+         class="academic-inp" value="${esc(data.courseName||'')}" placeholder="Course name" ${d} /></td>
+    <td><input type="number" data-row="${pfRowCount}" data-field="ise1Marks"
+         class="academic-inp" value="${data.ise1Marks||''}" placeholder="—" ${d} /></td>
+    <td><input type="number" data-row="${pfRowCount}" data-field="ise2Marks"
+         class="academic-inp" value="${data.ise2Marks||''}" placeholder="—" ${d} /></td>
+    <td><input type="number" data-row="${pfRowCount}" data-field="eseMarks"
+         class="academic-inp" value="${data.eseMarks||''}" placeholder="—" ${d} /></td>
+    <td><input type="text"   data-row="${pfRowCount}" data-field="grade"
+         class="academic-inp" value="${esc(data.grade||'')}" placeholder="—" ${d} /></td>`;
+  document.getElementById('pf-academicBody').appendChild(tr);
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+function pfSwitchTab(name) {
+  ['academic','evaluation','comments','actionplan'].forEach(t => {
+    document.getElementById('pft-' + t)?.classList.toggle('active', t === name);
+    document.getElementById('pfp-' + t)?.classList.toggle('active', t === name);
+  });
+}
+
+// ── Save / Submit ─────────────────────────────────────────────────────────────
+async function pfSave(isSubmit) {
+  if (!pfCurrentAppraisal) return;
+  const roles = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+
+  const btn = document.getElementById('pf-btnSubmit');
+  btn.disabled = true;
+  btn.textContent = isSubmit ? 'Submitting…' : 'Saving…';
+
+  // ── Validate numeric ranges before sending ──────────────────────────────────
+  const numErrors = [];
+  const checkRange = (id, label, min, max) => {
+    const v = pfNum(document.getElementById(id)?.value);
+    if (v !== null && (v < min || v > max))
+      numErrors.push(`${label} must be between ${min} and ${max} (got ${v})`);
+  };
+  checkRange('pf-cgpaLast',  'CGPA Last Semester', 0, 10);
+  checkRange('pf-cgpaToday', 'CGPA Today',          0, 10);
+  checkRange('pf-sgpa',      'SGPA',                0, 10);
+  checkRange('pf-cgpa',      'CGPA',                0, 10);
+  // Rating fields — use same factor list as pfPopulateForm (falls back to DEFAULT_EVAL_FACTORS)
+  const resolvedFactors = (pfCurrentAppraisal.evaluationFactors && pfCurrentAppraisal.evaluationFactors.length > 0)
+    ? pfCurrentAppraisal.evaluationFactors
+    : DEFAULT_EVAL_FACTORS.map(f => ({ factorName: f.name }));
+
+  resolvedFactors.forEach((f, i) => {
+    const srEl  = document.getElementById('pf-sr-' + i);
+    const lmrEl = document.getElementById('pf-lmr-' + i);
+    const dmrEl = document.getElementById('pf-dmr-' + i);
+    if (srEl  && srEl.value)  checkRange('pf-sr-'  + i, `"${f.factorName}" Self Rating`,            1, 5);
+    if (lmrEl && lmrEl.value) checkRange('pf-lmr-' + i, `"${f.factorName}" Location Mentor Rating`, 1, 5);
+    if (dmrEl && dmrEl.value) checkRange('pf-dmr-' + i, `"${f.factorName}" Domain Mentor Rating`,   1, 5);
+  });
+  if (numErrors.length) {
+    showToast('Please fix: ' + numErrors[0], 'error');
+    btn.disabled = false;
+    btn.textContent = 'Start / Update Appraisal ✓';
+    return;
+  }
+
+  // Collect academic records
+  const rows = document.querySelectorAll('#pf-academicBody tr');
+  const academicRecords = [...rows].map((tr, i) => ({
+    subjectNo:  i + 1,
+    courseName: tr.querySelector('[data-field="courseName"]')?.value || '',
+    ise1Marks:  pfNum(tr.querySelector('[data-field="ise1Marks"]')?.value),
+    ise2Marks:  pfNum(tr.querySelector('[data-field="ise2Marks"]')?.value),
+    eseMarks:   pfNum(tr.querySelector('[data-field="eseMarks"]')?.value),
+    grade:      tr.querySelector('[data-field="grade"]')?.value || '',
+  })).filter(r => r.courseName);
+
+  // Collect evaluation factors — each with all 6 columns, service merges by role
+  const factors = resolvedFactors.map((f, i) => ({
+    factorName:              f.factorName,
+    selfRating:              pfNum(document.getElementById('pf-sr-' + i)?.value),
+    selfRationale:           document.getElementById('pf-srat-' + i)?.value || '',
+    locationMentorRating:    pfNum(document.getElementById('pf-lmr-' + i)?.value),
+    locationMentorRationale: document.getElementById('pf-lmrat-' + i)?.value || '',
+    domainMentorRating:      pfNum(document.getElementById('pf-dmr-' + i)?.value),
+    domainMentorRationale:   document.getElementById('pf-dmrat-' + i)?.value || '',
+  }));
+
+  const dto = {
+    cgpaLastSemester: pfNum(document.getElementById('pf-cgpaLast').value),
+    cgpaToday:        pfNum(document.getElementById('pf-cgpaToday').value),
+    domicileAddress:  document.getElementById('pf-domicile').value,
+    currentAddress:   document.getElementById('pf-current').value,
+    academicRecords,
+    evaluationFactors: factors,
+    studentComments:        document.getElementById('pf-studentComments').value,
+    locationMentorComments: document.getElementById('pf-locComments').value,
+    domainMentorComments:   document.getElementById('pf-domComments').value,
+    actionPlan: {
+      facilitatingSelf:             document.getElementById('pf-facSelf').value,
+      facilitatingEnv:              document.getElementById('pf-facEnv').value,
+      inhibitingSelf:               document.getElementById('pf-inhSelf').value,
+      inhibitingEnv:                document.getElementById('pf-inhEnv').value,
+      supportRequiredAppraisee:     document.getElementById('pf-support').value,
+      locationMentorFactorComments: document.getElementById('pf-locFactors').value,
+      locationMentorSupportComments:document.getElementById('pf-locSupport').value,
+      domainMentorFactorComments:   document.getElementById('pf-domFactors').value,
+      domainMentorSupportComments:  document.getElementById('pf-domSupport').value,
+      actionCurricular:             document.getElementById('pf-acCurricular').value,
+      actionCocurricular:           document.getElementById('pf-acCo').value,
+      actionExtracurricular:        document.getElementById('pf-acExtra').value,
+      actionReading:                document.getElementById('pf-acReading').value,
+      actionNetworking:             document.getElementById('pf-acNetworking').value,
+    },
+  };
+
+  let endpoint;
+  if (isStudent)      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
+  else if (isLoc)     endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/location-mentor`;
+  else                endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+
+  try {
+    const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    pfCurrentAppraisal = await res.json();
+    pfPopulateForm(pfCurrentAppraisal);
+    showToast(isSubmit ? 'Section submitted successfully!' : 'Draft saved', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Start / Update Appraisal ✓';
+  }
+}
+
+// ── Tiny helpers ──────────────────────────────────────────────────────────────
+function pfSet(id, val, readOnly) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value    = val ?? '';
+  el.disabled = !!readOnly;
+}
+function pfSetTA(id, val, readOnly) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.value    = val ?? '';
+  el.disabled = !!readOnly;
+}
+function pfNum(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(v);
+  return isNaN(n) ? null : n;
+}
+
+// ── Appraisal list (admin dashboard panel) ────────────────────────────────────
+async function loadAppraisals() {
+  const tbody = document.getElementById('appraisalTableBody');
+  tbody.innerHTML = '<tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>';
+  try {
+    const res  = await apiFetch(`${API}/appraisal`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json();
+    renderAppraisalTable(list);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--text-muted);padding:40px;">⚠ ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderAppraisalTable(list) {
+  const tbody = document.getElementById('appraisalTableBody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="table-empty">No appraisals found.</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(a => {
+    const stuDone  = !!a.studentSubmittedAt;
+    const locDone  = !!a.locationMentorSubmittedAt;
+    const domDone  = !!a.domainMentorSubmittedAt;
+    const allDone  = stuDone && locDone && domDone;
+    const anyDone  = stuDone || locDone || domDone;
+    const statusCls = allDone ? 'ars-complete' : anyDone ? 'ars-partial' : 'ars-pending';
+    const statusTxt = allDone ? 'Complete' : anyDone ? 'In Progress' : 'Pending';
+    const tick = v => v
+      ? `<span style="color:var(--green);font-weight:700">✓</span>`
+      : `<span style="color:var(--text-dim)">—</span>`;
+    return `<tr onclick="openAppraisalForm(${a.id})">
+      <td class="td-id">#${a.id}</td>
+      <td class="td-name">${esc(a.studentUser?.fullName || a.studentUser?.email || '—')}</td>
+      <td>${esc(a.appraisalPeriod?.periodLabel || '—')}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${esc(a.locationMentorUser?.fullName || '—')}</td>
+      <td style="font-size:12px;color:var(--text-muted)">${esc(a.domainMentorUser?.fullName || '—')}</td>
+      <td style="text-align:center">${tick(stuDone)}</td>
+      <td style="text-align:center">${tick(locDone)}</td>
+      <td style="text-align:center">${tick(domDone)}</td>
+      <td class="td-date">${fmtDate(a.createdAt)}</td>
+      <td>
+        <span class="status-badge ${statusCls}" style="font-size:11px;">${statusTxt}</span>
+        <button class="btn-view" style="margin-left:6px;" onclick="event.stopPropagation();openAppraisalForm(${a.id})">Open →</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAppraisalForm(appraisalId) {
+  // Switch to the portal view and open the inline appraisal form.
+  // Works for all roles — the form shows role-appropriate editable fields.
+  const roles = currentUser.roles || [];
+  const isPortalRole = roles.some(r =>
+    ['STUDENT','LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
+
+  if (isPortalRole) {
+    // Already in portal view — just open the form
+    showPortal();
+    // Give the portal a moment to render, then open the form
+    setTimeout(() => openPortalForm(appraisalId), 100);
+  } else {
+    // Admin/Evaluator — switch to portal view temporarily to show the form
+    document.getElementById('dashboardView').classList.remove('active');
+    document.getElementById('portalView').classList.add('active');
+    // Populate minimal nav info so the view renders correctly
+    const name = currentUser.fullName || currentUser.email;
+    document.getElementById('portalUserName').textContent = name;
+    document.getElementById('portalAvatar').textContent =
+      name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    document.getElementById('portalUserRole').textContent =
+      (currentUser.roles || []).join(', ');
+    // Override back button to return to dashboard
+    const backBtn = document.querySelector('.btn-back-portal');
+    if (backBtn) {
+      backBtn.textContent = '← Back to Dashboard';
+      backBtn.onclick = () => {
+        closePortalForm();
+        document.getElementById('portalView').classList.remove('active');
+        document.getElementById('dashboardView').classList.add('active');
+        backBtn.textContent = '← Back to list';
+        backBtn.onclick = closePortalForm;
+      };
+    }
+    openPortalForm(appraisalId);
+  }
+}
+
+// ── Create appraisal modal (student portal — period picker only) ──────────────
+async function openCreateAppraisalModal() {
+  await loadPeriodsIntoSelect('camPeriodSelect');
+  document.getElementById('createAppraisalModal').classList.add('open');
+}
+
+function closeCreateAppraisalModal() {
+  document.getElementById('createAppraisalModal').classList.remove('open');
+}
+
+async function loadPeriodsIntoSelect(selectId) {
+  try {
+    const res  = await apiFetch(`${API}/appraisal/periods`);
+    const list = await res.json();
+    const sel  = document.getElementById(selectId);
+    if (!list.length) {
+      sel.innerHTML = '<option value="">No active periods yet — ask your admin to create one</option>';
+      return;
+    }
+    sel.innerHTML = list.map(p =>
+      `<option value="${p.id}">${esc(p.periodLabel)}</option>`).join('');
+  } catch(e) {
+    document.getElementById(selectId).innerHTML = '<option value="">Error loading periods</option>';
+  }
+}
+
+async function doCreateAppraisal() {
+  const periodId = parseInt(document.getElementById('camPeriodSelect').value);
+  if (!periodId) { showToast('Please select an appraisal period', 'error'); return; }
+
+  // Final guard — application must be APPROVED
+  if (_myAppCurrentStatus !== 'APPROVED') {
+    closeCreateAppraisalModal();
+    showToast('Your application must be APPROVED before you can start an appraisal.', 'error');
+    return;
+  }
+
+  const btn = document.querySelector('#createAppraisalModal .btn-create');
+  if (btn) { btn.disabled = true; btn.textContent = 'Starting…'; }
+
+  try {
+    // Student self-creates — backend resolves their own application automatically
+    const res = await apiFetch(`${API}/appraisal`, {
+      method: 'POST',
+      body:   JSON.stringify({ appraisalPeriodId: periodId }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    const created = await res.json();
+    closeCreateAppraisalModal();
+    showToast('Appraisal started!', 'success');
+    // Refresh portal cards then open the form
+    await loadPortalAppraisals();
+    openPortalForm(created.id);
+  } catch(e) {
+    showToast('Failed: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Start →'; }
+  }
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// MENTOR ASSIGNMENTS
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Mentor and application lists for the assignment dropdowns
+let _mentorUsers = [];
+
+async function loadAssignmentDropdowns() {
+  // Load approved applications into assignAppSelect
+  try {
+    const res  = await apiFetch(`${API}/management/applications?size=200&status=APPROVED`);
+    const data = await res.json();
+    const apps = data.content || [];
+    const sel  = document.getElementById('assignAppSelect');
+    sel.innerHTML = `<option value="">Select application…</option>` +
+      apps.map(a => `<option value="${a.id}" data-email="${a.email}">${esc(a.studentFullName)} (#${a.id})</option>`).join('');
+  } catch(e) { /* non-critical */ }
+
+  // Load mentor users — all active platform users with LOCATION_MENTOR or DOMAIN_MENTOR roles
+  // We use the management user list endpoint (admin-only)
+  try {
+    const res   = await apiFetch(`${API}/management/users`);
+    if (res.ok) {
+      _mentorUsers = await res.json();
+      renderMentorSelect();
+    }
+  } catch(e) {
+    // Fallback: populate with known mentors from localStorage or leave empty
+  }
+}
+
+function renderMentorSelect() {
+  const sel = document.getElementById('assignMentorSelect');
+  const mentors = _mentorUsers.filter(u => {
+    const roleNames = (u.roles || []).map(r =>
+      typeof r === 'string' ? r : r.roleName);
+    return roleNames.some(rn => rn === 'LOCATION_MENTOR' || rn === 'DOMAIN_MENTOR');
+  });
+  sel.innerHTML = `<option value="">Select mentor…</option>` +
+    mentors.map(u => {
+      const roleNames = (u.roles || []).map(r =>
+        typeof r === 'string' ? r : r.roleName).join(', ');
+      return `<option value="${u.id}">${esc(u.fullName || u.email)} (${roleNames})</option>`;
+    }).join('');
+  if (!mentors.length) {
+    sel.innerHTML = '<option value="">No mentors found — check user roles</option>';
+  }
+}
+
+async function loadAssignmentsForApp() {
+  const appId = document.getElementById('assignAppSelect').value;
+  const tbody = document.getElementById('assignmentTableBody');
+  if (!appId) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:20px;">Select an application above</td></tr>';
+    return;
+  }
+  try {
+    const res  = await apiFetch(`${API}/appraisal/mappings/by-application/${appId}`);
+    const maps = await res.json();
+    const appName = document.getElementById('assignAppSelect').selectedOptions[0]?.text || '';
+    renderAssignmentTable(maps, appName);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:20px;">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderAssignmentTable(mappings, appLabel) {
+  const tbody = document.getElementById('assignmentTableBody');
+  if (!mappings.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--text-muted);text-align:center;padding:20px;">No mentors assigned to ${esc(appLabel)} yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = mappings.map(m => `
+    <tr>
+      <td>${esc(m.studentUser?.fullName || m.studentUser?.email || '—')}</td>
+      <td class="td-id">#${m.application?.id || '—'}</td>
+      <td>${esc(m.mentorUser?.fullName || m.mentorUser?.email || '—')}</td>
+      <td><span class="status-badge ${m.mentorRole === 'LOCATION_MENTOR' ? 's-UNDER_REVIEW' : 's-APPROVED'}" style="font-size:11px;">
+        ${m.mentorRole === 'LOCATION_MENTOR' ? 'Location Mentor' : 'Domain Mentor'}
+      </span></td>
+      <td class="td-date">${fmtDate(m.assignedAt)}</td>
+    </tr>`).join('');
+}
+
+async function doAssignMentor() {
+  const appId     = parseInt(document.getElementById('assignAppSelect').value);
+  const mentorId  = parseInt(document.getElementById('assignMentorSelect').value);
+  const mentorRole = document.getElementById('assignMentorRole').value;
+
+  if (!appId || !mentorId) {
+    showToast('Please select both an application and a mentor', 'error');
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`${API}/appraisal/assign-mentor`, {
+      method: 'POST',
+      body: JSON.stringify({ applicationId: appId, mentorUserId: mentorId, mentorRole }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    showToast('Mentor assigned successfully!', 'success');
+    loadAssignmentsForApp();
+  } catch(e) {
+    showToast('Failed to assign: ' + e.message, 'error');
+  }
+}
+// ── Student: application status banner ───────────────────────────────────────
+let _myAppCurrentStatus = ''; // stored here so renderPortalCards can read it
+
+async function loadMyApplicationBanner() {
+  const banner = document.getElementById('myApplicationBanner');
+  banner.style.display = 'block';
+  try {
+    const res = await apiFetch(`${API}/application/my`);
+    if (!res.ok) { banner.style.display = 'none'; return; }
+    const app = await res.json();
+    document.getElementById('myAppName').textContent = app.studentFullName || '—';
+    // Derive current status from latest workflow entry
+    const wf     = app.workflowHistory || [];
+    const status  = wf.length ? wf[wf.length - 1].toStatus : 'NEW_APPLICATION';
+    _myAppCurrentStatus = status; // store for renderPortalCards
+    document.getElementById('myAppStatus').innerHTML =
+      `App #${app.id} &nbsp;·&nbsp; ` +
+      `<span class="status-badge ${statusClass(status)}" style="font-size:11px;">${fmtStatus(status)}</span>`;
+  } catch(e) {
+    banner.style.display = 'none';
+  }
+}
+
+function openMyApplication() {
+  document.getElementById('portalAppraisalList').style.display = 'none';
+  document.getElementById('portalFormWrap').style.display      = 'none';
+  document.getElementById('portalAppWrap').style.display       = 'block';
+
+  const content = document.getElementById('appViewContent');
+  content.innerHTML = '<div style="color:var(--muted);padding:40px;text-align:center;"><div class="spinner" style="margin:0 auto 12px;"></div>Loading…</div>';
+
+  apiFetch(`${API}/application/my`)
+    .then(r => r.json())
+    .then(app => {
+      // Derive current status
+      const wf     = app.workflowHistory || [];
+      const status = wf.length ? wf[wf.length - 1].toStatus : 'NEW_APPLICATION';
+      document.getElementById('appViewStatus').innerHTML =
+        `App #${app.id} &nbsp;·&nbsp; <span class="status-badge ${statusClass(status)}" style="font-size:11px;">${fmtStatus(status)}</span>`;
+
+      content.innerHTML = `
+        <div class="section-card" style="margin-bottom:16px;">
+          <div class="section-header"><div class="section-title">Personal Information</div></div>
+          <div class="section-body">
+            <div class="detail-grid">
+              ${dItem('Full Name',       app.studentFullName)}
+              ${dItem('Date of Birth',   fmtDate(app.dateOfBirth, true))}
+              ${dItem('Mobile',          app.studentMobile)}
+              ${dItem('Email',           app.email)}
+              ${dItem('Alt Mobile',      app.altMobile  || '—')}
+              ${dItem('Alt Email',       app.altEmail   || '—')}
+              ${dItem('Parent Address',  app.parentAddress)}
+              ${dItem('Student Address', app.studentAddress)}
+              ${dItem('Recent School',   app.recentSchoolName)}
+              ${dItem('Target College',  app.targetCollege)}
+              ${dItem('Next Year College', app.nextYearCollege || '—')}
+            </div>
+          </div>
+        </div>
+        <div class="section-card" style="margin-bottom:16px;">
+          <div class="section-header"><div class="section-title">Academic</div></div>
+          <div class="section-body">
+            <div class="detail-grid">
+              ${dItem('Most Recent Class',     app.y1Class)}
+              ${dItem('Most Recent College',   app.y1College)}
+              ${dItem('Performance',           app.y1Performance)}
+              ${dItem('Year Prior Class',      app.y2Class)}
+              ${dItem('Year Prior College',    app.y2College)}
+              ${dItem('Year Prior Performance',app.y2Performance)}
+              ${dItem('Career Goal',           app.careerGoal)}
+              ${dItem('Entrance Tests',        app.entranceTests || '—')}
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Application Status History</div></div>
+          <div class="section-body">
+            <div class="workflow-timeline">
+              ${wf.length ? wf.map((w, i) => `
+                <div class="workflow-item">
+                  <div class="workflow-dot ${i === wf.length-1 ? 'current' : ''}">
+                    ${i < wf.length-1 ? '<div class="workflow-connector"></div>' : ''}
+                  </div>
+                  <div class="workflow-info">
+                    <div class="workflow-status-line">
+                      ${w.fromStatus ? `<span class="status-badge ${statusClass(w.fromStatus)}">${fmtStatus(w.fromStatus)}</span><span class="workflow-arrow">→</span>` : ''}
+                      <span class="status-badge ${statusClass(w.toStatus)}">${fmtStatus(w.toStatus)}</span>
+                    </div>
+                    <div class="workflow-meta">${fmtDate(w.changedAt)}</div>
+                    ${w.remarks ? `<div class="workflow-remarks">${esc(w.remarks)}</div>` : ''}
+                  </div>
+                </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;">No history yet.</p>'}
+            </div>
+          </div>
+        </div>`;
+    })
+    .catch(e => {
+      content.innerHTML = `<div style="color:var(--red);padding:20px;">Failed to load: ${esc(e.message)}</div>`;
+    });
+}
+
+function closeMyApplication() {
+  document.getElementById('portalAppWrap').style.display       = 'none';
+  document.getElementById('portalAppraisalList').style.display = '';
+}
+
+// ── Student: start a new appraisal — opens period picker modal ───────────────
+async function startAppraisal(periodId) {
+  // Guard: double-check approval status before opening modal
+  if (_myAppCurrentStatus !== 'APPROVED') {
+    showToast('Your application must be APPROVED before you can start an appraisal.', 'error');
+    return;
+  }
+  await loadPeriodsIntoSelect('camPeriodSelect');
+  if (periodId) {
+    const sel = document.getElementById('camPeriodSelect');
+    sel.value = String(periodId);
+  }
+  document.getElementById('createAppraisalModal').classList.add('open');
+}
+
+// ── Period management (ADMIN) ─────────────────────────────────────────────────
+function togglePeriodPanel() {
+  const panel = document.getElementById('periodPanel');
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) loadAllPeriods();
+}
+
+async function loadAllPeriods() {
+  const tbody = document.getElementById('periodsTableBody');
+  try {
+    const res   = await apiFetch(`${API}/appraisal/periods`);
+    const list  = await res.json();
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:16px;">No periods yet</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(p => `
+      <tr>
+        <td class="td-id">#${p.id}</td>
+        <td style="font-weight:500;">${esc(p.periodLabel)}</td>
+        <td style="color:var(--muted);font-size:12px;">${p.periodFrom || '—'}</td>
+        <td style="color:var(--muted);font-size:12px;">${p.periodTo   || '—'}</td>
+        <td><span class="status-badge ${p.active ? 's-APPROVED' : 's-CLOSED'}" style="font-size:11px;">
+          ${p.active ? 'Active' : 'Inactive'}
+        </span></td>
+        <td>${p.active
+          ? `<button class="btn-remove" onclick="doDeactivatePeriod(${p.id})">Deactivate</button>`
+          : '<span style="color:var(--text-dim);font-size:12px;">—</span>'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red);padding:12px;">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+async function doCreatePeriod() {
+  const label   = document.getElementById('newPeriodLabel').value.trim();
+  const from    = document.getElementById('newPeriodFrom').value;
+  const to      = document.getElementById('newPeriodTo').value;
+  if (!label || !from || !to) {
+    showToast('Please fill in label, from date and to date', 'error');
+    return;
+  }
+  try {
+    const res = await apiFetch(`${API}/appraisal/periods`, {
+      method: 'POST',
+      body:   JSON.stringify({ periodLabel: label, periodFrom: from, periodTo: to }),
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Period created!', 'success');
+    document.getElementById('newPeriodLabel').value = '';
+    document.getElementById('newPeriodFrom').value  = '';
+    document.getElementById('newPeriodTo').value    = '';
+    loadAllPeriods();
+    // Refresh the create-appraisal modal dropdowns too
+    loadPeriodsIntoSelect('camPeriodSelect');
+  } catch(e) {
+    showToast('Failed to create period: ' + e.message, 'error');
+  }
+}
+
+async function doDeactivatePeriod(periodId) {
+  try {
+    const res = await apiFetch(`${API}/appraisal/periods/${periodId}/deactivate`, { method: 'PATCH' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    showToast('Period deactivated', 'success');
+    loadAllPeriods();
+  } catch(e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

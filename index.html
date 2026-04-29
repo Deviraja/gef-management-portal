@@ -1130,6 +1130,46 @@ td {
 .col-domain  { background: rgba(62,207,142,.04); }
 .factor-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
 .factor-desc { font-size: 11px; color: var(--muted); line-height: 1.55; }
+
+/* ── Portal section switcher (Appraisals / Mentoring) ── */
+.portal-nav-tab { background:none; border:none; border-radius:7px; color:var(--muted); padding:6px 14px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:600; cursor:pointer; transition:all .2s; letter-spacing:.2px; }
+.portal-nav-tab:hover { color:var(--text); background:var(--surface2); }
+.portal-nav-tab.active { background:var(--accent); color:#fff; }
+
+/* ── Mentoring cards ── */
+.mentoring-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px; border-left:4px solid var(--border-light); position:relative; }
+.mentoring-card-period { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.mentoring-card-sub { font-size:12px; color:var(--muted); margin-bottom:12px; }
+.mentoring-card-flags { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.mflag { font-size:11px; font-weight:600; padding:3px 10px; border-radius:10px; }
+.mflag-done { background:rgba(62,207,142,.15); color:#3ecf8e; border:1px solid rgba(62,207,142,.3); }
+.mflag-pending { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+
+/* ── Mentoring form sections ── */
+.mf-section { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin-bottom:14px; overflow:hidden; }
+.mf-section-header { background:var(--surface2); padding:11px 18px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); border-bottom:1px solid var(--border); }
+.mf-section-body { padding:18px; }
+.mf-grid { display:grid; gap:14px; }
+.mf-grid-2 { grid-template-columns:1fr 1fr; }
+.mf-grid-3 { grid-template-columns:1fr 1fr 1fr; }
+.mf-label { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:.5px; }
+.mf-input { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; padding:9px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; width:100%; transition:border-color .2s; }
+.mf-input:focus { border-color:var(--accent); }
+.mf-input:disabled { opacity:.45; cursor:not-allowed; }
+.mf-textarea { background:var(--surface2); border:1.5px solid var(--border); border-radius:8px; padding:9px 13px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:13px; outline:none; width:100%; resize:vertical; min-height:72px; transition:border-color .2s; }
+.mf-textarea:focus { border-color:var(--accent); }
+.mf-textarea:disabled { opacity:.45; cursor:not-allowed; resize:none; }
+.mf-table { width:100%; border-collapse:collapse; }
+.mf-table thead th { background:var(--surface2); padding:9px 12px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); border-bottom:1px solid var(--border); }
+.mf-table tbody td { padding:7px 8px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.mf-table tbody tr:last-child td { border-bottom:none; }
+.btn-mf-add { display:inline-flex; align-items:center; gap:6px; margin-top:10px; background:none; border:1.5px dashed var(--border-light); border-radius:8px; color:var(--muted); padding:7px 16px; font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; }
+.btn-mf-add:hover { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); border-style:solid; }
+.btn-mf-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:4px 6px; border-radius:5px; transition:all .15s; }
+.btn-mf-del:hover { color:#e85252; background:rgba(232,82,82,.1); }
+.mf-checkbox-row { display:flex; align-items:center; gap:10px; }
+.mf-checkbox-row input[type=checkbox] { width:16px; height:16px; cursor:pointer; accent-color:var(--accent); }
+.mf-checkbox-row label { font-size:13px; color:var(--text); cursor:pointer; }
 </style>
 </head>
 <body>
@@ -1147,12 +1187,12 @@ td {
       </div>
       <div class="brand-stats">
         <div>
-          <div class="brand-stat-val" id="loginStatTotal">—</div>
-          <div class="brand-stat-label">Applications</div>
+          <div class="brand-stat-val" id="loginStatTotal" style="font-size:14px;letter-spacing:.5px;">GEF</div>
+          <div class="brand-stat-label">Applications Portal</div>
         </div>
         <div>
-          <div class="brand-stat-val" id="loginStatPending">—</div>
-          <div class="brand-stat-label">Pending Review</div>
+          <div class="brand-stat-val" id="loginStatPending" style="font-size:14px;letter-spacing:.5px;">Admin</div>
+          <div class="brand-stat-label">Management Access</div>
         </div>
       </div>
     </div>
@@ -1189,6 +1229,7 @@ td {
     <div class="nav-tabs" id="navTabs">
       <button class="nav-tab active" onclick="switchView('applications')" id="tab-applications">Applications</button>
       <button class="nav-tab" onclick="switchView('appraisals')" id="tab-appraisals">Appraisals</button>
+      <button class="nav-tab" onclick="switchView('mentoring')" id="tab-mentoring">Mentoring</button>
       <button class="nav-tab" id="tab-assignments" onclick="switchView('assignments')" style="display:none">Mentor Assignments</button>
     </div>
     <div class="nav-spacer"></div>
@@ -1346,6 +1387,30 @@ td {
       </div>
     </div><!-- /panel-appraisals -->
 
+    <!-- ── MENTORING PANEL ── -->
+    <div class="view-panel" id="panel-mentoring">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Student <span>Mentoring</span></div>
+          <div class="page-meta">Monthly mentoring records submitted by students</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="appraisal-list-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Student</th><th>Month / Year</th><th>College</th>
+              <th>Year of Study</th><th>Student</th><th>Loc. Mentor</th><th>Dom. Mentor</th>
+              <th>Created</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="mentoringAdminTableBody">
+            <tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-mentoring -->
+
     <!-- ── MENTOR ASSIGNMENTS PANEL (ADMIN only) ── -->
     <div class="view-panel" id="panel-assignments">
       <div class="page-header">
@@ -1400,6 +1465,10 @@ td {
     <span class="nav-title">GEF Portal</span>
     <div class="nav-divider"></div>
     <span class="nav-section" id="portalNavSection">My Appraisals</span>
+    <div style="display:flex;gap:2px;margin-left:8px;">
+      <button class="portal-nav-tab active" id="pnt-appraisals" onclick="switchPortalSection('appraisals')">Appraisals</button>
+      <button class="portal-nav-tab" id="pnt-mentoring" onclick="switchPortalSection('mentoring')">Mentoring</button>
+    </div>
     <div class="nav-spacer"></div>
     <div class="nav-user-pill">
       <div class="nav-avatar" id="portalAvatar">?</div>
@@ -1651,6 +1720,215 @@ td {
       </div>
     </div><!-- /portalAppWrap -->
 
+    <!-- ══ MENTORING SECTION ══════════════════════════════════════════════ -->
+
+    <!-- Mentoring record list -->
+    <div id="portalMentoringList" style="display:none;">
+      <div class="page-header" style="margin-bottom:24px;">
+        <div>
+          <div class="page-heading" id="mentoringHeading">My <span>Mentoring</span></div>
+          <div class="page-meta" id="mentoringSubheading">Monthly progress updates reviewed by your mentors</div>
+        </div>
+        <div class="page-header-actions" id="btnAddMentoringWrap" style="display:none;">
+          <button class="btn-create" onclick="startNewMentoring()">+ Add New Mentoring</button>
+        </div>
+      </div>
+      <div id="mentoringCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px;"></div>
+    </div>
+
+    <!-- Mentoring inline form -->
+    <div id="portalMentoringForm" style="display:none;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+        <button class="btn-back-portal" onclick="closeMentoringForm()">← Back to list</button>
+        <div>
+          <div class="page-heading" id="mfTitle" style="font-size:22px;">Mentoring Record</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="mfSubtitle"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;" id="mfReviewStamps"></div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="mf-section">
+        <div class="mf-section-header">Basic Info</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-3">
+            <div><div class="mf-label">Year of Study</div><input class="mf-input" id="mf-yearOfStudy" placeholder="e.g. 2nd Yr"/></div>
+            <div><div class="mf-label">Submission Month</div><input class="mf-input" id="mf-submissionMonth" placeholder="e.g. July"/></div>
+            <div><div class="mf-label">Submission Year</div><input class="mf-input" id="mf-submissionYear" placeholder="e.g. 2025"/></div>
+            <div><div class="mf-label">College</div><input class="mf-input" id="mf-college" placeholder="College name"/></div>
+            <div><div class="mf-label">Department</div><input class="mf-input" id="mf-department" placeholder="Department"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Co and Extra Curricular -->
+      <div class="mf-section">
+        <div class="mf-section-header">Co and Extra Curricular Progress Plan</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div><div class="mf-label">Co Curricular Activities</div><textarea class="mf-textarea" id="mf-coCurricular" placeholder="Describe co-curricular activities…"></textarea></div>
+            <div><div class="mf-label">Extra Curricular Activities</div><textarea class="mf-textarea" id="mf-extraCurricular" placeholder="Describe extra-curricular activities…"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Difficulties and Results -->
+      <div class="mf-section">
+        <div class="mf-section-header">Difficulties and Results</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div><div class="mf-label">Difficulties</div><textarea class="mf-textarea" id="mf-difficulties" placeholder="Any difficulties faced…"></textarea></div>
+            <div><div class="mf-label">Results of the Exams</div><textarea class="mf-textarea" id="mf-examResults" placeholder="Exam results…"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reading Books -->
+      <div class="mf-section">
+        <div class="mf-section-header">Reading Books</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-booksTable">
+            <thead><tr>
+              <th>Book from Ladder</th><th>Book outside Ladder</th>
+              <th>Book Ladder Status</th><th>Review of the Book</th><th></th>
+            </tr></thead>
+            <tbody id="mf-booksBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addBook" onclick="mfAddBook()">+ Add Book Entry</button>
+        </div>
+      </div>
+
+      <!-- Exercise / Eat / Sleep -->
+      <div class="mf-section">
+        <div class="mf-section-header">Exercise, Eat and Sleep Habits</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-3">
+            <div><div class="mf-label">Sleep</div><input class="mf-input" id="mf-sleep" placeholder="e.g. 11pm to 6am"/></div>
+            <div><div class="mf-label">Exercise</div><input class="mf-input" id="mf-exercise" placeholder="e.g. 1 hr/day, body weight…"/></div>
+            <div><div class="mf-label">Eat</div><input class="mf-input" id="mf-eat" placeholder="e.g. Regular"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Friends -->
+      <div class="mf-section">
+        <div class="mf-section-header">New Friends and Acquaintances</div>
+        <div class="mf-section-body">
+          <div class="mf-label">Bio Details</div>
+          <textarea class="mf-textarea" id="mf-acquaintances" style="min-height:80px;" placeholder="Describe new people you met…"></textarea>
+        </div>
+      </div>
+
+      <!-- Essay -->
+      <div class="mf-section">
+        <div class="mf-section-header">Essay</div>
+        <div class="mf-section-body">
+          <div class="mf-label">Essay</div>
+          <textarea class="mf-textarea" id="mf-essay" style="min-height:100px;" placeholder="Write your essay for this month…"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="mf-section">
+        <div class="mf-section-header">Action Plan for Coming Months</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Action Plan</div>
+          <textarea class="mf-textarea" id="mf-actionPlan" style="min-height:80px;" placeholder="Describe your action plan…"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:14px;" id="mf-completedWrap">
+            <input type="checkbox" id="mf-completed"/>
+            <label for="mf-completed">Completed by Student</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Academic Progress table -->
+      <div class="mf-section">
+        <div class="mf-section-header">Academic Progress / Vacation Plan</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-academicTable">
+            <thead><tr>
+              <th>#</th><th>Subject or Activity</th><th>Self Assessment</th><th>Justification</th><th></th>
+            </tr></thead>
+            <tbody id="mf-academicBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addAcademic" onclick="mfAddAcademic()">+ Add Subject</button>
+        </div>
+      </div>
+
+      <!-- Financial Requirements table -->
+      <div class="mf-section">
+        <div class="mf-section-header">Financial Requirement for Next 3 Months</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-financialTable">
+            <thead><tr>
+              <th>#</th><th>Month</th><th>Description</th><th>Amount (₹)</th><th></th>
+            </tr></thead>
+            <tbody id="mf-financialBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addFinancial" onclick="mfAddFinancial()">+ Add Entry</button>
+        </div>
+      </div>
+
+      <!-- Location Mentor Review -->
+      <div class="mf-section">
+        <div class="mf-section-header" style="color:#378add;">Review by Location Mentor</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Location Mentor Comment</div>
+          <textarea class="mf-textarea" id="mf-locComment" placeholder="Location mentor feedback…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-locReviewed"/>
+            <label for="mf-locReviewed">Reviewed by Location Mentor</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain Mentor Review -->
+      <div class="mf-section">
+        <div class="mf-section-header" style="color:#3ecf8e;">Review by Domain Mentor</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Domain Mentor Comment</div>
+          <textarea class="mf-textarea" id="mf-domComment" placeholder="Domain mentor feedback…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-domReviewed"/>
+            <label for="mf-domReviewed">Reviewed by Domain Mentor</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin / Center Head Review (admin only) -->
+      <div class="mf-section" id="mf-adminSection" style="display:none;">
+        <div class="mf-section-header" style="color:var(--accent);">Additional Reviews</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div>
+              <div class="mf-label" style="margin-bottom:8px;">Center Head Comment</div>
+              <textarea class="mf-textarea" id="mf-centerHeadComment" placeholder="Center head comment…" style="min-height:72px;"></textarea>
+              <div class="mf-checkbox-row" style="margin-top:10px;">
+                <input type="checkbox" id="mf-centerHeadReviewed"/>
+                <label for="mf-centerHeadReviewed">Reviewed by Center Head</label>
+              </div>
+            </div>
+            <div>
+              <div class="mf-label" style="margin-bottom:8px;">Central Team Comments</div>
+              <textarea class="mf-textarea" id="mf-centralTeamComment" placeholder="Central team comment…" style="min-height:72px;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save / Submit bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
+        <div id="mf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
+        <div style="display:flex;gap:12px;flex-shrink:0;">
+          <button class="btn-save" onclick="mfSave(false)">Save Draft</button>
+          <button class="btn-submit" id="mf-btnSubmit" onclick="mfSave(true)">Submit ✓</button>
+        </div>
+      </div>
+
+    </div><!-- /portalMentoringForm -->
+
+
+
   </div><!-- /main-content -->
 </div><!-- /portalView -->
 
@@ -1829,8 +2107,8 @@ td {
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
-// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
-const API = 'https://manage.gurujifoundation.in/api/v1'; // resolved relative to current host
+// const API = '/api/v1'; // resolved relative to current host
+const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -1959,6 +2237,65 @@ function switchView(view) {
   document.getElementById('panel-' + view).classList.add('active');
   document.getElementById('tab-' + view).classList.add('active');
   if (view === 'appraisals') loadAppraisals();
+  if (view === 'mentoring')  loadMentoringAdmin();
+}
+
+// ── Load mentoring records for admin view ─────────────────────────────────────
+async function loadMentoringAdmin() {
+  const tbody = document.getElementById('mentoringAdminTableBody');
+  tbody.innerHTML = `<tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
+  try {
+    const res  = await apiFetch(`${API}/mentoring`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json();
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No mentoring records yet.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map((r, i) => `
+      <tr style="cursor:pointer;" onclick="openAppraisalForm(${r.id}, 'mentoring')">
+        <td class="td-id">#${r.id}</td>
+        <td>
+          <div style="font-weight:500;">${esc(r.studentUser?.fullName || '—')}</div>
+          <div style="font-size:11px;color:var(--muted);">${esc(r.studentUser?.email || '')}</div>
+        </td>
+        <td>${esc([r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || '—')}</td>
+        <td style="font-size:12px;color:var(--muted);">${esc(r.college || '—')}</td>
+        <td style="font-size:12px;">${esc(r.yearOfStudy || '—')}</td>
+        <td><span class="status-badge ${r.completedByStudent       ? 's-APPROVED' : 's-NEW_APPLICATION'}" style="font-size:10px;">${r.completedByStudent       ? '✓' : '○'}</span></td>
+        <td><span class="status-badge ${r.reviewedByLocationMentor ? 's-APPROVED' : 's-NEW_APPLICATION'}" style="font-size:10px;">${r.reviewedByLocationMentor ? '✓' : '○'}</span></td>
+        <td><span class="status-badge ${r.reviewedByDomainMentor   ? 's-APPROVED' : 's-NEW_APPLICATION'}" style="font-size:10px;">${r.reviewedByDomainMentor   ? '✓' : '○'}</span></td>
+        <td style="font-size:11px;color:var(--muted);">${fmtDate(r.createdAt)}</td>
+        <td><button class="btn-view" onclick="event.stopPropagation();openMentoringAdmin(${r.id})">Open →</button></td>
+      </tr>`).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="10" style="color:var(--red);padding:16px;">${esc(e.message)}</td></tr>`;
+  }
+}
+
+function openMentoringAdmin(id) {
+  // Switch to portal view and open the mentoring form
+  document.getElementById('dashboardView').classList.remove('active');
+  document.getElementById('portalView').classList.add('active');
+  const name = currentUser.fullName || currentUser.email;
+  document.getElementById('portalUserName').textContent = name;
+  document.getElementById('portalAvatar').textContent =
+    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  document.getElementById('portalUserRole').textContent = (currentUser.roles || []).join(', ');
+  // Switch to mentoring section and open form
+  switchPortalSection('mentoring');
+  openMentoringForm(id);
+  // Override back button to return to dashboard
+  const backBtn = document.querySelector('#portalMentoringForm .btn-back-portal');
+  if (backBtn) {
+    backBtn.textContent = '← Back to Dashboard';
+    backBtn.onclick = () => {
+      closeMentoringForm();
+      document.getElementById('portalView').classList.remove('active');
+      document.getElementById('dashboardView').classList.add('active');
+      switchView('mentoring');
+    };
+  }
 }
 
 // ── API helpers ────────────────────────────────────────────────────────────────
@@ -1978,15 +2315,14 @@ async function loadStats() {
     const res  = await apiFetch(`${API}/management/applications/counts`);
     const data = await res.json();
 
-    document.getElementById('stat-total').textContent    = data.total        || 0;
-    document.getElementById('stat-new').textContent      = data.newApplication|| 0;
-    document.getElementById('stat-review').textContent   = data.underReview  || 0;
-    document.getElementById('stat-approved').textContent = data.approved      || 0;
-    document.getElementById('stat-rejected').textContent = data.rejected      || 0;
-
-    // Login screen stats
-    document.getElementById('loginStatTotal').textContent   = data.total         || 0;
-    document.getElementById('loginStatPending').textContent = data.newApplication || 0;
+    const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || 0; };
+    setEl('stat-total',       data.total);
+    setEl('stat-new',         data.newApplication);
+    setEl('stat-review',      data.underReview);
+    setEl('stat-approved',    data.approved);
+    setEl('stat-rejected',    data.rejected);
+    setEl('loginStatTotal',   data.total);
+    setEl('loginStatPending', data.newApplication);
   } catch (e) {
     console.warn('Could not load stats:', e);
   }
@@ -2464,6 +2800,8 @@ function showPortal() {
     document.getElementById('portalSubheading').textContent =
       'Students who have started their appraisal will appear here';
     loadPortalAppraisals();
+    // Also seed the mentoring list so mentors see student mentoring data
+    document.getElementById('portalMentoringList').style.display = 'none';
   } else {
     loadPortalAppraisals();
   }
@@ -3409,6 +3747,443 @@ async function doDeactivatePeriod(periodId) {
     loadAllPeriods();
   } catch(e) {
     showToast('Failed: ' + e.message, 'error');
+  }
+}
+// ══ MENTORING MODULE ══════════════════════════════════════════════════════════
+
+let mfCurrentRecord  = null; // mentoring record currently open in the form
+let mfBookCount      = 0;
+let mfAcademicCount  = 0;
+let mfFinancialCount = 0;
+
+// ── Switch between Appraisals and Mentoring sections ─────────────────────────
+function switchPortalSection(section) {
+  const isAppraisal = section === 'appraisals';
+  const isMentoring = section === 'mentoring';
+
+  // Update nav tab styles
+  document.getElementById('pnt-appraisals').classList.toggle('active', isAppraisal);
+  document.getElementById('pnt-mentoring').classList.toggle('active',  isMentoring);
+
+  // Toggle section visibility
+  document.getElementById('portalAppraisalList').style.display = isAppraisal ? '' : 'none';
+  document.getElementById('portalFormWrap').style.display      = 'none';
+  document.getElementById('portalAppWrap').style.display       = 'none';
+  document.getElementById('portalMentoringList').style.display = isMentoring  ? '' : 'none';
+  document.getElementById('portalMentoringForm').style.display = 'none';
+
+  if (isMentoring) loadMentoringList();
+}
+
+// ── Load mentoring record cards ───────────────────────────────────────────────
+async function loadMentoringList() {
+  const cards  = document.getElementById('mentoringCards');
+  const roles  = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+
+  // Heading varies by role
+  const headingEl = document.getElementById('mentoringHeading');
+  const subEl     = document.getElementById('mentoringSubheading');
+  if (headingEl) headingEl.innerHTML = isStudent
+    ? 'My <span>Mentoring</span>' : 'Student <span>Mentoring</span>';
+  if (subEl) subEl.textContent = isStudent
+    ? 'Monthly progress updates reviewed by your mentors'
+    : 'Monthly mentoring records for your assigned students';
+
+  // Show "Add New" button only for students
+  document.getElementById('btnAddMentoringWrap').style.display = isStudent ? '' : 'none';
+
+  cards.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Loading…</div>';
+  closeMentoringForm();
+
+  try {
+    const res  = await apiFetch(`${API}/mentoring`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const list = await res.json();
+
+    if (!list.length) {
+      cards.innerHTML = `<div class="no-appraisals">
+        <h3>${isStudent ? 'No mentoring records yet' : 'No student records yet'}</h3>
+        <p>${isStudent
+          ? 'Click "+ Add New Mentoring" to create your first monthly record.'
+          : 'Your assigned students have not created any mentoring records yet.'}</p>
+      </div>`;
+      return;
+    }
+
+    cards.innerHTML = list.map(r => buildMentoringCard(r, roles)).join('');
+  } catch(e) {
+    cards.innerHTML = `<div class="no-appraisals"><h3>Could not load records</h3><p>${esc(e.message)}</p></div>`;
+  }
+}
+
+function buildMentoringCard(r, roles) {
+  const isStudent = roles.includes('STUDENT');
+  const month   = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New Record';
+  const student = r.studentUser?.fullName || r.studentUser?.email || '—';
+  const stuDone = !!r.completedByStudent;
+  const locDone = !!r.reviewedByLocationMentor;
+  const domDone = !!r.reviewedByDomainMentor;
+
+  const borderColor = stuDone && locDone && domDone
+    ? 'var(--green)' : stuDone ? 'var(--accent)' : 'var(--border-light)';
+
+  return `<div class="mentoring-card" style="border-left-color:${borderColor};">
+    <div class="mentoring-card-period">${esc(month)}</div>
+    ${!isStudent ? `<div class="mentoring-card-sub">${esc(student)}</div>` : ''}
+    <div class="mentoring-card-sub">
+      ${r.college ? esc(r.college) + ' · ' : ''}${r.yearOfStudy || ''}
+    </div>
+    <div class="mentoring-card-flags">
+      <span class="mflag ${stuDone ? 'mflag-done' : 'mflag-pending'}">${stuDone ? '✓' : '○'} Student</span>
+      <span class="mflag ${locDone ? 'mflag-done' : 'mflag-pending'}">${locDone ? '✓' : '○'} Loc Mentor</span>
+      <span class="mflag ${domDone ? 'mflag-done' : 'mflag-pending'}">${domDone ? '✓' : '○'} Dom Mentor</span>
+    </div>
+    <button class="card-cta" onclick="openMentoringForm(${r.id})">
+      ${isStudent ? (stuDone ? '✓ View / Update' : '▶ Fill My Record') : '▶ Open Record'}
+    </button>
+  </div>`;
+}
+
+// ── Create new mentoring record ───────────────────────────────────────────────
+async function startNewMentoring() {
+  // Open a blank form — do NOT create the DB record yet.
+  // The record is only created when the student first saves (mfSave).
+  document.getElementById('portalMentoringList').style.display = 'none';
+  document.getElementById('portalMentoringForm').style.display = 'block';
+  mfCurrentRecord = {}; // empty sentinel — no id yet
+  mfPopulateForm(mfCurrentRecord);
+}
+
+// ── Open mentoring form ───────────────────────────────────────────────────────
+async function openMentoringForm(id) {
+  document.getElementById('portalMentoringList').style.display = 'none';
+  document.getElementById('portalMentoringForm').style.display = 'block';
+  document.getElementById('mf-submitInfo').textContent = 'Loading…';
+
+  try {
+    const res = await apiFetch(`${API}/mentoring/${id}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const r = await res.json();
+    mfCurrentRecord = r;
+    mfPopulateForm(r);
+  } catch(e) {
+    showToast('Could not load record: ' + e.message, 'error');
+    closeMentoringForm();
+  }
+}
+
+function closeMentoringForm() {
+  document.getElementById('portalMentoringForm').style.display = 'none';
+  document.getElementById('portalMentoringList').style.display = '';
+  mfCurrentRecord = null;
+  // Reload list in case a new record was just saved
+  loadMentoringList();
+}
+
+// ── Populate form from record ─────────────────────────────────────────────────
+function mfPopulateForm(r) {
+  const roles     = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+  const isAdmin   = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+
+  const month = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New Record';
+  document.getElementById('mfTitle').textContent    = r.id ? month : 'New Mentoring Record';
+  document.getElementById('mfSubtitle').textContent = r.id
+    ? (r.studentUser?.fullName || '') + (r.college ? ' · ' + r.college : '')
+    : 'Fill Basic Info and click Save Draft to create your record';
+
+  // Submission stamps (only shown for saved records)
+  const stamps = [];
+  if (r.completedByStudent)        stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Student</span>');
+  if (r.reviewedByLocationMentor)  stamps.push('<span style="font-size:11px;color:#378add;">✓ Loc Mentor</span>');
+  if (r.reviewedByDomainMentor)    stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Dom Mentor</span>');
+  document.getElementById('mfReviewStamps').innerHTML = stamps.join('&nbsp;');
+
+  // Basic info
+  mfSet('mf-yearOfStudy',    r.yearOfStudy);
+  mfSet('mf-submissionMonth',r.submissionMonth);
+  mfSet('mf-submissionYear', r.submissionYear);
+  mfSet('mf-college',        r.college);
+  mfSet('mf-department',     r.department);
+
+  // Sections — read-only for non-students on student fields
+  const stuRO = !isStudent && !isAdmin;
+  ['mf-yearOfStudy','mf-submissionMonth','mf-submissionYear','mf-college','mf-department',
+   'mf-coCurricular','mf-extraCurricular','mf-difficulties','mf-examResults',
+   'mf-sleep','mf-exercise','mf-eat','mf-acquaintances','mf-essay','mf-actionPlan']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.disabled = stuRO; });
+  const completedCb = document.getElementById('mf-completed');
+  if (completedCb) completedCb.disabled = stuRO;
+
+  mfSet('mf-coCurricular',    r.coCurricularActivities);
+  mfSet('mf-extraCurricular', r.extraCurricularActivities);
+  mfSet('mf-difficulties',    r.difficulties);
+  mfSet('mf-examResults',     r.examResults);
+  mfSet('mf-sleep',           r.sleepHabits);
+  mfSet('mf-exercise',        r.exerciseHabits);
+  mfSet('mf-eat',             r.eatingHabits);
+  mfSet('mf-acquaintances',   r.newAcquaintances);
+  mfSet('mf-essay',           r.essay);
+  mfSet('mf-actionPlan',      r.actionPlan);
+  if (completedCb) completedCb.checked = !!r.completedByStudent;
+
+  // Mentor review fields
+  const locRO = !isLoc && !isAdmin;
+  const domRO = !isDom && !isAdmin;
+  const locComment = document.getElementById('mf-locComment');
+  const domComment = document.getElementById('mf-domComment');
+  const locCb = document.getElementById('mf-locReviewed');
+  const domCb = document.getElementById('mf-domReviewed');
+  if (locComment) { locComment.value = r.locationMentorComment || ''; locComment.disabled = locRO; }
+  if (domComment) { domComment.value = r.domainMentorComment   || ''; domComment.disabled = domRO; }
+  if (locCb) { locCb.checked = !!r.reviewedByLocationMentor; locCb.disabled = locRO; }
+  if (domCb) { domCb.checked = !!r.reviewedByDomainMentor;   domCb.disabled = domRO; }
+
+  // Admin section
+  const adminSec = document.getElementById('mf-adminSection');
+  if (adminSec) adminSec.style.display = isAdmin ? '' : 'none';
+  if (isAdmin) {
+    mfSet('mf-centerHeadComment',  r.centerHeadComment);
+    mfSet('mf-centralTeamComment', r.centralTeamComment);
+    const chCb = document.getElementById('mf-centerHeadReviewed');
+    if (chCb) chCb.checked = !!r.reviewedByCenterHead;
+  }
+
+  // Dynamic tables
+  mfBuildBooks(r.readingBooks || []);
+  mfBuildAcademic(r.academicProgressList || []);
+  mfBuildFinancial(r.financialRequirements || []);
+
+  // Add/delete buttons — students only
+  ['btn-addBook','btn-addAcademic','btn-addFinancial']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isStudent || isAdmin ? '' : 'none'; });
+
+  // Submit bar
+  document.getElementById('mf-submitInfo').textContent = r.completedByStudent
+    ? 'You have already submitted. You can update and re-submit.'
+    : 'Fill your section then submit.';
+  document.getElementById('mf-btnSubmit').textContent = r.completedByStudent
+    ? '✓ Update Record' : 'Submit ✓';
+}
+
+function mfSet(id, val) {
+  const el = document.getElementById(id);
+  if (el && val !== null && val !== undefined) el.value = val;
+}
+
+// ── Dynamic table builders ────────────────────────────────────────────────────
+function mfBuildBooks(books) {
+  const tbody = document.getElementById('mf-booksBody');
+  tbody.innerHTML = '';
+  mfBookCount = 0;
+  books.forEach(b => mfAddBook(b));
+  if (!books.length) mfAddBook();
+}
+
+function mfAddBook(data = {}) {
+  const i = ++mfBookCount;
+  const roles  = currentUser.roles || [];
+  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const ro = canEdit ? '' : 'disabled';
+  document.getElementById('mf-booksBody').insertAdjacentHTML('beforeend', `
+    <tr id="mfb-${i}">
+      <td><input class="mf-input" id="mfb-ladder-${i}"   value="${esc2(data.bookFromLadder)}"    placeholder="Book from ladder"   ${ro}/></td>
+      <td><input class="mf-input" id="mfb-outside-${i}"  value="${esc2(data.bookOutsideLadder)}" placeholder="Book outside ladder" ${ro}/></td>
+      <td><input class="mf-input" id="mfb-status-${i}"   value="${esc2(data.bookLadderStatus)}"  placeholder="Status / notes"      ${ro}/></td>
+      <td><textarea class="mf-textarea" id="mfb-review-${i}" style="min-height:52px;" ${ro}>${esc2(data.bookReview)}</textarea></td>
+      <td><button class="btn-mf-del" ${ro} onclick="mfDelRow('mfb-${i}')">✕</button></td>
+    </tr>`);
+}
+
+function mfBuildAcademic(rows) {
+  const tbody = document.getElementById('mf-academicBody');
+  tbody.innerHTML = '';
+  mfAcademicCount = 0;
+  rows.forEach(r => mfAddAcademic(r));
+  if (!rows.length) mfAddAcademic();
+}
+
+function mfAddAcademic(data = {}) {
+  const i = ++mfAcademicCount;
+  const roles  = currentUser.roles || [];
+  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const ro = canEdit ? '' : 'disabled';
+  document.getElementById('mf-academicBody').insertAdjacentHTML('beforeend', `
+    <tr id="mfa-${i}">
+      <td style="color:var(--muted);font-size:12px;width:30px;">${i}</td>
+      <td><input class="mf-input" id="mfa-subject-${i}"    value="${esc2(data.subjectOrActivity)}" placeholder="Subject or activity" ${ro}/></td>
+      <td><textarea class="mf-textarea" id="mfa-assess-${i}" style="min-height:52px;" ${ro}>${esc2(data.selfAssessment)}</textarea></td>
+      <td><textarea class="mf-textarea" id="mfa-just-${i}"   style="min-height:52px;" ${ro}>${esc2(data.justification)}</textarea></td>
+      <td><button class="btn-mf-del" ${ro} onclick="mfDelRow('mfa-${i}')">✕</button></td>
+    </tr>`);
+}
+
+function mfBuildFinancial(rows) {
+  const tbody = document.getElementById('mf-financialBody');
+  tbody.innerHTML = '';
+  mfFinancialCount = 0;
+  rows.forEach(r => mfAddFinancial(r));
+  if (!rows.length) mfAddFinancial();
+}
+
+function mfAddFinancial(data = {}) {
+  const i = ++mfFinancialCount;
+  const roles  = currentUser.roles || [];
+  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const ro = canEdit ? '' : 'disabled';
+  document.getElementById('mf-financialBody').insertAdjacentHTML('beforeend', `
+    <tr id="mff-${i}">
+      <td style="color:var(--muted);font-size:12px;width:30px;">${i}</td>
+      <td><input class="mf-input" id="mff-month-${i}"  value="${esc2(data.month)}"       placeholder="Month"       ${ro}/></td>
+      <td><input class="mf-input" id="mff-desc-${i}"   value="${esc2(data.description)}" placeholder="Description" ${ro}/></td>
+      <td><input class="mf-input" id="mff-amount-${i}" value="${data.amount || ''}"       placeholder="Amount"  type="number" min="0" step="1" ${ro}/></td>
+      <td><button class="btn-mf-del" ${ro} onclick="mfDelRow('mff-${i}')">✕</button></td>
+    </tr>`);
+}
+
+function mfDelRow(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function esc2(s) { return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : ''; }
+
+// ── Collect form data ─────────────────────────────────────────────────────────
+function mfCollect() {
+  // Books
+  const books = [];
+  document.querySelectorAll('#mf-booksBody tr[id^="mfb-"]').forEach(tr => {
+    const i = tr.id.split('-')[1];
+    const ladder  = document.getElementById(`mfb-ladder-${i}`)?.value  || '';
+    const outside = document.getElementById(`mfb-outside-${i}`)?.value || '';
+    const status  = document.getElementById(`mfb-status-${i}`)?.value  || '';
+    const review  = document.getElementById(`mfb-review-${i}`)?.value  || '';
+    if (ladder || outside || status || review)
+      books.push({ bookFromLadder: ladder, bookOutsideLadder: outside,
+                   bookLadderStatus: status, bookReview: review });
+  });
+
+  // Academic
+  const academic = [];
+  document.querySelectorAll('#mf-academicBody tr[id^="mfa-"]').forEach(tr => {
+    const i = tr.id.split('-')[1];
+    const subject  = document.getElementById(`mfa-subject-${i}`)?.value || '';
+    const assess   = document.getElementById(`mfa-assess-${i}`)?.value  || '';
+    const just     = document.getElementById(`mfa-just-${i}`)?.value    || '';
+    if (subject || assess || just)
+      academic.push({ subjectOrActivity: subject, selfAssessment: assess, justification: just });
+  });
+
+  // Financial
+  const financial = [];
+  document.querySelectorAll('#mf-financialBody tr[id^="mff-"]').forEach(tr => {
+    const i = tr.id.split('-')[1];
+    const month  = document.getElementById(`mff-month-${i}`)?.value  || '';
+    const desc   = document.getElementById(`mff-desc-${i}`)?.value   || '';
+    const amount = document.getElementById(`mff-amount-${i}`)?.value || '';
+    if (month || desc || amount)
+      financial.push({ month, description: desc, amount: amount ? parseFloat(amount) : null });
+  });
+
+  return {
+    yearOfStudy:               document.getElementById('mf-yearOfStudy')?.value    || '',
+    submissionMonth:           document.getElementById('mf-submissionMonth')?.value || '',
+    submissionYear:            document.getElementById('mf-submissionYear')?.value  || '',
+    college:                   document.getElementById('mf-college')?.value         || '',
+    department:                document.getElementById('mf-department')?.value      || '',
+    coCurricularActivities:    document.getElementById('mf-coCurricular')?.value    || '',
+    extraCurricularActivities: document.getElementById('mf-extraCurricular')?.value || '',
+    difficulties:              document.getElementById('mf-difficulties')?.value    || '',
+    examResults:               document.getElementById('mf-examResults')?.value     || '',
+    sleepHabits:               document.getElementById('mf-sleep')?.value           || '',
+    exerciseHabits:            document.getElementById('mf-exercise')?.value        || '',
+    eatingHabits:              document.getElementById('mf-eat')?.value             || '',
+    newAcquaintances:          document.getElementById('mf-acquaintances')?.value   || '',
+    essay:                     document.getElementById('mf-essay')?.value           || '',
+    actionPlan:                document.getElementById('mf-actionPlan')?.value      || '',
+    completedByStudent:        document.getElementById('mf-completed')?.checked     || false,
+    locationMentorComment:     document.getElementById('mf-locComment')?.value      || '',
+    reviewedByLocationMentor:  document.getElementById('mf-locReviewed')?.checked   || false,
+    domainMentorComment:       document.getElementById('mf-domComment')?.value      || '',
+    reviewedByDomainMentor:    document.getElementById('mf-domReviewed')?.checked   || false,
+    centerHeadComment:         document.getElementById('mf-centerHeadComment')?.value  || '',
+    centralTeamComment:        document.getElementById('mf-centralTeamComment')?.value || '',
+    reviewedByCenterHead:      document.getElementById('mf-centerHeadReviewed')?.checked || false,
+    readingBooks:              books,
+    academicProgressList:      academic,
+    financialRequirements:     financial,
+  };
+}
+
+// ── Save / Submit ─────────────────────────────────────────────────────────────
+async function mfSave(isSubmit) {
+  // mfCurrentRecord is {} for a new unsaved record, or the full record object for existing ones
+  if (mfCurrentRecord === null) return;
+  const roles     = currentUser.roles || [];
+  const isStudent = roles.includes('STUDENT');
+  const isLoc     = roles.includes('LOCATION_MENTOR');
+  const isDom     = roles.includes('DOMAIN_MENTOR');
+  const isAdmin   = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+
+  const btn = document.getElementById('mf-btnSubmit');
+  btn.disabled = true;
+  btn.textContent = isSubmit ? 'Submitting…' : 'Saving…';
+
+  const dto = mfCollect();
+
+  try {
+    // ── Step 1: If this is a new record (no id), create it first ─────────────
+    if (!mfCurrentRecord.id) {
+      const createRes = await apiFetch(`${API}/mentoring`, {
+        method: 'POST',
+        body:   JSON.stringify({
+          yearOfStudy:     dto.yearOfStudy,
+          submissionMonth: dto.submissionMonth,
+          submissionYear:  dto.submissionYear,
+          college:         dto.college,
+          department:      dto.department,
+        })
+      });
+      if (!createRes.ok) {
+        const err = await createRes.json().catch(() => ({}));
+        throw new Error(err.message || 'HTTP ' + createRes.status);
+      }
+      mfCurrentRecord = await createRes.json();
+    }
+
+    // ── Step 2: PUT the full data to the appropriate role endpoint ────────────
+    let endpoint;
+    if (isStudent)         endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
+    else if (isLoc)        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
+    else if (isDom)        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
+    else if (isAdmin)      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
+    else {
+      showToast('Cannot save — unknown role', 'error');
+      btn.disabled = false; btn.textContent = 'Submit ✓';
+      return;
+    }
+
+    if (isSubmit && isStudent) dto.completedByStudent = true;
+
+    const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    const updated = await res.json();
+    mfCurrentRecord = updated;
+    mfPopulateForm(updated);
+    showToast(isSubmit ? 'Submitted!' : 'Draft saved', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Submit ✓';
   }
 }
 </script>

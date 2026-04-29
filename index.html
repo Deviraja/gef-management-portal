@@ -1752,8 +1752,8 @@ td {
         <div class="mf-section-header">Basic Info</div>
         <div class="mf-section-body">
           <div class="mf-grid mf-grid-3">
-            <div><div class="mf-label">Year of Study</div><input class="mf-input" id="mf-yearOfStudy" placeholder="e.g. 2nd Yr"/></div>
-            <div><div class="mf-label">Submission Month</div><input class="mf-input" id="mf-submissionMonth" placeholder="e.g. July"/></div>
+            <div><div class="mf-label">Year of Study <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-yearOfStudy" placeholder="e.g. 2nd Yr"/></div>
+            <div><div class="mf-label">Submission Month <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-submissionMonth" placeholder="e.g. July"/></div>
             <div><div class="mf-label">Submission Year</div><input class="mf-input" id="mf-submissionYear" placeholder="e.g. 2025"/></div>
             <div><div class="mf-label">College</div><input class="mf-input" id="mf-college" placeholder="College name"/></div>
             <div><div class="mf-label">Department</div><input class="mf-input" id="mf-department" placeholder="Department"/></div>
@@ -2108,7 +2108,6 @@ td {
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
 const API = '/api/v1'; // resolved relative to current host
-// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -3796,7 +3795,9 @@ async function loadMentoringList() {
   document.getElementById('btnAddMentoringWrap').style.display = isStudent ? '' : 'none';
 
   cards.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Loading…</div>';
-  closeMentoringForm();
+  // Reset form state directly — do NOT call closeMentoringForm() here as it would cause an infinite loop
+  document.getElementById('portalMentoringForm').style.display = 'none';
+  mfCurrentRecord = null;
 
   try {
     const res  = await apiFetch(`${API}/mentoring`);
@@ -3879,8 +3880,6 @@ function closeMentoringForm() {
   document.getElementById('portalMentoringForm').style.display = 'none';
   document.getElementById('portalMentoringList').style.display = '';
   mfCurrentRecord = null;
-  // Reload list in case a new record was just saved
-  loadMentoringList();
 }
 
 // ── Populate form from record ─────────────────────────────────────────────────
@@ -4139,6 +4138,25 @@ async function mfSave(isSubmit) {
   try {
     // ── Step 1: If this is a new record (no id), create it first ─────────────
     if (!mfCurrentRecord.id) {
+      // Validate required fields before creating the DB record
+      if (!dto.yearOfStudy || !dto.yearOfStudy.trim()) {
+        showToast('Year of Study is required before saving.', 'error');
+        const el = document.getElementById('mf-yearOfStudy');
+        el.style.borderColor = '#e85252';
+        el.focus();
+        setTimeout(() => el.style.borderColor = '', 3000);
+        btn.disabled = false; btn.textContent = 'Submit ✓';
+        return;
+      }
+      if (!dto.submissionMonth || !dto.submissionMonth.trim()) {
+        showToast('Submission Month is required before saving.', 'error');
+        const el = document.getElementById('mf-submissionMonth');
+        el.style.borderColor = '#e85252';
+        el.focus();
+        setTimeout(() => el.style.borderColor = '', 3000);
+        btn.disabled = false; btn.textContent = 'Submit ✓';
+        return;
+      }
       const createRes = await apiFetch(`${API}/mentoring`, {
         method: 'POST',
         body:   JSON.stringify({
@@ -4177,8 +4195,9 @@ async function mfSave(isSubmit) {
     }
     const updated = await res.json();
     mfCurrentRecord = updated;
-    mfPopulateForm(updated);
-    showToast(isSubmit ? 'Submitted!' : 'Draft saved', 'success');
+    showToast(isSubmit ? 'Submitted successfully!' : 'Record saved successfully!', 'success');
+    // Return to mentoring list after save
+    setTimeout(() => closeMentoringForm(), 1200);
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
   } finally {

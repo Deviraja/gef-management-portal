@@ -29,6 +29,72 @@
   --shadow:      0 4px 24px rgba(0,0,0,.4);
 }
 
+/* ── Light mode ────────────────────────────────────────────────────────────── */
+body.light-mode {
+  --bg:          #f0f2f7;
+  --surface:     #ffffff;
+  --surface2:    #e8ecf4;
+  --border:      #d0d6e8;
+  --border-light:#b8c0d8;
+  --text:        #1a1d2e;
+  --text-muted:  #5a6080;
+  --text-dim:    #9098b8;
+  --accent:      #d4642a;
+  --accent-dim:  rgba(212,100,42,.10);
+  --accent2:     #2a6dd4;
+  --green:       #1a9e64;
+  --green-dim:   rgba(26,158,100,.10);
+  --red:         #cc3333;
+  --red-dim:     rgba(204,51,51,.10);
+  --yellow:      #c49a10;
+  --yellow-dim:  rgba(196,154,16,.10);
+  --shadow:      0 4px 24px rgba(0,0,0,.10);
+}
+
+/* ── Theme toggle switch ───────────────────────────────────────────────────── */
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+}
+.theme-toggle-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.toggle-track {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 11px;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition: transform 0.2s, background 0.2s;
+}
+body.light-mode .toggle-track {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+body.light-mode .toggle-track::after {
+  transform: translateX(18px);
+  background: var(--accent);
+}
+.toggle-icon { font-size: 14px; line-height: 1; }
+
 /* ── Reset ────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; }
@@ -68,6 +134,95 @@ a { color: inherit; text-decoration: none; }
     radial-gradient(ellipse 80% 60% at 20% 50%, rgba(232,130,74,.08) 0%, transparent 60%),
     radial-gradient(ellipse 60% 80% at 80% 20%, rgba(74,143,232,.06) 0%, transparent 60%);
 }
+body.light-mode #loginView::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 50%, rgba(212,100,42,.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 80% 20%, rgba(42,109,212,.05) 0%, transparent 60%);
+}
+
+/* Login brand panel */
+body.light-mode .login-brand {
+  background: linear-gradient(135deg, #e0e5f5 0%, #cdd5ee 100%);
+}
+body.light-mode .login-brand::after {
+  border-color: rgba(212,100,42,.20);
+}
+body.light-mode .login-brand::before {
+  border-color: rgba(212,100,42,.10);
+}
+
+/* Nav bar */
+body.light-mode .topnav {
+  background: var(--surface);
+  border-bottom-color: var(--border);
+}
+body.light-mode .nav-tab {
+  color: var(--text-muted);
+}
+body.light-mode .nav-tab:hover,
+body.light-mode .nav-tab.active {
+  color: var(--accent);
+}
+
+/* Sidebar / main content */
+body.light-mode .sidebar {
+  background: var(--surface);
+  border-right-color: var(--border);
+}
+
+/* Tables */
+body.light-mode .appraisal-list-table thead tr {
+  background: var(--surface2);
+}
+body.light-mode .appraisal-list-table tbody tr:hover {
+  background: var(--surface2);
+}
+
+/* Modal */
+body.light-mode .modal-backdrop { background: rgba(0,0,0,.35); }
+body.light-mode .modal { background: var(--surface); }
+body.light-mode .modal-header { background: var(--surface2); border-bottom-color: var(--border); }
+body.light-mode .modal-footer { background: var(--surface2); border-top-color: var(--border); }
+body.light-mode .modal-tab { color: var(--text-muted); }
+body.light-mode .modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Cards and panels */
+body.light-mode .stat-card {
+  background: var(--surface);
+  border-color: var(--border);
+}
+body.light-mode .assign-card {
+  background: var(--surface2);
+  border-color: var(--border);
+}
+body.light-mode .create-period-panel {
+  background: var(--surface2);
+  border-color: var(--border);
+}
+
+/* Inputs and selects */
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+body.light-mode input::placeholder,
+body.light-mode textarea::placeholder {
+  color: var(--text-dim);
+}
+
+/* Center / mentor assign modals */
+body.light-mode #centerAssignBackdrop > div,
+body.light-mode #mentorAssignBackdrop > div {
+  background: var(--surface);
+  border-color: var(--border);
+}
+
+/* Scroll bars (webkit) */
+body.light-mode ::-webkit-scrollbar-track { background: var(--surface2); }
+body.light-mode ::-webkit-scrollbar-thumb { background: var(--border); }
 
 .login-grid {
   position: relative;
@@ -512,16 +667,14 @@ td {
   background: currentColor;
   opacity: 0.7;
 }
-.s-NEW_APPLICATION      { background: rgba(123,130,160,.15); color: #9ba3c0; }
-.s-UNDER_REVIEW         { background: var(--yellow-dim);     color: var(--yellow); }
-.s-DOCUMENT_PENDING     { background: rgba(232,130,74,.15);  color: var(--accent); }
-.s-INTERVIEW_SCHEDULED  { background: rgba(74,143,232,.15);  color: var(--accent2); }
-.s-INTERVIEW_DONE       { background: rgba(74,143,232,.1);   color: #7aadee; }
-.s-APPROVED             { background: var(--green-dim);      color: var(--green); }
-.s-REJECTED             { background: var(--red-dim);        color: var(--red); }
-.s-LOAN_DISBURSED       { background: var(--green-dim);      color: #60e0a8; }
-.s-REPAYMENT_STARTED    { background: rgba(62,207,142,.08);  color: #50c898; }
-.s-CLOSED               { background: rgba(255,255,255,.05); color: var(--text-dim); }
+.s-NEW_APPLICATION                  { background: rgba(123,130,160,.15); color: #9ba3c0; }
+.s-MAJOR_DISCREPENCIES_REJECTED    { background: var(--red-dim);        color: var(--red); }
+.s-NOT_FITTING_CRITERIA_REJECTED   { background: rgba(200,60,60,.15);   color: #e07070; }
+.s-IQ_ASSESSMENT_REQUIRED          { background: rgba(232,130,74,.15);  color: var(--accent); }
+.s-IQ_ASSESSMENT_REQUIRED_REJECTED { background: rgba(200,80,50,.15);   color: #d06040; }
+.s-HOME_VISIT_NEEDED               { background: rgba(74,143,232,.15);  color: var(--accent2); }
+.s-REJECTED_AFTER_HOME_VISIT       { background: rgba(180,60,60,.15);   color: #c05050; }
+.s-APPROVED                        { background: var(--green-dim);      color: var(--green); }
 
 /* Row action */
 .btn-view {
@@ -1170,6 +1323,29 @@ td {
 .mf-checkbox-row { display:flex; align-items:center; gap:10px; }
 .mf-checkbox-row input[type=checkbox] { width:16px; height:16px; cursor:pointer; accent-color:var(--accent); }
 .mf-checkbox-row label { font-size:13px; color:var(--text); cursor:pointer; }
+
+/* ── Evaluation form ── */
+.eval-header { background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:16px 20px; margin-bottom:16px; }
+.eval-header-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:10px; }
+.eval-criterion { margin-bottom:2px; }
+.eval-criterion-header { display:grid; grid-template-columns:36px 1fr 100px; gap:0; background:var(--surface2); border:1px solid var(--border); border-radius:8px 8px 0 0; padding:10px 12px; align-items:start; }
+.eval-crit-no { font-size:13px; font-weight:700; color:var(--accent); }
+.eval-crit-name { font-size:13px; font-weight:600; color:var(--text); }
+.eval-crit-max { font-size:11px; color:var(--muted); text-align:right; }
+.eval-scoring-keys { border-left:1px solid var(--border); border-right:1px solid var(--border); background:var(--surface); }
+.eval-key-row { display:grid; grid-template-columns:1fr 60px; padding:5px 12px; border-bottom:1px solid var(--border); font-size:12px; color:var(--muted); }
+.eval-key-row:last-child { border-bottom:none; }
+.eval-key-score { color:var(--accent); font-weight:600; text-align:right; }
+.eval-inputs { display:grid; grid-template-columns:120px 1fr 1fr; gap:8px; border:1px solid var(--border); border-top:none; border-radius:0 0 8px 8px; padding:10px 12px; background:var(--surface); }
+.eval-score-input { background:var(--surface2); border:1.5px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:inherit; font-size:14px; font-weight:600; text-align:center; outline:none; width:100%; }
+.eval-score-input:focus { border-color:var(--accent); }
+.eval-comment-input { background:var(--surface2); border:1.5px solid var(--border); border-radius:7px; padding:7px 10px; color:var(--text); font-family:inherit; font-size:12px; outline:none; width:100%; resize:vertical; min-height:52px; }
+.eval-comment-input:focus { border-color:var(--accent); }
+.eval-totals { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 18px; margin-top:14px; display:flex; align-items:center; gap:20px; }
+.eval-total-score { font-size:28px; font-weight:700; color:var(--accent); }
+.eval-total-label { font-size:12px; color:var(--muted); }
+.eval-save-bar { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
+
 </style>
 </head>
 <body>
@@ -1212,6 +1388,15 @@ td {
         <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
       </div>
       <button class="btn-login" id="btnLogin" onclick="doLogin()">Sign In</button>
+
+      <div style="display:flex;justify-content:center;margin-top:20px;">
+        <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+          <span class="toggle-icon">🌙</span>
+          <div class="toggle-track"></div>
+          <span class="toggle-icon">☀️</span>
+          <span class="theme-toggle-label" id="themeLabel">Dark mode</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1229,14 +1414,23 @@ td {
     <div class="nav-tabs" id="navTabs">
       <button class="nav-tab active" onclick="switchView('applications')" id="tab-applications">Applications</button>
       <button class="nav-tab" onclick="switchView('appraisals')" id="tab-appraisals">Appraisals</button>
-      <button class="nav-tab" onclick="switchView('mentoring')" id="tab-mentoring">Mentoring</button>
+      <button class="nav-tab" onclick="switchView('mentoring')" id="tab-mentoring">MTE</button>
       <button class="nav-tab" id="tab-assignments" onclick="switchView('assignments')" style="display:none">Mentor Assignments</button>
+      <button class="nav-tab" id="tab-centers" onclick="switchView('centers')" style="display:none">Centers</button>
+      <button class="nav-tab" id="tab-iqassessor" onclick="switchView('iqassessor')" style="display:none">IQ Assessors</button>
+      <button class="nav-tab" id="tab-loans" onclick="switchView('loans')" style="display:none">Loan Requests</button>
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-user-pill">
       <div class="nav-avatar" id="navAvatar">SP</div>
       <span class="nav-user-name" id="navUserName">Sunil Patil</span>
       <span class="nav-user-role" id="navUserRole">EVALUATOR</span>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode"
+         style="margin-left:4px;">
+      <span class="toggle-icon" style="font-size:13px;">🌙</span>
+      <div class="toggle-track"></div>
+      <span class="toggle-icon" style="font-size:13px;">☀️</span>
     </div>
     <button class="btn-logout" onclick="doLogout()">Sign Out</button>
   </nav>
@@ -1264,15 +1458,15 @@ td {
         <div class="stat-val" id="stat-new" style="color:var(--yellow)">—</div>
         <div class="stat-label">New</div>
       </div>
-      <div class="stat-card" style="--card-accent:#4a8fe8" onclick="filterByStatus('UNDER_REVIEW')">
+      <div class="stat-card" style="--card-accent:#4a8fe8" onclick="filterByStatus('IN_PROGRESS')">
         <div class="stat-val" id="stat-review" style="color:var(--accent2)">—</div>
-        <div class="stat-label">Under Review</div>
+        <div class="stat-label">In Progress</div>
       </div>
       <div class="stat-card" style="--card-accent:#3ecf8e" onclick="filterByStatus('APPROVED')">
         <div class="stat-val" id="stat-approved" style="color:var(--green)">—</div>
         <div class="stat-label">Approved</div>
       </div>
-      <div class="stat-card" style="--card-accent:#e85252" onclick="filterByStatus('REJECTED')">
+      <div class="stat-card" style="--card-accent:#e85252" onclick="filterByStatus('MAJOR_DISCREPENCIES_REJECTED')">
         <div class="stat-val" id="stat-rejected" style="color:var(--red)">—</div>
         <div class="stat-label">Rejected</div>
       </div>
@@ -1288,15 +1482,14 @@ td {
       <select class="filter-select" id="statusFilter" onchange="onStatusFilterChange()">
         <option value="">All Statuses</option>
         <option value="NEW_APPLICATION">New Application</option>
-        <option value="UNDER_REVIEW">Under Review</option>
-        <option value="DOCUMENT_PENDING">Document Pending</option>
-        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
-        <option value="INTERVIEW_DONE">Interview Done</option>
+        <option value="MAJOR_DISCREPENCIES_REJECTED">Major Discrepancies Rejected</option>
+        <option value="NOT_FITTING_CRITERIA_REJECTED">Not Fitting Criteria Rejected</option>
+        <option value="IQ_ASSESSMENT_REQUIRED">IQ Assessment Required</option>
+        <option value="IQ_ASSESSMENT_REQUIRED_REJECTED">IQ Assessment Rejected</option>
+        <option value="HOME_VISIT_NEEDED">Home Visit Needed</option>
+        <option value="REJECTED_AFTER_HOME_VISIT">Rejected After Home Visit</option>
         <option value="APPROVED">Approved</option>
-        <option value="REJECTED">Rejected</option>
-        <option value="LOAN_DISBURSED">Loan Disbursed</option>
-        <option value="REPAYMENT_STARTED">Repayment Started</option>
-        <option value="CLOSED">Closed</option>
+                <option value="CLOSED">Closed</option>
       </select>
       <div class="toolbar-spacer"></div>
       <div class="badge-count" id="resultCount">— records</div>
@@ -1391,8 +1584,8 @@ td {
     <div class="view-panel" id="panel-mentoring">
       <div class="page-header">
         <div>
-          <div class="page-heading">Student <span>Mentoring</span></div>
-          <div class="page-meta">Monthly mentoring records submitted by students</div>
+          <div class="page-heading">Student <span>MTE</span></div>
+          <div class="page-meta">Monthly Monthly Thinking Exercises submitted by students</div>
         </div>
       </div>
       <div class="table-wrap">
@@ -1452,6 +1645,205 @@ td {
       </div>
     </div><!-- /panel-assignments -->
 
+    <!-- ── CENTERS PANEL ── -->
+    <div class="view-panel" id="panel-centers">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">GEF <span>Centers</span></div>
+          <div class="page-meta">Manage centers and assign Center Heads</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-create" onclick="toggleCenterForm()">+ New Center</button>
+        </div>
+      </div>
+
+      <!-- Create Center form -->
+      <div id="createCenterPanel" style="display:none;margin-bottom:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Create New Center</div>
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:12px;align-items:end;">
+            <div class="assign-field">
+              <label>Center Name <span style="color:#e85252;">*</span></label>
+              <input type="text" id="ccName" placeholder="e.g. Mumbai Center"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div class="assign-field">
+              <label>City</label>
+              <input type="text" id="ccCity" placeholder="e.g. Mumbai"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div class="assign-field">
+              <label>State</label>
+              <input type="text" id="ccState" placeholder="e.g. Maharashtra"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div style="display:flex;gap:8px;padding-bottom:1px;">
+              <button class="btn-assign" onclick="doCreateCenter()">Create</button>
+              <button class="btn-save" onclick="toggleCenterForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Centers table -->
+      <div class="table-wrap">
+        <table class="appraisal-list-table">
+          <thead>
+            <tr><th>#</th><th>Name</th><th>City</th><th>State</th><th>Center Heads</th><th></th></tr>
+          </thead>
+          <tbody id="centersTableBody">
+            <tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Assign Center Head form -->
+      <div id="assignHeadPanel" style="display:none;margin-top:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Assign Center Head — <span id="ahCenterName" style="color:var(--accent);font-weight:700;"></span></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;max-width:600px;">
+            <div class="assign-field">
+              <label>Select User <span style="color:#e85252;">*</span></label>
+              <select id="ahUserSelect"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;">
+                <option value="">— loading users… —</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:8px;padding-bottom:1px;">
+              <button class="btn-assign" onclick="doAssignCenterHead()">Assign →</button>
+              <button class="btn-save" onclick="document.getElementById('assignHeadPanel').style.display='none'">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-centers -->
+
+    <!-- ── IQ ASSESSOR PANEL ── -->
+    <div class="view-panel" id="panel-iqassessor">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">IQ <span>Assessors</span></div>
+          <div class="page-meta">Create IQ Assessor accounts — assignment happens on status change</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-create" onclick="toggleIqUserForm()">+ New IQ Assessor</button>
+        </div>
+      </div>
+
+      <!-- Create IQ Assessor user form -->
+      <div id="createIqUserPanel" style="display:none;margin-bottom:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Create IQ Assessor Account</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+            <div class="assign-field">
+              <label>Full Name <span style="color:#e85252;">*</span></label>
+              <input type="text" id="iqUserName" placeholder="e.g. Priya Sharma"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div class="assign-field">
+              <label>Email <span style="color:#e85252;">*</span></label>
+              <input type="email" id="iqUserEmail" placeholder="priya@example.com"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div class="assign-field">
+              <label>Initial Password <span style="color:#e85252;">*</span></label>
+              <input type="password" id="iqUserPassword" placeholder="Min 8 characters"
+                style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;width:100%;"/>
+            </div>
+            <div style="display:flex;gap:8px;padding-bottom:1px;">
+              <button class="btn-assign" onclick="doCreateIqUser()">Create</button>
+              <button class="btn-save" onclick="toggleIqUserForm()">Cancel</button>
+            </div>
+          </div>
+          <p style="margin:10px 0 0;font-size:12px;color:var(--muted);">
+            The assessor can log in immediately. Assignment to a student happens when the application status is changed to <strong>IQ Assessment Required</strong>.
+          </p>
+        </div>
+      </div>
+
+      <!-- IQ Assessors list -->
+      <div class="table-wrap">
+        <table class="appraisal-list-table">
+          <thead>
+            <tr><th>Name</th><th>Email</th><th>Active</th></tr>
+          </thead>
+          <tbody id="iqAssessorTableBody">
+            <tr><td colspan="3"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-iqassessor -->
+
+    <!-- ── FINANCE APPROVER PANEL (part of IQ Assessor management area) ── -->
+    <!-- Finance Approver creation is embedded in the Loan Requests panel header -->
+
+
+    <!-- ── LOAN REQUESTS PANEL ── -->
+    <div class="view-panel" id="panel-loans">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Loan <span>Requests</span></div>
+          <div class="page-meta">Student fund disbursement requests</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-create" id="btnAddFinanceApprover" style="display:none;"
+            onclick="toggleFinanceApproverForm()">+ New Finance Approver</button>
+          <label style="font-size:12px;color:var(--muted);margin-left:12px;cursor:pointer;">
+            <input type="checkbox" id="loanShowAll" onchange="loadLoanRequests()"
+                   style="margin-right:4px;vertical-align:middle;"/>
+            Show all (including processed)
+          </label>
+        </div>
+      </div>
+
+      <!-- Create Finance Approver form (CCU only) -->
+      <div id="financeApproverPanel" style="display:none;margin-bottom:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Create Finance Approver Account</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+            <div class="assign-field">
+              <label>Full Name <span style="color:#e85252;">*</span></label>
+              <input type="text" id="faName" placeholder="e.g. Ramesh Iyer"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+                       border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>Email <span style="color:#e85252;">*</span></label>
+              <input type="email" id="faEmail" placeholder="ramesh@example.com"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+                       border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>Initial Password <span style="color:#e85252;">*</span></label>
+              <input type="password" id="faPassword" placeholder="Min 8 characters"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+                       border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div style="display:flex;gap:8px;padding-bottom:1px;">
+              <button class="btn-assign" onclick="doCreateFinanceApprover()">Create</button>
+              <button class="btn-save" onclick="toggleFinanceApproverForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan requests table -->
+      <div class="table-wrap">
+        <table class="appraisal-list-table">
+          <thead>
+            <tr>
+              <th>#</th><th>Student</th><th>Amount (&#x20B9;)</th>
+              <th>Reason</th><th>Requested</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="loanRequestsBody">
+            <tr><td colspan="7"><div class="table-loading">
+              <div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-loans -->
+
   </div><!-- /main-content -->
 </div><!-- /dashboardView -->
 
@@ -1467,7 +1859,7 @@ td {
     <span class="nav-section" id="portalNavSection">My Appraisals</span>
     <div style="display:flex;gap:2px;margin-left:8px;">
       <button class="portal-nav-tab active" id="pnt-appraisals" onclick="switchPortalSection('appraisals')">Appraisals</button>
-      <button class="portal-nav-tab" id="pnt-mentoring" onclick="switchPortalSection('mentoring')">Mentoring</button>
+      <button class="portal-nav-tab" id="pnt-mentoring" onclick="switchPortalSection('mentoring')">MTE</button>
     </div>
     <div class="nav-spacer"></div>
     <div class="nav-user-pill">
@@ -1726,11 +2118,11 @@ td {
     <div id="portalMentoringList" style="display:none;">
       <div class="page-header" style="margin-bottom:24px;">
         <div>
-          <div class="page-heading" id="mentoringHeading">My <span>Mentoring</span></div>
+          <div class="page-heading" id="mentoringHeading">My <span>MTE</span></div>
           <div class="page-meta" id="mentoringSubheading">Monthly progress updates reviewed by your mentors</div>
         </div>
         <div class="page-header-actions" id="btnAddMentoringWrap" style="display:none;">
-          <button class="btn-create" onclick="startNewMentoring()">+ Add New Mentoring</button>
+          <button class="btn-create" onclick="startNewMentoring()">+ Add New MTE</button>
         </div>
       </div>
       <div id="mentoringCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;margin-bottom:32px;"></div>
@@ -1978,6 +2370,7 @@ td {
       <button class="modal-tab" onclick="switchTab('expenses')">Expenses</button>
       <button class="modal-tab" onclick="switchTab('references')">References</button>
       <button class="modal-tab" onclick="switchTab('workflow')">Workflow</button>
+      <button class="modal-tab" id="tab-evaluation" onclick="switchTab('evaluation')">Evaluation</button>
     </div>
 
     <div class="modal-body">
@@ -2079,22 +2472,48 @@ td {
     </div>
 
     <!-- Footer action bar -->
+
+      <!-- Evaluation Tab -->
+      <div class="modal-tab-panel" id="tab-evaluation">
+        <div id="evalFormWrap"></div>
+      </div>
+
     <div class="modal-footer">
       <span class="transition-label">Move to</span>
-      <select class="transition-select" id="transitionSelect">
+      <select class="transition-select" id="transitionSelect" onchange="onTransitionSelectChange()">
         <option value="">— select status —</option>
-        <option value="UNDER_REVIEW">Under Review</option>
-        <option value="DOCUMENT_PENDING">Document Pending</option>
-        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
-        <option value="INTERVIEW_DONE">Interview Done</option>
-        <option value="APPROVED">Approved</option>
-        <option value="REJECTED">Rejected</option>
-        <option value="LOAN_DISBURSED">Loan Disbursed</option>
-        <option value="REPAYMENT_STARTED">Repayment Started</option>
-        <option value="CLOSED">Closed</option>
+      </select>
+      <!-- IQ Assessor selector — shown only when IQ_ASSESSMENT_REQUIRED is chosen -->
+      <select id="transitionIqAssessorSelect" style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;min-width:200px;">
+        <option value="">— assign IQ assessor (optional) —</option>
       </select>
       <input class="remarks-input" id="transitionRemarks" placeholder="Remarks (optional)" />
       <button class="btn-transition" id="btnTransition" onclick="doTransition()">Update Status</button>
+      <span id="agreementToggleWrap" style="display:none;margin-left:8px;align-items:center;gap:8px;">
+        <span style="font-size:12px;color:var(--muted);">Agreement signed:</span>
+        <div class="theme-toggle" onclick="toggleAgreementSigned()" id="agreementToggle" title="Mark agreement as received">
+          <div class="toggle-track" id="agreementToggleTrack"></div>
+        </div>
+        <span id="agreementSignedLabel" style="font-size:12px;color:var(--muted);">No</span>
+      </span>
+      <span id="centerAssignWrap" style="margin-left:8px;display:inline-flex;align-items:center;gap:8px;">
+        <span id="assignedCenterBadge" style="display:none;font-size:12px;background:var(--surface2);
+              border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);">
+          📍 <span id="assignedCenterName"></span>
+        </span>
+        <button id="btnAssignCenter" class="btn-view" onclick="assignStudentToCenter(currentAppId)">Assign to Center</button>
+      </span>
+      <button class="btn-view" onclick="openMentorAssignModal('LOCATION_MENTOR')" id="btnAssignLocMentor" style="margin-left:4px;">Assign Loc Mentor</button>
+      <span id="locMentorBadge" style="display:none;font-size:12px;background:var(--surface2);
+            border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);">
+        👤 Loc: <span id="locMentorBadgeText"></span>
+      </span>
+      <button class="btn-view" onclick="openMentorAssignModal('DOMAIN_MENTOR')" id="btnAssignDomMentor" style="margin-left:4px;">Assign Dom Mentor</button>
+      <span id="domMentorBadge" style="display:none;font-size:12px;background:var(--surface2);
+            border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);">
+        👤 Dom: <span id="domMentorBadgeText"></span>
+      </span>
+      <button class="btn-view" id="btnDownloadPdf" onclick="downloadApplicationPdf()" style="margin-left:auto;background:var(--accent);color:#fff;border-color:var(--accent);">⬇ Download PDF</button>
     </div>
   </div>
 </div>
@@ -2106,8 +2525,28 @@ td {
 </div>
 
 <script>
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+function applyTheme(light) {
+  document.body.classList.toggle('light-mode', light);
+  const label = document.getElementById('themeLabel');
+  if (label) label.textContent = light ? 'Light mode' : 'Dark mode';
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  localStorage.setItem('gef-theme', isLight ? 'light' : 'dark');
+  const label = document.getElementById('themeLabel');
+  if (label) label.textContent = isLight ? 'Light mode' : 'Dark mode';
+}
+
+// Apply saved theme immediately on load
+(function() {
+  const saved = localStorage.getItem('gef-theme');
+  if (saved === 'light') applyTheme(true);
+})();
+
 // ── Config ────────────────────────────────────────────────────────────────────
-const API = '/api/v1'; // resolved relative to current host
+const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -2131,6 +2570,16 @@ let allApps       = [];   // cached current page rows for client-side search
     .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
   document.getElementById('loginEmail')
     .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      const backdrop = document.getElementById('modalBackdrop');
+      if (backdrop && backdrop.classList.contains('open')) closeModal();
+      const caBackdrop = document.getElementById('centerAssignBackdrop');
+      if (caBackdrop && caBackdrop.style.display === 'flex') closeCenterAssignModal();
+      const maBackdrop = document.getElementById('mentorAssignBackdrop');
+      if (maBackdrop && maBackdrop.style.display === 'flex') closeMentorAssignModal();
+    }
+  });
 })();
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -2191,15 +2640,16 @@ function doLogout() {
  */
 function routeByRole() {
   const roles = (currentUser?.roles || []);
-  const isMgmt = roles.some(r => ['ADMIN','EVALUATOR','REVIEWER'].includes(r));
-  const isPortal = roles.some(r => ['STUDENT','LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
+  const isMgmt = roles.some(r => ['CENTRAL_COMMITTEE_USER','EVALUATOR','REVIEWER',
+      'IQ_ASSESSOR','CENTER_HEAD','LOCATION_MENTOR','DOMAIN_MENTOR',
+      'FINANCE_APPROVER'].includes(r));
+  const isPortal = roles.some(r => ['STUDENT'].includes(r));
 
   if (isMgmt) {
     showDashboard();
   } else if (isPortal) {
     showPortal();
   } else {
-    // Unknown role — default to portal
     showPortal();
   }
 }
@@ -2218,16 +2668,56 @@ function showDashboard() {
   document.getElementById('navUserRole').textContent = roles[0] || 'USER';
 
   // Role-aware tab visibility
-  const isAdmin = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const isCCU          = roles.includes('CENTRAL_COMMITTEE_USER');
+  const isEval         = roles.includes('EVALUATOR');
+  const isReviewer     = roles.includes('REVIEWER');
+  const isIqAssessor   = roles.includes('IQ_ASSESSOR');
+  const isCenterHead   = roles.includes('CENTER_HEAD');
+  const isLocMentor    = roles.includes('LOCATION_MENTOR');
+  const isDomMentor    = roles.includes('DOMAIN_MENTOR');
+  const hasOtherMgmtRole = isCCU || isEval || isReviewer || isIqAssessor ||
+                            isCenterHead || isLocMentor || isDomMentor;
+  // FINANCE_APPROVER with NO other management role gets a locked-down loans-only view
+  const isFinanceOnly  = roles.includes('FINANCE_APPROVER') && !hasOtherMgmtRole;
+  const isAdmin        = isCCU || isEval;
+
   if (isAdmin) {
-    document.getElementById('tab-assignments').style.display = '';
+    document.getElementById('tab-assignments').style.display  = '';
     document.getElementById('btnManagePeriods').style.display = '';
+    document.getElementById('tab-centers').style.display      = '';
+    document.getElementById('tab-iqassessor').style.display   = '';
+    document.getElementById('tab-loans').style.display        = '';
+  }
+  if (isCCU) {
+    const faBtn = document.getElementById('btnAddFinanceApprover');
+    if (faBtn) faBtn.style.display = '';
+  }
+  // Loans tab for mentors, center heads, finance approvers
+  const isLoanViewer = roles.some(r =>
+    ['FINANCE_APPROVER','LOCATION_MENTOR','DOMAIN_MENTOR','CENTER_HEAD'].includes(r));
+  if (isLoanViewer && !isAdmin) {
+    document.getElementById('tab-loans').style.display = '';
+  }
+
+  // FINANCE_APPROVER only: hide Applications tab, stats, go straight to Loans
+  if (isFinanceOnly) {
+    document.getElementById('tab-applications').style.display = 'none';
+    document.getElementById('tab-appraisals').style.display   = 'none';
+    document.getElementById('tab-mentoring').style.display    = 'none';
+    document.getElementById('tab-assignments').style.display  = 'none';
+    document.getElementById('tab-centers').style.display      = 'none';
+    document.getElementById('tab-iqassessor').style.display   = 'none';
+    const statsRow = document.getElementById('statsRow');
+    if (statsRow) statsRow.style.display = 'none';
+    switchView('loans');
+    return;
   }
 
   loadStats();
   loadApplications();
   loadAppraisals();
   if (isAdmin) loadAssignmentDropdowns();
+  if (isAdmin) loadCenterDropdowns();
 }
 
 function switchView(view) {
@@ -2237,9 +2727,12 @@ function switchView(view) {
   document.getElementById('tab-' + view).classList.add('active');
   if (view === 'appraisals') loadAppraisals();
   if (view === 'mentoring')  loadMentoringAdmin();
+  if (view === 'centers')    loadCenters();
+  if (view === 'iqassessor') loadIqAssessorPanel();
+  if (view === 'loans')      loadLoanRequests();
 }
 
-// ── Load mentoring records for admin view ─────────────────────────────────────
+// ── Load Monthly Thinking Exercises for admin view ─────────────────────────────────────
 async function loadMentoringAdmin() {
   const tbody = document.getElementById('mentoringAdminTableBody');
   tbody.innerHTML = `<tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
@@ -2248,7 +2741,7 @@ async function loadMentoringAdmin() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const list = await res.json();
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No mentoring records yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No Monthly Thinking Exercises yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map((r, i) => `
@@ -2308,6 +2801,24 @@ async function apiFetch(url, options = {}) {
   return res;
 }
 
+/**
+ * Like apiFetch but throws with the real backend error message on non-2xx.
+ * Use this for write operations (POST, PUT, PATCH, DELETE) so the user sees
+ * meaningful errors like "Application is in terminal status..." instead of "HTTP 400".
+ */
+async function apiFetchChecked(url, options = {}) {
+  const res = await apiFetch(url, options);
+  if (!res.ok) {
+    let msg = `Request failed (${res.status})`;
+    try {
+      const body = await res.json();
+      msg = body.message || body.error || body.detail || JSON.stringify(body);
+    } catch { /* response was not JSON */ }
+    throw new Error(msg);
+  }
+  return res;
+}
+
 // ── Stats ──────────────────────────────────────────────────────────────────────
 async function loadStats() {
   try {
@@ -2317,9 +2828,17 @@ async function loadStats() {
     const setEl = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || 0; };
     setEl('stat-total',       data.total);
     setEl('stat-new',         data.newApplication);
-    setEl('stat-review',      data.underReview);
+    // In Progress = all statuses between New and terminal (rejected/approved)
+    const inProgress = (data.iqAssessmentRequired      || 0)
+                     + (data.homeVisitNeeded            || 0);
+    setEl('stat-review',      inProgress);
     setEl('stat-approved',    data.approved);
-    setEl('stat-rejected',    data.rejected);
+    // Rejected = all rejection statuses combined
+    const totalRejected = (data.majorDiscrepenciesRejected    || 0)
+                        + (data.notFittingCriteriaRejected    || 0)
+                        + (data.iqAssessmentRequiredRejected  || 0)
+                        + (data.rejectedAfterHomeVisit        || 0);
+    setEl('stat-rejected',    totalRejected);
     setEl('loginStatTotal',   data.total);
     setEl('loginStatPending', data.newApplication);
   } catch (e) {
@@ -2333,15 +2852,24 @@ async function loadApplications() {
   tbody.innerHTML = '<tr><td colspan="8"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>';
 
   try {
-    let url = `${API}/management/applications?page=${currentPage}&size=${PAGE_SIZE}`;
-    if (currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
+    // IN_PROGRESS is a client-side pseudo-filter — fetch all and filter locally
+    const isInProgress = currentStatus === 'IN_PROGRESS';
+    let url = `${API}/management/applications?page=${isInProgress ? 0 : currentPage}&size=${isInProgress ? 500 : PAGE_SIZE}`;
+    if (!isInProgress && currentStatus) url += `&status=${encodeURIComponent(currentStatus)}`;
 
     const res  = await apiFetch(url);
     const data = await res.json();
 
-    allApps       = data.content || [];
-    totalPages    = data.totalPages || 0;
-    totalElements = data.totalElements || 0;
+    let content = data.content || [];
+
+    // Client-side filter for IN_PROGRESS
+    if (isInProgress) {
+      content = content.filter(a => IN_PROGRESS_STATUSES.has(a.currentStatus));
+    }
+
+    allApps       = content;
+    totalPages    = isInProgress ? 1 : (data.totalPages || 0);
+    totalElements = isInProgress ? content.length : (data.totalElements || 0);
 
     renderTable(allApps);
     renderPagination();
@@ -2419,18 +2947,26 @@ function goPage(p) {
 }
 
 // ── Filters ────────────────────────────────────────────────────────────────────
+const IN_PROGRESS_STATUSES = new Set([
+  'IQ_ASSESSMENT_REQUIRED',
+  'IQ_ASSESSMENT_REQUIRED_REJECTED',
+  'HOME_VISIT_NEEDED',
+]);
+
 function filterByStatus(status) {
   currentStatus = status;
   currentPage = 0;
-  document.getElementById('statusFilter').value = status;
+  // IN_PROGRESS is a client-side pseudo-filter — set the dropdown to empty
+  document.getElementById('statusFilter').value =
+    status === 'IN_PROGRESS' ? '' : status;
   // Highlight active stat card
   document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
   const cardMap = {
     '':                 0,
     'NEW_APPLICATION':  1,
-    'UNDER_REVIEW':     2,
+    'IN_PROGRESS':      2,
     'APPROVED':         3,
-    'REJECTED':         4,
+    'MAJOR_DISCREPENCIES_REJECTED': 4,
   };
   const idx = cardMap[status];
   if (idx !== undefined) {
@@ -2466,8 +3002,11 @@ async function openApplication(id) {
   switchTab('personal');
   document.getElementById('modalStudentName').textContent = 'Loading…';
   document.getElementById('modalIdBadge').textContent = '#' + id;
-  document.getElementById('transitionSelect').value = '';
   document.getElementById('transitionRemarks').value = '';
+  document.getElementById('transitionIqAssessorSelect').style.display = 'none';
+
+  // Populate transition options based on caller role
+  populateTransitionDropdown();
 
   try {
     const res  = await apiFetch(`${API}/management/applications/${id}`);
@@ -2477,6 +3016,22 @@ async function openApplication(id) {
     showToast('Failed to load application: ' + err.message, 'error');
     closeModal();
   }
+}
+
+function populateTransitionDropdown() {
+  // Show all statuses to all roles — backend validates and returns a clear
+  // error message if the caller's role is not permitted for that transition.
+  const sel = document.getElementById('transitionSelect');
+  sel.innerHTML = `
+    <option value="">— select status —</option>
+    <option value="MAJOR_DISCREPENCIES_REJECTED">Major Discrepancies Rejected</option>
+    <option value="NOT_FITTING_CRITERIA_REJECTED">Not Fitting Criteria Rejected</option>
+    <option value="IQ_ASSESSMENT_REQUIRED">IQ Assessment Required</option>
+    <option value="IQ_ASSESSMENT_REQUIRED_REJECTED">IQ Assessment Rejected</option>
+    <option value="HOME_VISIT_NEEDED">Home Visit Needed</option>
+    <option value="REJECTED_AFTER_HOME_VISIT">Rejected After Home Visit</option>
+    <option value="APPROVED">Approved</option>
+  `;
 }
 
 function populateModal(app) {
@@ -2490,6 +3045,60 @@ function populateModal(app) {
   const badge = document.getElementById('modalStatusBadge');
   badge.className = `status-badge ${statusClass(status)}`;
   badge.textContent = fmtStatus(status);
+
+  // Agreement signed toggle — show only for APPROVED applications
+  const wf2 = app.workflowHistory || [];
+  const currentStatus2 = wf2.length ? wf2[wf2.length-1].toStatus : 'NEW_APPLICATION';
+  const isApproved = currentStatus2 === 'APPROVED';
+  const agreementWrap  = document.getElementById('agreementToggleWrap');
+  const agreementLabel = document.getElementById('agreementSignedLabel');
+  const agreementTrack = document.getElementById('agreementToggleTrack');
+  if (agreementWrap) {
+    agreementWrap.style.display = isApproved ? 'inline-flex' : 'none';
+    const signed = !!app.agreementSigned;
+    if (agreementLabel) agreementLabel.textContent = signed ? 'Yes' : 'No';
+    if (agreementTrack) {
+      agreementTrack.parentElement.style.filter = signed ? 'none' : 'none';
+      document.body.classList[signed ? 'add' : 'remove']('_agreement-signed-' + app.id);
+    }
+    // Store on element for toggle function
+    if (agreementWrap) agreementWrap.dataset.signed = signed ? '1' : '0';
+  }
+  const centerBadge = document.getElementById('assignedCenterBadge');
+  const centerBtn   = document.getElementById('btnAssignCenter');
+  if (app.assignedCenterName) {
+    document.getElementById('assignedCenterName').textContent = app.assignedCenterName;
+    centerBadge.style.display = '';
+    centerBtn.textContent = 'Change Center';
+  } else {
+    centerBadge.style.display = 'none';
+    centerBtn.textContent = 'Assign to Center';
+  }
+
+  // Mentor badges
+  const locBadge = document.getElementById('locMentorBadge');
+  const locText  = document.getElementById('locMentorBadgeText');
+  const locBtn   = document.getElementById('btnAssignLocMentor');
+  if (app.locationMentorName) {
+    locText.textContent   = app.locationMentorName;
+    locBadge.style.display = '';
+    locBtn.textContent    = 'Change Loc Mentor';
+  } else {
+    locBadge.style.display = 'none';
+    locBtn.textContent    = 'Assign Loc Mentor';
+  }
+
+  const domBadge = document.getElementById('domMentorBadge');
+  const domText  = document.getElementById('domMentorBadgeText');
+  const domBtn   = document.getElementById('btnAssignDomMentor');
+  if (app.domainMentorName) {
+    domText.textContent   = app.domainMentorName;
+    domBadge.style.display = '';
+    domBtn.textContent    = 'Change Dom Mentor';
+  } else {
+    domBadge.style.display = 'none';
+    domBtn.textContent    = 'Assign Dom Mentor';
+  }
 
   // Personal
   setGrid('dp-personal', [
@@ -2645,15 +3254,35 @@ function onBackdropClick(e) {
 
 function switchTab(name) {
   document.querySelectorAll('.modal-tab').forEach((t, i) => {
-    const names = ['personal','academic','family','expenses','references','workflow'];
+    const names = ['personal','academic','family','expenses','references','workflow','evaluation'];
     t.classList.toggle('active', names[i] === name);
   });
   document.querySelectorAll('.modal-tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === 'tab-' + name);
   });
+  if (name === 'evaluation') loadEvaluationTab();
 }
 
 // ── Workflow transition ────────────────────────────────────────────────────────
+async function onTransitionSelectChange() {
+  const status = document.getElementById('transitionSelect').value;
+  const iqSel  = document.getElementById('transitionIqAssessorSelect');
+
+  if (status === 'IQ_ASSESSMENT_REQUIRED') {
+    iqSel.style.display = '';
+    // Populate with IQ_ASSESSOR users if not yet loaded
+    if (iqSel.options.length <= 1) {
+      iqSel.innerHTML = '<option value="">Loading assessors…</option>';
+      const users = await loadNonStudentUsers();
+      const assessors = users.filter(u => (u.roles||[]).some(r => r.roleName === 'IQ_ASSESSOR'));
+      iqSel.innerHTML = '<option value="">— assign IQ assessor (optional) —</option>' +
+        assessors.map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
+    }
+  } else {
+    iqSel.style.display = 'none';
+  }
+}
+
 async function doTransition() {
   const toStatus = document.getElementById('transitionSelect').value;
   const remarks  = document.getElementById('transitionRemarks').value.trim();
@@ -2664,13 +3293,35 @@ async function doTransition() {
   btn.textContent = 'Updating…';
 
   try {
-    const res = await apiFetch(`${API}/management/applications/${currentAppId}/transition`, {
+    const res = await apiFetchChecked(`${API}/management/applications/${currentAppId}/transition`, {
       method: 'POST',
       body: JSON.stringify({ toStatus, remarks })
     });
-    if (!res.ok) throw new Error('Transition failed');
+    if (!res.ok) {
+      // Extract the real error message from the backend response
+      let msg = `Status ${res.status}`;
+      try {
+        const errBody = await res.json();
+        msg = errBody.message || errBody.error || JSON.stringify(errBody);
+      } catch { /* response wasn't JSON */ }
+      throw new Error(msg);
+    }
 
     showToast(`Status updated to ${fmtStatus(toStatus)}`, 'success');
+
+    // If moving to IQ_ASSESSMENT_REQUIRED and an assessor was selected, assign them
+    const iqAssessorId = document.getElementById('transitionIqAssessorSelect').value;
+    if (toStatus === 'IQ_ASSESSMENT_REQUIRED' && iqAssessorId) {
+      try {
+        await apiFetchChecked(`${API}/management/applications/${currentAppId}/assign-iq-assessor`, {
+          method: 'POST', body: JSON.stringify({ assessorUserId: Number(iqAssessorId) })
+        });
+        showToast('IQ Assessor assigned', 'success');
+      } catch(e) {
+        showToast('Status updated but IQ assessor assignment failed: ' + e.message, 'error');
+      }
+    }
+
     // Refresh the modal and the list
     const detailRes = await apiFetch(`${API}/management/applications/${currentAppId}`);
     populateModal(await detailRes.json());
@@ -2678,6 +3329,8 @@ async function doTransition() {
     loadStats();
     document.getElementById('transitionSelect').value = '';
     document.getElementById('transitionRemarks').value = '';
+    document.getElementById('transitionIqAssessorSelect').style.display = 'none';
+    document.getElementById('transitionIqAssessorSelect').value = '';
   } catch (err) {
     showToast(err.message, 'error');
   } finally {
@@ -3261,7 +3914,7 @@ async function pfSave(isSubmit) {
   else                endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
 
   try {
-    const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
+    const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'HTTP ' + res.status);
@@ -3426,7 +4079,7 @@ async function doCreateAppraisal() {
 
   try {
     // Student self-creates — backend resolves their own application automatically
-    const res = await apiFetch(`${API}/appraisal`, {
+    const res = await apiFetchChecked(`${API}/appraisal`, {
       method: 'POST',
       body:   JSON.stringify({ appraisalPeriodId: periodId }),
     });
@@ -3524,7 +4177,7 @@ function renderAssignmentTable(mappings, appLabel) {
       <td>${esc(m.studentUser?.fullName || m.studentUser?.email || '—')}</td>
       <td class="td-id">#${m.application?.id || '—'}</td>
       <td>${esc(m.mentorUser?.fullName || m.mentorUser?.email || '—')}</td>
-      <td><span class="status-badge ${m.mentorRole === 'LOCATION_MENTOR' ? 's-UNDER_REVIEW' : 's-APPROVED'}" style="font-size:11px;">
+      <td><span class="status-badge ${m.mentorRole === 'LOCATION_MENTOR' ? 's-IQ_ASSESSMENT_REQUIRED' : 's-APPROVED'}" style="font-size:11px;">
         ${m.mentorRole === 'LOCATION_MENTOR' ? 'Location Mentor' : 'Domain Mentor'}
       </span></td>
       <td class="td-date">${fmtDate(m.assignedAt)}</td>
@@ -3542,7 +4195,7 @@ async function doAssignMentor() {
   }
 
   try {
-    const res = await apiFetch(`${API}/appraisal/assign-mentor`, {
+    const res = await apiFetchChecked(`${API}/appraisal/assign-mentor`, {
       method: 'POST',
       body: JSON.stringify({ applicationId: appId, mentorUserId: mentorId, mentorRole }),
     });
@@ -3721,11 +4374,10 @@ async function doCreatePeriod() {
     return;
   }
   try {
-    const res = await apiFetch(`${API}/appraisal/periods`, {
+    const res = await apiFetchChecked(`${API}/appraisal/periods`, {
       method: 'POST',
       body:   JSON.stringify({ periodLabel: label, periodFrom: from, periodTo: to }),
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
     showToast('Period created!', 'success');
     document.getElementById('newPeriodLabel').value = '';
     document.getElementById('newPeriodFrom').value  = '';
@@ -3740,8 +4392,7 @@ async function doCreatePeriod() {
 
 async function doDeactivatePeriod(periodId) {
   try {
-    const res = await apiFetch(`${API}/appraisal/periods/${periodId}/deactivate`, { method: 'PATCH' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const res = await apiFetchChecked(`${API}/appraisal/periods/${periodId}/deactivate`, { method: 'PATCH' });
     showToast('Period deactivated', 'success');
     loadAllPeriods();
   } catch(e) {
@@ -3786,10 +4437,10 @@ async function loadMentoringList() {
   const headingEl = document.getElementById('mentoringHeading');
   const subEl     = document.getElementById('mentoringSubheading');
   if (headingEl) headingEl.innerHTML = isStudent
-    ? 'My <span>Mentoring</span>' : 'Student <span>Mentoring</span>';
+    ? 'My <span>MTE</span>' : 'Student <span>MTE</span>';
   if (subEl) subEl.textContent = isStudent
     ? 'Monthly progress updates reviewed by your mentors'
-    : 'Monthly mentoring records for your assigned students';
+    : 'Monthly Monthly Thinking Exercises for your assigned students';
 
   // Show "Add New" button only for students
   document.getElementById('btnAddMentoringWrap').style.display = isStudent ? '' : 'none';
@@ -3806,10 +4457,10 @@ async function loadMentoringList() {
 
     if (!list.length) {
       cards.innerHTML = `<div class="no-appraisals">
-        <h3>${isStudent ? 'No mentoring records yet' : 'No student records yet'}</h3>
+        <h3>${isStudent ? 'No Monthly Thinking Exercises yet' : 'No student records yet'}</h3>
         <p>${isStudent
-          ? 'Click "+ Add New Mentoring" to create your first monthly record.'
-          : 'Your assigned students have not created any mentoring records yet.'}</p>
+          ? 'Click "+ Add New MTE" to create your first monthly record.'
+          : 'Your assigned students have not created any Monthly Thinking Exercises yet.'}</p>
       </div>`;
       return;
     }
@@ -3822,7 +4473,7 @@ async function loadMentoringList() {
 
 function buildMentoringCard(r, roles) {
   const isStudent = roles.includes('STUDENT');
-  const month   = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New Record';
+  const month   = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New MTE';
   const student = r.studentUser?.fullName || r.studentUser?.email || '—';
   const stuDone = !!r.completedByStudent;
   const locDone = !!r.reviewedByLocationMentor;
@@ -3888,10 +4539,10 @@ function mfPopulateForm(r) {
   const isStudent = roles.includes('STUDENT');
   const isLoc     = roles.includes('LOCATION_MENTOR');
   const isDom     = roles.includes('DOMAIN_MENTOR');
-  const isAdmin   = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
 
-  const month = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New Record';
-  document.getElementById('mfTitle').textContent    = r.id ? month : 'New Mentoring Record';
+  const month = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New MTE';
+  document.getElementById('mfTitle').textContent    = r.id ? month : 'New Monthly Thinking Exercise';
   document.getElementById('mfSubtitle').textContent = r.id
     ? (r.studentUser?.fullName || '') + (r.college ? ' · ' + r.college : '')
     : 'Fill Basic Info and click Save Draft to create your record';
@@ -3987,7 +4638,7 @@ function mfBuildBooks(books) {
 function mfAddBook(data = {}) {
   const i = ++mfBookCount;
   const roles  = currentUser.roles || [];
-  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const canEdit = roles.includes('STUDENT') || roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
   const ro = canEdit ? '' : 'disabled';
   document.getElementById('mf-booksBody').insertAdjacentHTML('beforeend', `
     <tr id="mfb-${i}">
@@ -4010,7 +4661,7 @@ function mfBuildAcademic(rows) {
 function mfAddAcademic(data = {}) {
   const i = ++mfAcademicCount;
   const roles  = currentUser.roles || [];
-  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const canEdit = roles.includes('STUDENT') || roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
   const ro = canEdit ? '' : 'disabled';
   document.getElementById('mf-academicBody').insertAdjacentHTML('beforeend', `
     <tr id="mfa-${i}">
@@ -4033,7 +4684,7 @@ function mfBuildFinancial(rows) {
 function mfAddFinancial(data = {}) {
   const i = ++mfFinancialCount;
   const roles  = currentUser.roles || [];
-  const canEdit = roles.includes('STUDENT') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const canEdit = roles.includes('STUDENT') || roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
   const ro = canEdit ? '' : 'disabled';
   document.getElementById('mf-financialBody').insertAdjacentHTML('beforeend', `
     <tr id="mff-${i}">
@@ -4127,7 +4778,7 @@ async function mfSave(isSubmit) {
   const isStudent = roles.includes('STUDENT');
   const isLoc     = roles.includes('LOCATION_MENTOR');
   const isDom     = roles.includes('DOMAIN_MENTOR');
-  const isAdmin   = roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
 
   const btn = document.getElementById('mf-btnSubmit');
   btn.disabled = true;
@@ -4157,7 +4808,7 @@ async function mfSave(isSubmit) {
         btn.disabled = false; btn.textContent = 'Submit ✓';
         return;
       }
-      const createRes = await apiFetch(`${API}/mentoring`, {
+      const createRes = await apiFetchChecked(`${API}/mentoring`, {
         method: 'POST',
         body:   JSON.stringify({
           yearOfStudy:     dto.yearOfStudy,
@@ -4188,7 +4839,7 @@ async function mfSave(isSubmit) {
 
     if (isSubmit && isStudent) dto.completedByStudent = true;
 
-    const res = await apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
+    const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       throw new Error(err.message || 'HTTP ' + res.status);
@@ -4205,6 +4856,706 @@ async function mfSave(isSubmit) {
     btn.textContent = 'Submit ✓';
   }
 }
+// ══ EVALUATION MODULE ══════════════════════════════════════════════════════
+
+const EVAL_CRITERIA = [
+  { no:'1',  name:'Academic Excellence',
+    max:10, keys:[['Past 3 years average > 90%',10],['>80%',6],['>60%',3]], field:'s1' },
+  { no:'2a', name:'Family Educational Background',
+    max:5,  keys:[['Both parents < SSC',5],['SSC',4],['Professional/trade course',3],['A graduate parent',1.5]], field:'s2a' },
+  { no:'2b', name:'Parents Background',
+    max:5,  keys:[['Labour / marginal dry farmer',5],['Farmer / Class 4 / Blue Collar',3],['White Collar',1.5]], field:'s2b' },
+  { no:'2c', name:'Family General Background',
+    max:10, keys:[['Orphan',10],['Single parent','4–6'],['Unemployed parents','4–6']], field:'s2c' },
+  { no:'3',  name:'Family Per Capita Income',
+    max:10, keys:[['<20K Village / 25K Town / 30K Metro',10],['<30K / 35K / 40K',6],['<40K / 45K / 50K',3]], field:'s3' },
+  { no:'4',  name:'Domicile',
+    max:10, keys:[['Small Village',10],['Towns',7],['Cities',5],['Metros',3]], field:'s4' },
+  { no:'5a', name:'Differentiator',
+    max:5,  keys:[['Girl',5],['Boys with financial stress',3],['Others',1.5]], field:'s5a' },
+  { no:'5b', name:'Aid Required',
+    max:5,  keys:[['<1L',5],['1–1.5L',3],['1.5–2L',1.5],['2L+',0]], field:'s5b' },
+  { no:'6',  name:'IQ / Talent',
+    max:10, keys:[['Very High (140+)',10],['High (130–139)',8],['Medium (120–129)',5],['Average (110–120)',2],['Below 110',0]], field:'s6' },
+  { no:'7',  name:'Relatives',
+    max:5,  keys:[['No well educated relatives',5],['An immediate sibling on parental side',3],['Many immediate siblings',1]], field:'s7' },
+  { no:'8',  name:'Other Talent (sports, arts, communication)',
+    max:10, keys:[['Inter-institute level','8–10'],['Intra-institute level','4–6'],['None',0]], field:'s8' },
+  { no:'9',  name:'Disabilities / Medical Issues',
+    max:10, keys:[['Student — major handicap',10],['Student — minor handicap',7],['Immediate family — major handicap',4]], field:'s9' },
+  { no:'10', name:'Character Information',
+    max:5,  keys:[['A committee member knows very well',5],['An acquaintance of member knows',3],['Not enough information',0]], field:'s10' },
+];
+
+let evalCurrentId = null;
+
+function evalBuildForm(data) {
+  const wrap = document.getElementById('evalFormWrap');
+  if (!wrap) return;
+  const d = data || {};
+
+  let html = `
+    <div class="eval-header">
+      <div style="font-size:13px;font-weight:700;color:var(--text);">Evaluation Form</div>
+      <div class="eval-header-grid">
+        <div>
+          <div class="mf-label">Filled By</div>
+          <input class="eval-score-input" id="ev-filledBy" style="text-align:left;font-weight:400;"
+            value="${esc(d.filledBy||'')}" placeholder="Evaluator name"/>
+        </div>
+        <div>
+          <div class="mf-label">Date</div>
+          <input type="date" class="eval-score-input" id="ev-date" style="text-align:left;font-weight:400;"
+            value="${d.evalDate||''}"/>
+        </div>
+        <div>
+          <div class="mf-label">Career Goal Matches</div>
+          <select class="eval-score-input" id="ev-careerMatch" style="text-align:left;font-weight:400;">
+            <option value="">— select —</option>
+            <option value="true" ${d.careerGoalMatches===true?'selected':''}>Yes — matching</option>
+            <option value="false" ${d.careerGoalMatches===false?'selected':''}>No — not matching</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+
+  EVAL_CRITERIA.forEach(c => {
+    const f = c.field;
+    const score = d[f+'Score'] ?? '';
+    const comm  = esc(d[f+'Comments']  || '');
+    const comm2 = esc(d[f+'Comments2'] || '');
+    html += `
+    <div class="eval-criterion">
+      <div class="eval-criterion-header">
+        <span class="eval-crit-no">${c.no}</span>
+        <span class="eval-crit-name">${c.name}</span>
+        <span class="eval-crit-max">Max: ${c.max}</span>
+      </div>
+      <div class="eval-scoring-keys">
+        ${c.keys.map(([k,v]) => `<div class="eval-key-row"><span>${k}</span><span class="eval-key-score">${v}</span></div>`).join('')}
+      </div>
+      <div class="eval-inputs">
+        <div>
+          <div class="mf-label">Actual Score</div>
+          <input type="number" class="eval-score-input" id="ev-${f}-score"
+            min="0" max="${c.max}" step="0.5" value="${score}" placeholder="0"
+            oninput="evalUpdateTotal()"/>
+        </div>
+        <div>
+          <div class="mf-label">Comments</div>
+          <textarea class="eval-comment-input" id="ev-${f}-c1" placeholder="Comments…">${comm}</textarea>
+        </div>
+        <div>
+          <div class="mf-label">Comments 2</div>
+          <textarea class="eval-comment-input" id="ev-${f}-c2" placeholder="Comments 2…">${comm2}</textarea>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+    <div class="eval-totals">
+      <div>
+        <div class="eval-total-score" id="ev-total">${d.totalScore ?? '0'}</div>
+        <div class="eval-total-label">Total Score / 100</div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-left:8px;">
+        ${d.submitted ? `<span style="color:#3ecf8e;">✓ Submitted ${d.submittedAt ? new Date(d.submittedAt).toLocaleDateString() : ''}</span>` : '<span>Draft</span>'}
+      </div>
+    </div>
+    <div class="eval-save-bar">
+      <button class="btn-save" onclick="evalSave(false)">Save Draft</button>
+      <button class="btn-submit" onclick="evalSave(true)">Submit Evaluation ✓</button>
+    </div>`;
+
+  wrap.innerHTML = html;
+  evalUpdateTotal();
+}
+
+function evalUpdateTotal() {
+  let total = 0;
+  EVAL_CRITERIA.forEach(c => {
+    const v = parseFloat(document.getElementById(`ev-${c.field}-score`)?.value || 0);
+    if (!isNaN(v)) total += v;
+  });
+  const el = document.getElementById('ev-total');
+  if (el) el.textContent = total.toFixed(total % 1 === 0 ? 0 : 2);
+}
+
+function evalCollect() {
+  const dto = {
+    filledBy:         document.getElementById('ev-filledBy')?.value || '',
+    evalDate:         document.getElementById('ev-date')?.value || null,
+    careerGoalMatches: document.getElementById('ev-careerMatch')?.value === 'true' ? true
+                      : document.getElementById('ev-careerMatch')?.value === 'false' ? false : null,
+  };
+  EVAL_CRITERIA.forEach(c => {
+    const f = c.field;
+    const sv = document.getElementById(`ev-${f}-score`)?.value;
+    dto[f+'Score']    = sv !== '' && sv !== undefined ? parseFloat(sv) : null;
+    dto[f+'Comments'] = document.getElementById(`ev-${f}-c1`)?.value || '';
+    dto[f+'Comments2']= document.getElementById(`ev-${f}-c2`)?.value || '';
+  });
+  return dto;
+}
+
+async function evalSave(submit) {
+  if (!evalCurrentId) return;
+  const btn = document.querySelector('.eval-save-bar .btn-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    const endpoint = submit
+      ? `${API}/evaluation/${evalCurrentId}/submit`
+      : `${API}/evaluation/${evalCurrentId}`;
+    const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(evalCollect()) });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    evalBuildForm(data);
+    showToast(submit ? 'Evaluation submitted!' : 'Draft saved', 'success');
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Evaluation ✓'; }
+  }
+}
+
+async function loadEvaluationTab() {
+  if (!currentAppId) return;
+  const wrap = document.getElementById('evalFormWrap');
+  if (wrap) wrap.innerHTML = '<div style="color:var(--muted);padding:20px;">Loading…</div>';
+  try {
+    const res = await apiFetch(`${API}/evaluation/application/${currentAppId}`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    evalCurrentId = data.id;
+    evalBuildForm(data);
+  } catch(e) {
+    if (wrap) wrap.innerHTML = `<div style="color:var(--muted);padding:20px;">Could not load evaluation: ${esc(e.message)}</div>`;
+  }
+}
+
+// ── Download application as PDF ──────────────────────────────────────────────
+async function downloadApplicationPdf() {
+  if (!currentAppId) return;
+  const btn = document.getElementById('btnDownloadPdf');
+  btn.textContent = '⏳ Generating…';
+  btn.disabled = true;
+  try {
+    const res = await apiFetch(`${API}/management/applications/${currentAppId}/pdf`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = `application_${currentAppId}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch(e) {
+    showToast('PDF generation failed: ' + e.message, 'error');
+  } finally {
+    btn.textContent = '⬇ Download PDF';
+    btn.disabled = false;
+  }
+}
+// ══ LOAN REQUESTS MODULE ══════════════════════════════════════════════════════
+
+async function loadLoanRequests() {
+  const tbody   = document.getElementById('loanRequestsBody');
+  const showAll = document.getElementById('loanShowAll')?.checked;
+  tbody.innerHTML = `<tr><td colspan="7"><div class="table-loading">
+    <div class="spinner"></div>Loading…</div></td></tr>`;
+  try {
+    const url = showAll ? `${API}/loans` : `${API}/loans/pending`;
+    const res  = await apiFetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const loans = await res.json();
+    if (!loans.length) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;
+        color:var(--muted);padding:32px;">${showAll ? 'No loan requests found.' :
+        'No pending loan requests.'}</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = loans.map(l => {
+      const sc = l.status === 'APPROVED' ? 's-APPROVED'
+               : l.status === 'REJECTED'  ? 's-MAJOR_DISCREPENCIES_REJECTED'
+               : 's-IQ_ASSESSMENT_REQUIRED';
+      const isPending = l.status === 'PENDING';
+      const amt = l.amount ? Number(l.amount).toLocaleString('en-IN') : '—';
+      return `<tr>
+        <td class="td-id">#${l.id}</td>
+        <td style="font-weight:500;">${esc(l.studentUser?.fullName || '—')}<br/>
+          <span style="font-size:11px;color:var(--muted);">${esc(l.application?.studentFullName || '')}</span></td>
+        <td style="font-weight:600;">&#x20B9;${amt}</td>
+        <td style="font-size:13px;max-width:220px;">${esc(l.reason)}</td>
+        <td style="font-size:12px;color:var(--muted);">${fmtDate(l.createdAt, true)}</td>
+        <td><span class="status-badge ${sc}">${l.status}</span>
+          ${l.rejectionReason ? `<div style="font-size:11px;color:var(--red);margin-top:3px;">
+            ${esc(l.rejectionReason)}</div>` : ''}
+        </td>
+        <td>
+          ${isPending ? `
+            <button class="btn-assign" onclick="approveLoan(${l.id})"
+              style="font-size:11px;padding:5px 10px;margin-right:4px;">Approve</button>
+            <button class="btn-save" onclick="openRejectLoan(${l.id})"
+              style="font-size:11px;padding:5px 10px;">Reject</button>
+          ` : ''}
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--red);padding:16px;">
+      ${esc(e.message)}</td></tr>`;
+  }
+}
+
+async function approveLoan(loanId) {
+  if (!confirm('Approve this loan request?')) return;
+  try {
+    await apiFetchChecked(`${API}/loans/${loanId}/approve`, { method: 'POST' });
+    showToast('Loan approved', 'success');
+    loadLoanRequests();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openRejectLoan(loanId) {
+  const reason = prompt('Rejection reason (required):');
+  if (!reason || !reason.trim()) return;
+  apiFetchChecked(`${API}/loans/${loanId}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ rejectionReason: reason.trim() })
+  }).then(() => {
+    showToast('Loan rejected', 'success');
+    loadLoanRequests();
+  }).catch(e => showToast(e.message, 'error'));
+}
+
+// ── Finance Approver creation ──────────────────────────────────────────────────
+
+function toggleFinanceApproverForm() {
+  const panel = document.getElementById('financeApproverPanel');
+  const hidden = panel.style.display === 'none' || !panel.style.display;
+  panel.style.display = hidden ? '' : 'none';
+  if (hidden) {
+    document.getElementById('faName').value     = '';
+    document.getElementById('faEmail').value    = '';
+    document.getElementById('faPassword').value = '';
+    document.getElementById('faName').focus();
+  }
+}
+
+async function doCreateFinanceApprover() {
+  const fullName = document.getElementById('faName').value.trim();
+  const email    = document.getElementById('faEmail').value.trim();
+  const password = document.getElementById('faPassword').value;
+  if (!fullName) { showToast('Full name is required', 'error'); return; }
+  if (!email)    { showToast('Email is required', 'error'); return; }
+  if (!password || password.length < 8) {
+    showToast('Password must be at least 8 characters', 'error'); return;
+  }
+  try {
+    await apiFetchChecked(`${API}/management/users/create`, {
+      method: 'POST',
+      body: JSON.stringify({ fullName, email, password, role: 'FINANCE_APPROVER' })
+    });
+    showToast(`Finance Approver account created for ${fullName}`, 'success');
+    toggleFinanceApproverForm();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ── Agreement signed toggle ────────────────────────────────────────────────────
+
+async function toggleAgreementSigned() {
+  const wrap  = document.getElementById('agreementToggleWrap');
+  const label = document.getElementById('agreementSignedLabel');
+  const isSigned = wrap.dataset.signed === '1';
+  const newVal   = !isSigned;
+
+  try {
+    await apiFetchChecked(`${API}/loans/agreement/${currentAppId}`, {
+      method: 'POST',
+      body: JSON.stringify({ signed: newVal })
+    });
+    wrap.dataset.signed = newVal ? '1' : '0';
+    label.textContent   = newVal ? 'Yes ✓' : 'No';
+    label.style.color   = newVal ? 'var(--green)' : 'var(--muted)';
+    // Visually update the toggle track
+    const track = document.getElementById('agreementToggleTrack');
+    if (track) {
+      track.style.background = newVal ? 'var(--accent-dim)' : '';
+      track.style.borderColor = newVal ? 'var(--accent)' : '';
+    }
+    showToast(`Agreement marked as ${newVal ? 'signed' : 'not signed'}`, 'success');
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ══ MENTOR ASSIGNMENT MODAL (from application detail) ═════════════════════════
+
+let _maMentorRole = null;
+
+async function openMentorAssignModal(role) {
+  _maMentorRole = role;
+  const isLoc   = role === 'LOCATION_MENTOR';
+  const label   = isLoc ? 'Location Mentor' : 'Domain Mentor';
+  const current = isLoc
+    ? document.getElementById('locMentorBadgeText')?.textContent
+    : document.getElementById('domMentorBadgeText')?.textContent;
+
+  document.getElementById('mentorModalTitle').textContent   = 'Assign ' + label;
+  document.getElementById('mentorModalCurrent').textContent = current
+    ? 'Currently: ' + current
+    : 'No ' + label + ' assigned yet';
+
+  const backdrop = document.getElementById('mentorAssignBackdrop');
+  backdrop.style.display = 'flex';
+
+  const sel = document.getElementById('maMentorSelect');
+  sel.innerHTML = '<option value="">Loading mentors…</option>';
+
+  const users = await loadNonStudentUsers();
+  const mentors = users.filter(u =>
+    (u.roles||[]).some(r => r.roleName === role)
+  );
+  if (!mentors.length) {
+    sel.innerHTML = `<option value="">No ${label}s found — create one first</option>`;
+    return;
+  }
+  sel.innerHTML = '<option value="">— select mentor —</option>' +
+    mentors.map(u => `<option value="${u.id}">${esc(u.fullName || u.email)}</option>`).join('');
+}
+
+function closeMentorAssignModal() {
+  document.getElementById('mentorAssignBackdrop').style.display = 'none';
+  _maMentorRole = null;
+}
+
+async function doAssignMentorInModal() {
+  const mentorUserId = document.getElementById('maMentorSelect').value;
+  const mentorName   = document.getElementById('maMentorSelect').selectedOptions[0]?.text || '';
+  if (!mentorUserId) { showToast('Please select a mentor', 'error'); return; }
+  try {
+    await apiFetchChecked(`${API}/management/applications/${currentAppId}/assign-mentor`, {
+      method: 'POST',
+      body: JSON.stringify({ mentorUserId: Number(mentorUserId), mentorRole: _maMentorRole })
+    });
+    const isLoc = _maMentorRole === 'LOCATION_MENTOR';
+    showToast((isLoc ? 'Location' : 'Domain') + ' Mentor assigned', 'success');
+
+    // Update badges in modal footer immediately
+    if (isLoc) {
+      document.getElementById('locMentorBadgeText').textContent = mentorName;
+      document.getElementById('locMentorBadge').style.display   = '';
+      document.getElementById('btnAssignLocMentor').textContent  = 'Change Loc Mentor';
+    } else {
+      document.getElementById('domMentorBadgeText').textContent = mentorName;
+      document.getElementById('domMentorBadge').style.display   = '';
+      document.getElementById('btnAssignDomMentor').textContent  = 'Change Dom Mentor';
+    }
+    closeMentorAssignModal();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+let _allNonStudentUsers = []; // cached once, reused for both center head and IQ assessor dropdowns
+let _ahCurrentCenterId  = null;
+
+async function loadNonStudentUsers() {
+  if (_allNonStudentUsers.length) return _allNonStudentUsers;
+  try {
+    const res = await apiFetch(`${API}/management/users`);
+    if (!res.ok) return [];
+    const users = await res.json();
+    // Exclude students — keep everyone else (mentors, evaluators, admins, center heads, assessors)
+    _allNonStudentUsers = users.filter(u =>
+      !u.roles || !u.roles.some(r => r.roleName === 'STUDENT')
+    );
+    return _allNonStudentUsers;
+  } catch(e) {
+    console.warn('loadNonStudentUsers:', e.message);
+    return [];
+  }
+}
+
+async function loadCenterDropdowns() {
+  // No-op — users are loaded on demand when the assign panel opens
+}
+
+async function loadCenters() {
+  const tbody = document.getElementById('centersTableBody');
+  tbody.innerHTML = `<tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
+  try {
+    const res = await apiFetch(`${API}/management/centers`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const centers = await res.json();
+    if (!centers.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">
+        No centers yet. Click "+ New Center" to create one.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = centers.map(c => {
+      const heads = (c.centerUsers || []).filter(u => u.active)
+          .map(u => esc(u.user?.fullName || u.user?.email || '')).filter(Boolean);
+      return `<tr>
+        <td class="td-id">#${c.id}</td>
+        <td style="font-weight:500;">${esc(c.name)}</td>
+        <td>${esc(c.city  || '—')}</td>
+        <td>${esc(c.state || '—')}</td>
+        <td style="font-size:12px;">${heads.length ? heads.join(', ') : '<span style="color:var(--muted);">None assigned</span>'}</td>
+        <td>
+          <button class="btn-view" onclick="openAssignHead(${c.id}, this)">Assign Head</button>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--red);padding:16px;">${esc(e.message)}</td></tr>`;
+  }
+}
+
+function toggleCenterForm() {
+  const panel = document.getElementById('createCenterPanel');
+  const isHidden = panel.style.display === 'none' || !panel.style.display;
+  panel.style.display = isHidden ? '' : 'none';
+  if (isHidden) {
+    document.getElementById('ccName').value  = '';
+    document.getElementById('ccCity').value  = '';
+    document.getElementById('ccState').value = '';
+    document.getElementById('ccName').focus();
+  }
+}
+
+async function doCreateCenter() {
+  const name  = document.getElementById('ccName').value.trim();
+  const city  = document.getElementById('ccCity').value.trim();
+  const state = document.getElementById('ccState').value.trim();
+  if (!name) {
+    showToast('Center name is required', 'error');
+    document.getElementById('ccName').focus();
+    return;
+  }
+  try {
+    await apiFetchChecked(`${API}/management/centers`, {
+      method: 'POST',
+      body: JSON.stringify({ name, city, state })
+    });
+    showToast(`Center "${name}" created`, 'success');
+    toggleCenterForm();
+    loadCenters();
+  } catch(e) {
+    showToast('Failed to create center: ' + e.message, 'error');
+  }
+}
+
+async function openAssignHead(centerId, btnEl) {
+  const centerName = btnEl.closest('tr')?.querySelector('td:nth-child(2)')?.textContent?.trim() || '#' + centerId;
+  _ahCurrentCenterId = centerId;
+  document.getElementById('ahCenterName').textContent = centerName;
+
+  const sel = document.getElementById('ahUserSelect');
+  sel.innerHTML = '<option value="">Loading users…</option>';
+
+  document.getElementById('assignHeadPanel').style.display = '';
+  document.getElementById('assignHeadPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  const users = await loadNonStudentUsers();
+  if (!users.length) {
+    sel.innerHTML = '<option value="">No users available</option>';
+    return;
+  }
+  sel.innerHTML = '<option value="">— select user —</option>' +
+    users.map(u => {
+      const roles = (u.roles || []).map(r => r.roleName).join(', ');
+      return `<option value="${u.id}">${esc(u.fullName || u.email)} (${esc(roles)})</option>`;
+    }).join('');
+}
+
+async function doAssignCenterHead() {
+  const userId = document.getElementById('ahUserSelect').value;
+  if (!_ahCurrentCenterId || !userId) {
+    showToast('Please select a user', 'error');
+    return;
+  }
+  try {
+    await apiFetchChecked(`${API}/management/centers/${_ahCurrentCenterId}/assign-head`, {
+      method: 'POST', body: JSON.stringify({ userId: Number(userId) })
+    });
+    showToast('Center Head assigned', 'success');
+    document.getElementById('assignHeadPanel').style.display = 'none';
+    _ahCurrentCenterId = null;
+    loadCenters();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+function toggleIqUserForm() {
+  const panel = document.getElementById('createIqUserPanel');
+  const isHidden = panel.style.display === 'none' || !panel.style.display;
+  panel.style.display = isHidden ? '' : 'none';
+  if (isHidden) {
+    document.getElementById('iqUserName').value     = '';
+    document.getElementById('iqUserEmail').value    = '';
+    document.getElementById('iqUserPassword').value = '';
+    document.getElementById('iqUserName').focus();
+  }
+}
+
+async function doCreateIqUser() {
+  const fullName = document.getElementById('iqUserName').value.trim();
+  const email    = document.getElementById('iqUserEmail').value.trim();
+  const password = document.getElementById('iqUserPassword').value;
+
+  if (!fullName) { showToast('Full name is required', 'error'); return; }
+  if (!email)    { showToast('Email is required', 'error'); return; }
+  if (!password || password.length < 8) {
+    showToast('Password must be at least 8 characters', 'error'); return;
+  }
+
+  try {
+    await apiFetchChecked(`${API}/management/users/create`, {
+      method: 'POST',
+      body: JSON.stringify({ fullName, email, password, role: 'IQ_ASSESSOR' })
+    });
+    showToast(`IQ Assessor account created for ${fullName}`, 'success');
+    toggleIqUserForm();
+    // Invalidate user cache so new user appears in dropdowns
+    _allNonStudentUsers = [];
+    loadIqAssessorPanel();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+
+
+async function loadIqAssessorPanel() {
+  const tbody = document.getElementById('iqAssessorTableBody');
+  tbody.innerHTML = `<tr><td colspan="3"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
+  // Invalidate cache so newly created users appear immediately
+  _allNonStudentUsers = [];
+  const users = await loadNonStudentUsers();
+  const assessors = users.filter(u => (u.roles||[]).some(r => r.roleName === 'IQ_ASSESSOR'));
+  if (!assessors.length) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:24px;">
+      No IQ Assessors yet. Click "+ New IQ Assessor" to create one.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = assessors.map(u => `
+    <tr>
+      <td style="font-weight:500;">${esc(u.fullName || '—')}</td>
+      <td>${esc(u.email)}</td>
+      <td><span class="status-badge ${u.active ? 's-APPROVED' : 's-MAJOR_DISCREPENCIES_REJECTED'}">${u.active ? 'Active' : 'Inactive'}</span></td>
+    </tr>`).join('');
+}
+
+// ── Assign student to center (from application detail modal) ──────────────────
+let _caApplicationId = null;
+
+async function assignStudentToCenter(applicationId) {
+  _caApplicationId = applicationId;
+
+  const backdrop = document.getElementById('centerAssignBackdrop');
+  backdrop.style.display = 'flex';
+
+  const studentName = document.getElementById('modalStudentName')?.textContent || '';
+  document.getElementById('caStudentName').textContent =
+    studentName ? 'Student: ' + studentName : 'Application #' + applicationId;
+
+  const sel = document.getElementById('caCenterSelect');
+  sel.innerHTML = '<option value="">Loading centers\u2026</option>';
+  try {
+    const res     = await apiFetch(`${API}/management/centers`);
+    const centers = await res.json();
+    if (!centers.length) {
+      sel.innerHTML = '<option value="">No centers available \u2014 create one first</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— select center —</option>' +
+      centers.map(c => {
+        const heads = (c.centerUsers || []).filter(u => u.active)
+          .map(u => u.user?.fullName || '').filter(Boolean).join(', ');
+        const loc   = [c.city, c.state].filter(Boolean).join(', ');
+        const label = c.name + (loc ? ' \u2014 ' + loc : '') + (heads ? ' (' + heads + ')' : '');
+        return `<option value="${c.id}">${esc(label)}</option>`;
+      }).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Failed to load centers</option>';
+    showToast('Could not load centers: ' + e.message, 'error');
+  }
+}
+
+function closeCenterAssignModal() {
+  document.getElementById('centerAssignBackdrop').style.display = 'none';
+  _caApplicationId = null;
+}
+
+async function doAssignStudentToCenter() {
+  const centerId   = document.getElementById('caCenterSelect').value;
+  const centerName = document.getElementById('caCenterSelect').selectedOptions[0]?.text || '';
+  if (!centerId) { showToast('Please select a center', 'error'); return; }
+  try {
+    await apiFetchChecked(`${API}/management/applications/${_caApplicationId}/assign-center`, {
+      method: 'POST', body: JSON.stringify({ centerId: Number(centerId) })
+    });
+    showToast('Center assigned successfully', 'success');
+    closeCenterAssignModal();
+    // Update badge immediately without reloading full modal
+    const nameEl = document.getElementById('assignedCenterName');
+    const badge  = document.getElementById('assignedCenterBadge');
+    const btn    = document.getElementById('btnAssignCenter');
+    // Strip the center heads parenthetical from the label to get just the name
+    const cleanName = centerName.split(' — ')[0].split(' (')[0].trim();
+    if (nameEl) nameEl.textContent = cleanName;
+    if (badge)  badge.style.display = '';
+    if (btn)    btn.textContent = 'Change Center';
+  } catch(e) { showToast(e.message, 'error'); }
+}
 </script>
+<!-- ── CENTER ASSIGNMENT MODAL ── -->
+<div id="centerAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Assign to Center</div>
+    <div id="caStudentName" style="font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
+    <div class="assign-field" style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
+        Select Center <span style="color:#e85252;">*</span>
+      </label>
+      <select id="caCenterSelect"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+        <option value="">— loading centers… —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-save" onclick="closeCenterAssignModal()">Cancel</button>
+      <button class="btn-assign" onclick="doAssignStudentToCenter()">Assign →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MENTOR ASSIGNMENT MODAL ── -->
+<div id="mentorAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;" id="mentorModalTitle">Assign Mentor</div>
+    <div id="mentorModalCurrent" style="font-size:12px;color:var(--muted);margin-bottom:20px;"></div>
+    <div class="assign-field" style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
+        Select Mentor <span style="color:#e85252;">*</span>
+      </label>
+      <select id="maMentorSelect"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+        <option value="">— loading… —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-save" onclick="closeMentorAssignModal()">Cancel</button>
+      <button class="btn-assign" onclick="doAssignMentorInModal()">Assign →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

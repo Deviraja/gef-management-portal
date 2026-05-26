@@ -465,13 +465,17 @@ body.light-mode ::-webkit-scrollbar-thumb { background: var(--border); }
 }
 .nav-user-name { font-size: 13px; font-weight: 500; }
 .nav-user-role {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--accent);
   background: var(--accent-dim);
   padding: 2px 7px;
   border-radius: 10px;
   font-weight: 600;
   margin-left: 4px;
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .btn-logout {
   background: none;
@@ -1198,7 +1202,30 @@ td {
 .comment-textarea::placeholder { color: var(--dim); }
 
 /* Rating input — narrow fixed width */
-.rating-input { width: 90px; resize: none; text-align: center; }
+/* ── Star rating ─────────────────────────────────────────────────────────── */
+.star-rating {
+  display: inline-flex;
+  flex-direction: row-reverse;
+  gap: 2px;
+}
+.star-rating input[type="radio"] { display: none; }
+.star-rating label {
+  font-size: 22px;
+  color: var(--border-light);
+  cursor: pointer;
+  transition: color 0.15s;
+  line-height: 1;
+}
+.star-rating input[type="radio"]:checked ~ label,
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+  color: #f5a623;
+}
+.star-rating.readonly label { cursor: default; pointer-events: none; }
+.star-rating.readonly input[type="radio"]:checked ~ label { color: #f5a623; }
+/* disabled = greyed stars */
+.star-rating.disabled label { color: var(--border); cursor: default; pointer-events: none; }
+.star-rating.disabled input[type="radio"]:checked ~ label { color: #c8a060; }
 
 /* Rationale / comment — taller */
 .rationale-input { min-height: 64px; }
@@ -1346,6 +1373,48 @@ td {
 .eval-total-label { font-size:12px; color:var(--muted); }
 .eval-save-bar { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
 
+
+/* ── Control Panel Modal ─────────────────────────────────────────────────── */
+#controlPanelBackdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  z-index: 4000; display: none;
+  align-items: flex-start; justify-content: flex-start; padding: 64px 0 0 16px;
+}
+#controlPanelBackdrop.open { display: flex; }
+.cp-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  width: 340px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.35);
+}
+.cp-panel-title {
+  font-size: 11px; font-weight: 700; letter-spacing: .8px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 14px; padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.cp-grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;
+}
+.cp-item {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 7px; padding: 14px 8px; border-radius: 10px;
+  background: var(--surface2); border: 1.5px solid var(--border);
+  cursor: pointer; transition: border-color .15s, background .15s;
+  text-align: center;
+}
+.cp-item:hover { border-color: var(--accent); background: var(--accent-dim); }
+.cp-item.cp-active { border-color: var(--accent); background: var(--accent-dim); }
+.cp-item svg { opacity: .75; }
+.cp-item:hover svg, .cp-item.cp-active svg { opacity: 1; }
+.cp-item-label {
+  font-size: 11px; font-weight: 600; color: var(--text-muted); line-height: 1.2;
+}
+.cp-item.cp-active .cp-item-label { color: var(--accent); }
+.cp-item[style*="display:none"] { display: none !important; }
+
 </style>
 </head>
 <body>
@@ -1411,15 +1480,29 @@ td {
     <div class="nav-logo"></div>
     <span class="nav-title">GEF Platform</span>
     <div class="nav-divider"></div>
-    <div class="nav-tabs" id="navTabs">
-      <button class="nav-tab active" onclick="switchView('applications')" id="tab-applications">Applications</button>
-      <button class="nav-tab" onclick="switchView('appraisals')" id="tab-appraisals">Appraisals</button>
-      <button class="nav-tab" onclick="switchView('mentoring')" id="tab-mentoring">MTE</button>
-      <button class="nav-tab" id="tab-assignments" onclick="switchView('assignments')" style="display:none">Mentor Assignments</button>
-      <button class="nav-tab" id="tab-centers" onclick="switchView('centers')" style="display:none">Centers</button>
-      <button class="nav-tab" id="tab-iqassessor" onclick="switchView('iqassessor')" style="display:none">IQ Assessors</button>
-      <button class="nav-tab" id="tab-loans" onclick="switchView('loans')" style="display:none">Loan Requests</button>
+    <!-- Keep hidden tab markers for JS role-visibility logic -->
+    <div id="navTabs" style="display:none;">
+      <span id="tab-applications"></span>
+      <span id="tab-appraisals"></span>
+      <span id="tab-mentoring"></span>
+      <span id="tab-assignments" style="display:none"></span>
+      <span id="tab-centers" style="display:none"></span>
+      <span id="tab-iqassessor" style="display:none"></span>
+      <span id="tab-loans" style="display:none"></span>
+      <span id="tab-roles" style="display:none"></span>
     </div>
+    <!-- Active section indicator -->
+    <span id="navCurrentSection" style="font-size:13px;font-weight:600;color:var(--text);margin-right:8px;">Applications</span>
+    <button class="btn-save" id="btnControlPanel" onclick="openControlPanel()"
+      style="font-size:13px;padding:7px 14px;display:flex;align-items:center;gap:6px;">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="1" y="1" width="6" height="6" rx="1.2"/>
+        <rect x="9" y="1" width="6" height="6" rx="1.2"/>
+        <rect x="1" y="9" width="6" height="6" rx="1.2"/>
+        <rect x="9" y="9" width="6" height="6" rx="1.2"/>
+      </svg>
+      Menu
+    </button>
     <div class="nav-spacer"></div>
     <div class="nav-user-pill">
       <div class="nav-avatar" id="navAvatar">SP</div>
@@ -1432,6 +1515,8 @@ td {
       <div class="toggle-track"></div>
       <span class="toggle-icon" style="font-size:13px;">☀️</span>
     </div>
+    <button class="btn-save" onclick="openChangePassword()"
+      style="font-size:12px;padding:6px 12px;" title="Change password">🔑</button>
     <button class="btn-logout" onclick="doLogout()">Sign Out</button>
   </nav>
 
@@ -1778,7 +1863,91 @@ td {
     <!-- Finance Approver creation is embedded in the Loan Requests panel header -->
 
 
-    <!-- ── LOAN REQUESTS PANEL ── -->
+    <!-- ── ROLE MANAGEMENT PANEL ── -->
+    <div class="view-panel" id="panel-roles">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Role <span>Management</span></div>
+          <div class="page-meta">Create users and manage role assignments</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-create" onclick="toggleNewUserForm()">+ New User</button>
+        </div>
+      </div>
+
+      <!-- Create new user form -->
+      <div id="newUserPanel" style="display:none;margin-bottom:20px;">
+        <div class="assign-card">
+          <div class="assign-title">Create New User</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;margin-top:12px;">
+            <div class="assign-field">
+              <label>Full Name</label>
+              <input type="text" id="nu-name" placeholder="Full name"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>Email <span style="color:#e85252;">*</span></label>
+              <input type="email" id="nu-email" placeholder="user@example.com"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div class="assign-field">
+              <label>Initial Password <span style="color:#e85252;">*</span></label>
+              <input type="password" id="nu-password" placeholder="Min 6 characters"
+                style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+            </div>
+            <div style="display:flex;gap:8px;padding-bottom:1px;">
+              <button class="btn-assign" onclick="doCreateNewUser()">Create</button>
+              <button class="btn-save" onclick="toggleNewUserForm()">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search / filter bar -->
+      <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;">
+        <input type="text" id="rmSearch" placeholder="Search by name or email…" oninput="filterRMTable()"
+          style="flex:1;max-width:380px;background:var(--surface2);border:1.5px solid var(--border);
+                 border-radius:8px;padding:9px 14px;color:var(--text);font-size:13px;outline:none;"/>
+        <select id="rmRoleFilter" onchange="filterRMTable()"
+          style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+                 padding:9px 12px;color:var(--text);font-size:13px;outline:none;">
+          <option value="">All Roles</option>
+        </select>
+        <button class="btn-save" onclick="loadRoleManagement()" style="white-space:nowrap;">↻ Refresh</button>
+      </div>
+
+      <!-- Users table -->
+      <div class="table-wrap">
+        <table class="appraisal-list-table" id="rmTable">
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Roles</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="rmTableBody">
+            <tr><td colspan="4"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-roles -->
+
+    <!-- ── ROLE EDITOR MODAL ── -->
+    <div class="modal-backdrop" id="roleEditorBackdrop" style="display:none;">
+      <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+          <div class="modal-title" id="roleEditorTitle">Edit Roles</div>
+          <button class="modal-close" onclick="closeRoleEditor()">✕</button>
+        </div>
+        <div class="modal-body" style="padding:24px;">
+          <div style="font-size:13px;color:var(--muted);margin-bottom:16px;" id="roleEditorSubtitle"></div>
+          <div id="roleCheckboxes" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+        </div>
+        <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+          <button class="btn-save" onclick="closeRoleEditor()">Cancel</button>
+          <button class="btn-assign" onclick="saveRoleEditor()">Save Roles</button>
+        </div>
+      </div>
+    </div>
     <div class="view-panel" id="panel-loans">
       <div class="page-header">
         <div>
@@ -1900,192 +2069,6 @@ td {
     </div>
 
     <!-- ── Inline appraisal form (shown when a card is opened) ── -->
-    <div id="portalFormWrap" style="display:none;">
-
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
-        <button class="btn-back-portal" onclick="closePortalForm()">← Back to list</button>
-        <div>
-          <div class="page-heading" id="pfStudentName" style="font-size:22px;">—</div>
-          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="pfPeriod">—</div>
-        </div>
-        <div style="margin-left:auto;display:flex;gap:8px;" id="pfSubmitStamps"></div>
-      </div>
-
-      <!-- ── SECTION TABS ── -->
-      <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;">
-        <button class="pf-tab active" onclick="pfSwitchTab('academic')"   id="pft-academic">Academic Record</button>
-        <button class="pf-tab"        onclick="pfSwitchTab('evaluation')" id="pft-evaluation">Reflective Evaluation</button>
-        <button class="pf-tab"        onclick="pfSwitchTab('comments')"   id="pft-comments">Comments</button>
-        <button class="pf-tab"        onclick="pfSwitchTab('actionplan')" id="pft-actionplan">Action Plan</button>
-      </div>
-
-      <!-- Academic Record tab -->
-      <div class="pf-panel active" id="pfp-academic">
-        <div class="section-card">
-          <div class="section-header">
-            <div class="section-title">Academic Performance — Last Semester</div>
-            <span class="pf-role-badge pf-student">Student fills this section</span>
-          </div>
-          <div class="section-body" style="padding:0;">
-            <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
-              <div class="hf"><label>CGPA Last Semester</label><input type="number" id="pf-cgpaLast" step="0.01" min="0" max="10" placeholder="e.g. 7.58" /></div>
-              <div class="hf"><label>CGPA Today</label><input type="number" id="pf-cgpaToday" step="0.01" min="0" max="10" placeholder="e.g. 7.38" /></div>
-              <div class="hf"><label>Domicile Address</label><input type="text" id="pf-domicile" placeholder="Home address" /></div>
-              <div class="hf"><label>Current Address</label><input type="text" id="pf-current" placeholder="Current address" /></div>
-            </div>
-            <table class="academic-table" style="margin:0;">
-              <thead><tr><th style="width:44px">No.</th><th>Course</th><th style="width:80px">ISE 1</th><th style="width:80px">ISE 2</th><th style="width:80px">ESE</th><th style="width:80px">Grade</th></tr></thead>
-              <tbody id="pf-academicBody"></tbody>
-              <tfoot>
-                <tr class="sgpa-row">
-                  <td colspan="3" style="text-align:right;padding-right:12px;font-size:12px;">SGPA =</td>
-                  <td><input type="number" id="pf-sgpa" step="0.01" min="0" max="10" placeholder="—" class="rating-input" style="width:70px;" /></td>
-                  <td style="text-align:right;font-size:12px;">CGPA =</td>
-                  <td><input type="number" id="pf-cgpa" step="0.01" min="0" max="10" placeholder="—" class="rating-input" style="width:70px;" /></td>
-                </tr>
-              </tfoot>
-            </table>
-            <div style="padding:12px 20px;">
-              <button class="btn-add-row" id="pf-btnAddRow" onclick="pfAddRow()">+ Add Subject</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reflective Evaluation tab -->
-      <div class="pf-panel" id="pfp-evaluation">
-        <div class="section-card">
-          <div class="section-header">
-            <div class="section-title">Reflective Evaluation</div>
-            <span class="pf-role-badge pf-student" style="margin-right:6px;">Student → self</span>
-            <span class="pf-role-badge pf-mentor" style="margin-right:6px;">Location Mentor</span>
-            <span class="pf-role-badge pf-mentor" style="background:var(--green-dim);color:var(--green);">Domain Mentor</span>
-          </div>
-          <div class="section-body" style="padding:0;overflow-x:auto;">
-            <table class="eval-table" id="pf-evalTable">
-              <thead>
-                <tr>
-                  <th style="min-width:140px;">Factor</th>
-                  <th style="min-width:220px;">Description</th>
-                  <th class="col-student" style="width:80px;">Self<br>Rating<br><small style="font-weight:400;font-size:10px;text-transform:none;">(1-5)</small></th>
-                  <th class="col-student" style="min-width:160px;">Self Rationale</th>
-                  <th class="col-mentor" style="width:80px;">Loc. Mentor<br>Rating</th>
-                  <th class="col-mentor" style="min-width:160px;">Loc. Mentor Rationale</th>
-                  <th class="col-domain" style="width:80px;">Dom. Mentor<br>Rating</th>
-                  <th class="col-domain" style="min-width:160px;">Dom. Mentor Rationale</th>
-                </tr>
-              </thead>
-              <tbody id="pf-evalBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Comments tab -->
-      <div class="pf-panel" id="pfp-comments">
-        <div class="section-card">
-          <div class="section-header"><div class="section-title">Comments &amp; Observations</div></div>
-          <div class="section-body">
-            <div class="comment-block">
-              <div class="comment-label"><span class="pf-role-badge pf-student">Student</span> Mentee's Comments</div>
-              <textarea class="comment-textarea" id="pf-studentComments" placeholder="Student's overall reflections…"></textarea>
-            </div>
-            <div class="comment-block">
-              <div class="comment-label"><span class="pf-role-badge pf-mentor">Location Mentor</span> Location Mentor's Comments</div>
-              <textarea class="comment-textarea" id="pf-locComments" placeholder="Location mentor's observations…"></textarea>
-            </div>
-            <div class="comment-block">
-              <div class="comment-label"><span class="pf-role-badge pf-mentor">Domain Mentor</span> Domain Mentor's Comments</div>
-              <textarea class="comment-textarea" id="pf-domComments" placeholder="Domain mentor's observations…"></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Action Plan tab -->
-      <div class="pf-panel" id="pfp-actionplan">
-        <div class="section-card">
-          <div class="section-header"><div class="section-title">Facilitating &amp; Inhibiting Factors</div></div>
-          <div class="section-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px;">
-              <div style="padding:16px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                  <span class="pf-role-badge pf-student">Student / Appraisee</span>
-                </div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Self</div>
-                <textarea class="comment-textarea" id="pf-facSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Environmental</div>
-                <textarea class="comment-textarea" id="pf-facEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Self</div>
-                <textarea class="comment-textarea" id="pf-inhSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Environmental</div>
-                <textarea class="comment-textarea" id="pf-inhEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Support Required from Foundation</div>
-                <textarea class="comment-textarea" id="pf-support" style="min-height:60px;" placeholder="…"></textarea>
-              </div>
-              <div style="padding:16px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                  <span class="pf-role-badge pf-mentor">Location Mentor</span>
-                </div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
-                <textarea class="comment-textarea" id="pf-locFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
-                <textarea class="comment-textarea" id="pf-locSupport" style="min-height:100px;" placeholder="…"></textarea>
-              </div>
-              <div style="padding:16px;">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
-                  <span class="pf-role-badge pf-mentor">Domain Mentor</span>
-                </div>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
-                <textarea class="comment-textarea" id="pf-domFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
-                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
-                <textarea class="comment-textarea" id="pf-domSupport" style="min-height:100px;" placeholder="…"></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="section-card">
-          <div class="section-header"><div class="section-title">New Action Plan</div><span style="font-size:12px;color:var(--muted);margin-left:8px;">Student fills; mentors review in discussion</span></div>
-          <div class="section-body">
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
-              <div style="padding:14px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Curricular</div>
-                <textarea class="comment-textarea" id="pf-acCurricular" style="min-height:90px;" placeholder="Academic goals…"></textarea>
-              </div>
-              <div style="padding:14px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Co-Curricular</div>
-                <textarea class="comment-textarea" id="pf-acCo" style="min-height:90px;" placeholder="Technical / project goals…"></textarea>
-              </div>
-              <div style="padding:14px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Extra-Curricular</div>
-                <textarea class="comment-textarea" id="pf-acExtra" style="min-height:90px;" placeholder="Sports, arts, clubs…"></textarea>
-              </div>
-              <div style="padding:14px;border-right:1px solid var(--border);">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Reading</div>
-                <textarea class="comment-textarea" id="pf-acReading" style="min-height:90px;" placeholder="Books, podcasts, YouTube…"></textarea>
-              </div>
-              <div style="padding:14px;">
-                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Networking</div>
-                <textarea class="comment-textarea" id="pf-acNetworking" style="min-height:90px;" placeholder="Connections to build…"></textarea>
-              </div>
-            </div>
-            <div class="comment-block">
-              <div class="comment-label" style="font-size:11px;">Central Mentoring Team Comments</div>
-              <textarea class="comment-textarea" id="pf-centralComments" placeholder="Central team observations…"></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Submit bar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
-        <div id="pf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
-        <div style="display:flex;gap:12px;flex-shrink:0;">
-          <button class="btn-save" onclick="pfSave(false)">Save Draft</button>
-          <button class="btn-submit" id="pf-btnSubmit" onclick="pfSave(true)">Start / Update Appraisal ✓</button>
-        </div>
-      </div>
-    </div><!-- /portalFormWrap -->
 
     <!-- ── Inline application viewer / editor ── -->
     <div id="portalAppWrap" style="display:none;">
@@ -2129,195 +2112,6 @@ td {
     </div>
 
     <!-- Mentoring inline form -->
-    <div id="portalMentoringForm" style="display:none;">
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
-        <button class="btn-back-portal" onclick="closeMentoringForm()">← Back to list</button>
-        <div>
-          <div class="page-heading" id="mfTitle" style="font-size:22px;">Mentoring Record</div>
-          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="mfSubtitle"></div>
-        </div>
-        <div style="margin-left:auto;display:flex;gap:8px;" id="mfReviewStamps"></div>
-      </div>
-
-      <!-- Basic Info -->
-      <div class="mf-section">
-        <div class="mf-section-header">Basic Info</div>
-        <div class="mf-section-body">
-          <div class="mf-grid mf-grid-3">
-            <div><div class="mf-label">Year of Study <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-yearOfStudy" placeholder="e.g. 2nd Yr"/></div>
-            <div><div class="mf-label">Submission Month <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-submissionMonth" placeholder="e.g. July"/></div>
-            <div><div class="mf-label">Submission Year</div><input class="mf-input" id="mf-submissionYear" placeholder="e.g. 2025"/></div>
-            <div><div class="mf-label">College</div><input class="mf-input" id="mf-college" placeholder="College name"/></div>
-            <div><div class="mf-label">Department</div><input class="mf-input" id="mf-department" placeholder="Department"/></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Co and Extra Curricular -->
-      <div class="mf-section">
-        <div class="mf-section-header">Co and Extra Curricular Progress Plan</div>
-        <div class="mf-section-body">
-          <div class="mf-grid mf-grid-2">
-            <div><div class="mf-label">Co Curricular Activities</div><textarea class="mf-textarea" id="mf-coCurricular" placeholder="Describe co-curricular activities…"></textarea></div>
-            <div><div class="mf-label">Extra Curricular Activities</div><textarea class="mf-textarea" id="mf-extraCurricular" placeholder="Describe extra-curricular activities…"></textarea></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Difficulties and Results -->
-      <div class="mf-section">
-        <div class="mf-section-header">Difficulties and Results</div>
-        <div class="mf-section-body">
-          <div class="mf-grid mf-grid-2">
-            <div><div class="mf-label">Difficulties</div><textarea class="mf-textarea" id="mf-difficulties" placeholder="Any difficulties faced…"></textarea></div>
-            <div><div class="mf-label">Results of the Exams</div><textarea class="mf-textarea" id="mf-examResults" placeholder="Exam results…"></textarea></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Reading Books -->
-      <div class="mf-section">
-        <div class="mf-section-header">Reading Books</div>
-        <div class="mf-section-body">
-          <table class="mf-table" id="mf-booksTable">
-            <thead><tr>
-              <th>Book from Ladder</th><th>Book outside Ladder</th>
-              <th>Book Ladder Status</th><th>Review of the Book</th><th></th>
-            </tr></thead>
-            <tbody id="mf-booksBody"></tbody>
-          </table>
-          <button class="btn-mf-add" id="btn-addBook" onclick="mfAddBook()">+ Add Book Entry</button>
-        </div>
-      </div>
-
-      <!-- Exercise / Eat / Sleep -->
-      <div class="mf-section">
-        <div class="mf-section-header">Exercise, Eat and Sleep Habits</div>
-        <div class="mf-section-body">
-          <div class="mf-grid mf-grid-3">
-            <div><div class="mf-label">Sleep</div><input class="mf-input" id="mf-sleep" placeholder="e.g. 11pm to 6am"/></div>
-            <div><div class="mf-label">Exercise</div><input class="mf-input" id="mf-exercise" placeholder="e.g. 1 hr/day, body weight…"/></div>
-            <div><div class="mf-label">Eat</div><input class="mf-input" id="mf-eat" placeholder="e.g. Regular"/></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- New Friends -->
-      <div class="mf-section">
-        <div class="mf-section-header">New Friends and Acquaintances</div>
-        <div class="mf-section-body">
-          <div class="mf-label">Bio Details</div>
-          <textarea class="mf-textarea" id="mf-acquaintances" style="min-height:80px;" placeholder="Describe new people you met…"></textarea>
-        </div>
-      </div>
-
-      <!-- Essay -->
-      <div class="mf-section">
-        <div class="mf-section-header">Essay</div>
-        <div class="mf-section-body">
-          <div class="mf-label">Essay</div>
-          <textarea class="mf-textarea" id="mf-essay" style="min-height:100px;" placeholder="Write your essay for this month…"></textarea>
-        </div>
-      </div>
-
-      <!-- Action Plan -->
-      <div class="mf-section">
-        <div class="mf-section-header">Action Plan for Coming Months</div>
-        <div class="mf-section-body">
-          <div class="mf-label" style="margin-bottom:8px;">Action Plan</div>
-          <textarea class="mf-textarea" id="mf-actionPlan" style="min-height:80px;" placeholder="Describe your action plan…"></textarea>
-          <div class="mf-checkbox-row" style="margin-top:14px;" id="mf-completedWrap">
-            <input type="checkbox" id="mf-completed"/>
-            <label for="mf-completed">Completed by Student</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Academic Progress table -->
-      <div class="mf-section">
-        <div class="mf-section-header">Academic Progress / Vacation Plan</div>
-        <div class="mf-section-body">
-          <table class="mf-table" id="mf-academicTable">
-            <thead><tr>
-              <th>#</th><th>Subject or Activity</th><th>Self Assessment</th><th>Justification</th><th></th>
-            </tr></thead>
-            <tbody id="mf-academicBody"></tbody>
-          </table>
-          <button class="btn-mf-add" id="btn-addAcademic" onclick="mfAddAcademic()">+ Add Subject</button>
-        </div>
-      </div>
-
-      <!-- Financial Requirements table -->
-      <div class="mf-section">
-        <div class="mf-section-header">Financial Requirement for Next 3 Months</div>
-        <div class="mf-section-body">
-          <table class="mf-table" id="mf-financialTable">
-            <thead><tr>
-              <th>#</th><th>Month</th><th>Description</th><th>Amount (₹)</th><th></th>
-            </tr></thead>
-            <tbody id="mf-financialBody"></tbody>
-          </table>
-          <button class="btn-mf-add" id="btn-addFinancial" onclick="mfAddFinancial()">+ Add Entry</button>
-        </div>
-      </div>
-
-      <!-- Location Mentor Review -->
-      <div class="mf-section">
-        <div class="mf-section-header" style="color:#378add;">Review by Location Mentor</div>
-        <div class="mf-section-body">
-          <div class="mf-label" style="margin-bottom:8px;">Location Mentor Comment</div>
-          <textarea class="mf-textarea" id="mf-locComment" placeholder="Location mentor feedback…" style="min-height:72px;"></textarea>
-          <div class="mf-checkbox-row" style="margin-top:12px;">
-            <input type="checkbox" id="mf-locReviewed"/>
-            <label for="mf-locReviewed">Reviewed by Location Mentor</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Domain Mentor Review -->
-      <div class="mf-section">
-        <div class="mf-section-header" style="color:#3ecf8e;">Review by Domain Mentor</div>
-        <div class="mf-section-body">
-          <div class="mf-label" style="margin-bottom:8px;">Domain Mentor Comment</div>
-          <textarea class="mf-textarea" id="mf-domComment" placeholder="Domain mentor feedback…" style="min-height:72px;"></textarea>
-          <div class="mf-checkbox-row" style="margin-top:12px;">
-            <input type="checkbox" id="mf-domReviewed"/>
-            <label for="mf-domReviewed">Reviewed by Domain Mentor</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Admin / Center Head Review (admin only) -->
-      <div class="mf-section" id="mf-adminSection" style="display:none;">
-        <div class="mf-section-header" style="color:var(--accent);">Additional Reviews</div>
-        <div class="mf-section-body">
-          <div class="mf-grid mf-grid-2">
-            <div>
-              <div class="mf-label" style="margin-bottom:8px;">Center Head Comment</div>
-              <textarea class="mf-textarea" id="mf-centerHeadComment" placeholder="Center head comment…" style="min-height:72px;"></textarea>
-              <div class="mf-checkbox-row" style="margin-top:10px;">
-                <input type="checkbox" id="mf-centerHeadReviewed"/>
-                <label for="mf-centerHeadReviewed">Reviewed by Center Head</label>
-              </div>
-            </div>
-            <div>
-              <div class="mf-label" style="margin-bottom:8px;">Central Team Comments</div>
-              <textarea class="mf-textarea" id="mf-centralTeamComment" placeholder="Central team comment…" style="min-height:72px;"></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Save / Submit bar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
-        <div id="mf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
-        <div style="display:flex;gap:12px;flex-shrink:0;">
-          <button class="btn-save" onclick="mfSave(false)">Save Draft</button>
-          <button class="btn-submit" id="mf-btnSubmit" onclick="mfSave(true)">Submit ✓</button>
-        </div>
-      </div>
-
-    </div><!-- /portalMentoringForm -->
 
 
 
@@ -2546,13 +2340,23 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
-const API = '/api/v1'; // resolved relative to current host
+const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
+// const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let authToken   = localStorage.getItem('gef_token') || null;
-let currentUser = JSON.parse(localStorage.getItem('gef_user') || 'null');
+let currentUser  = JSON.parse(localStorage.getItem('gef_user') || 'null');
+// Role shorthand flags — set after login, used across form functions
+let isLocRole = (currentUser?.roles || []).includes('LOCATION_MENTOR');
+let isDomRole = (currentUser?.roles || []).includes('DOMAIN_MENTOR');
+
+// ── Control panel labels — declared early (const is not hoisted) ──────────
+const CP_LABELS = {
+  applications: 'Applications', appraisals: 'Appraisals', mentoring: 'MTE',
+  assignments:  'Mentor Assignments', centers: 'Centers',
+  iqassessor:   'IQ Assessors', loans: 'Loan Requests', roles: 'Role Management'
+};
 let currentPage = 0;
 let totalPages  = 0;
 let totalElements = 0;
@@ -2610,7 +2414,11 @@ async function doLogin() {
     if (!res.ok) throw new Error(data.message || 'Login failed');
 
     authToken   = data.token;
-    currentUser = { email: data.email, fullName: data.fullName, roles: data.roles };
+    isLocRole   = false;
+    isDomRole   = false;
+    currentUser = { id: data.userId, email: data.email, fullName: data.fullName, roles: data.roles };
+    isLocRole = (currentUser.roles || []).includes('LOCATION_MENTOR');
+    isDomRole = (currentUser.roles || []).includes('DOMAIN_MENTOR');
     localStorage.setItem('gef_token', authToken);
     localStorage.setItem('gef_user', JSON.stringify(currentUser));
     routeByRole();
@@ -2666,7 +2474,15 @@ function showDashboard() {
   document.getElementById('navUserName').textContent = name;
   document.getElementById('navAvatar').textContent =
     name.split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('navUserRole').textContent = roles[0] || 'USER';
+  // Show all roles, abbreviated for space
+  const roleLabels = {
+    'CENTRAL_COMMITTEE_USER': 'CCU', 'EVALUATOR': 'Evaluator',
+    'REVIEWER': 'Reviewer', 'LOCATION_MENTOR': 'Loc Mentor',
+    'DOMAIN_MENTOR': 'Dom Mentor', 'CENTER_HEAD': 'Center Head',
+    'IQ_ASSESSOR': 'IQ Assessor', 'FINANCE_APPROVER': 'Finance'
+  };
+  document.getElementById('navUserRole').textContent =
+    roles.map(r => roleLabels[r] || r).join(' · ') || 'USER';
 
   // Role-aware tab visibility
   const isCCU          = roles.includes('CENTRAL_COMMITTEE_USER');
@@ -2692,6 +2508,7 @@ function showDashboard() {
   if (isCCU) {
     const faBtn = document.getElementById('btnAddFinanceApprover');
     if (faBtn) faBtn.style.display = '';
+    document.getElementById('tab-roles').style.display = '';
   }
   // Loans tab for mentors, center heads, finance approvers
   const isLoanViewer = roles.some(r =>
@@ -2710,9 +2527,23 @@ function showDashboard() {
     document.getElementById('tab-iqassessor').style.display   = 'none';
     const statsRow = document.getElementById('statsRow');
     if (statsRow) statsRow.style.display = 'none';
+    syncControlPanel(['loans']);
     switchView('loans');
     return;
   }
+
+  // Determine which views are accessible for this user
+  const visibleViews = ['applications','appraisals','mentoring'];
+  if (isAdmin) {
+    visibleViews.push('assignments','centers','iqassessor','loans');
+  }
+  if (isCCU) {
+    if (!visibleViews.includes('loans')) visibleViews.push('loans');
+    visibleViews.push('roles');
+  }
+  if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
+  syncControlPanel(visibleViews);
+  updateCPActiveItem('applications');
 
   loadStats();
   loadApplications();
@@ -2725,12 +2556,15 @@ function switchView(view) {
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('panel-' + view).classList.add('active');
-  document.getElementById('tab-' + view).classList.add('active');
+  const tab = document.getElementById('tab-' + view);
+  if (tab) tab.classList.add('active');
+  updateCPActiveItem(view);
   if (view === 'appraisals') loadAppraisals();
   if (view === 'mentoring')  loadMentoringAdmin();
   if (view === 'centers')    loadCenters();
   if (view === 'iqassessor') loadIqAssessorPanel();
   if (view === 'loans')      loadLoanRequests();
+  if (view === 'roles')      loadRoleManagement();
 }
 
 // ── Load Monthly Thinking Exercises for admin view ─────────────────────────────────────
@@ -2746,7 +2580,7 @@ async function loadMentoringAdmin() {
       return;
     }
     tbody.innerHTML = list.map((r, i) => `
-      <tr style="cursor:pointer;" onclick="openAppraisalForm(${r.id}, 'mentoring')">
+      <tr style="cursor:pointer;" onclick="openMentoringAdmin(${r.id})">
         <td class="td-id">#${r.id}</td>
         <td>
           <div style="font-weight:500;">${esc(r.studentUser?.fullName || '—')}</div>
@@ -2767,28 +2601,8 @@ async function loadMentoringAdmin() {
 }
 
 function openMentoringAdmin(id) {
-  // Switch to portal view and open the mentoring form
-  document.getElementById('dashboardView').classList.remove('active');
-  document.getElementById('portalView').classList.add('active');
-  const name = currentUser.fullName || currentUser.email;
-  document.getElementById('portalUserName').textContent = name;
-  document.getElementById('portalAvatar').textContent =
-    name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-  document.getElementById('portalUserRole').textContent = (currentUser.roles || []).join(', ');
-  // Switch to mentoring section and open form
-  switchPortalSection('mentoring');
+  _openedMTEFromDashboard = true;
   openMentoringForm(id);
-  // Override back button to return to dashboard
-  const backBtn = document.querySelector('#portalMentoringForm .btn-back-portal');
-  if (backBtn) {
-    backBtn.textContent = '← Back to Dashboard';
-    backBtn.onclick = () => {
-      closeMentoringForm();
-      document.getElementById('portalView').classList.remove('active');
-      document.getElementById('dashboardView').classList.add('active');
-      switchView('mentoring');
-    };
-  }
 }
 
 // ── API helpers ────────────────────────────────────────────────────────────────
@@ -3392,6 +3206,7 @@ function showToast(msg, type = 'success') {
 // PORTAL  (Student / Mentor landing + inline appraisal form)
 // ══════════════════════════════════════════════════════════════════════════════
 
+let _openedFromDashboard = false;
 let pfCurrentAppraisal = null; // the appraisal object currently open in the form
 let pfRowCount = 0;
 
@@ -3648,18 +3463,35 @@ async function openPortalForm(appraisalId) {
 }
 
 function closePortalForm() {
-  document.getElementById('portalAppraisalList').style.display = '';
   document.getElementById('portalFormWrap').style.display = 'none';
   pfCurrentAppraisal = null;
   pfRowCount = 0;
+  _openedFromDashboard = false;
+
+  // Refresh the appropriate list
+  const roles = currentUser.roles || [];
+  if (roles.includes('STUDENT')) {
+    document.getElementById('portalAppraisalList').style.display = '';
+    loadPortalAppraisals();
+  } else {
+    loadAppraisals(); // refresh dashboard appraisal list
+  }
 }
 
 // ── Populate form from appraisal data ─────────────────────────────────────────
 function pfPopulateForm(a) {
   const roles     = currentUser.roles || [];
   const isStudent = roles.includes('STUDENT');
-  const isLoc     = roles.includes('LOCATION_MENTOR');
-  const isDom     = roles.includes('DOMAIN_MENTOR');
+  const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER');  // Only CCU gets full write access
+  const isEval    = roles.includes('EVALUATOR');
+
+  // Mentor edit rights: must have the role AND be the assigned mentor for this appraisal
+  // isAdmin (CCU) can edit any section. EVALUATOR is read-only — they observe but don't comment.
+  const myId  = currentUser.id;
+  // Allow any assigned mentor to edit — backend enforces exact assignment check
+  // isLocRole/isDomRole are module-level; isLoc/isDom also allow CCU
+  const isLoc = isLocRole || isAdmin;
+  const isDom = isDomRole || isAdmin;
 
   // Header
   document.getElementById('pfStudentName').textContent =
@@ -3728,24 +3560,21 @@ function pfPopulateForm(a) {
       <td><div class="factor-name">${esc(f.factorName)}</div></td>
       <td><div class="factor-desc">${esc(f.description || '')}</div></td>
       <td class="col-student">
-        <input type="number" class="rating-input" id="pf-sr-${i}" min="1" max="5" step="0.5"
-          value="${f.selfRating || ''}" placeholder="1–5" ${selfRO ? 'disabled' : ''} />
+        ${starWidget('pf-sr-' + i, f.selfRating, selfRO)}
       </td>
       <td class="col-student">
         <textarea class="rationale-input" id="pf-srat-${i}" ${selfRO ? 'disabled' : ''}
           placeholder="Your rationale…">${esc(f.selfRationale || '')}</textarea>
       </td>
       <td class="col-mentor">
-        <input type="number" class="rating-input" id="pf-lmr-${i}" min="1" max="5" step="0.5"
-          value="${f.locationMentorRating || ''}" placeholder="1–5" ${locRO ? 'disabled' : ''} />
+        ${starWidget('pf-lmr-' + i, f.locationMentorRating, locRO)}
       </td>
       <td class="col-mentor">
         <textarea class="rationale-input" id="pf-lmrat-${i}" ${locRO ? 'disabled' : ''}
           placeholder="Location mentor rationale…">${esc(f.locationMentorRationale || '')}</textarea>
       </td>
       <td class="col-domain">
-        <input type="number" class="rating-input" id="pf-dmr-${i}" min="1" max="5" step="0.5"
-          value="${f.domainMentorRating || ''}" placeholder="1–5" ${domRO ? 'disabled' : ''} />
+        ${starWidget('pf-dmr-' + i, f.domainMentorRating, domRO)}
       </td>
       <td class="col-domain">
         <textarea class="rationale-input" id="pf-dmrat-${i}" ${domRO ? 'disabled' : ''}
@@ -3799,13 +3628,13 @@ function pfAddRow(data = {}, readOnly = false) {
     <td><input type="text"   data-row="${pfRowCount}" data-field="courseName"
          class="academic-inp" value="${esc(data.courseName||'')}" placeholder="Course name" ${d} /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="ise1Marks"
-         class="academic-inp" value="${data.ise1Marks||''}" placeholder="—" ${d} /></td>
+         class="academic-inp" value="${data.ise1Marks||''}" placeholder="ISE 1" ${d} /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="ise2Marks"
-         class="academic-inp" value="${data.ise2Marks||''}" placeholder="—" ${d} /></td>
+         class="academic-inp" value="${data.ise2Marks||''}" placeholder="ISE 2" ${d} /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="eseMarks"
-         class="academic-inp" value="${data.eseMarks||''}" placeholder="—" ${d} /></td>
+         class="academic-inp" value="${data.eseMarks||''}" placeholder="ESE" ${d} /></td>
     <td><input type="text"   data-row="${pfRowCount}" data-field="grade"
-         class="academic-inp" value="${esc(data.grade||'')}" placeholder="—" ${d} /></td>`;
+         class="academic-inp" value="${esc(data.grade||'')}" placeholder="Grade" ${d} /></td>`;
   document.getElementById('pf-academicBody').appendChild(tr);
 }
 
@@ -3845,12 +3674,8 @@ async function pfSave(isSubmit) {
     : DEFAULT_EVAL_FACTORS.map(f => ({ factorName: f.name }));
 
   resolvedFactors.forEach((f, i) => {
-    const srEl  = document.getElementById('pf-sr-' + i);
-    const lmrEl = document.getElementById('pf-lmr-' + i);
-    const dmrEl = document.getElementById('pf-dmr-' + i);
-    if (srEl  && srEl.value)  checkRange('pf-sr-'  + i, `"${f.factorName}" Self Rating`,            1, 5);
-    if (lmrEl && lmrEl.value) checkRange('pf-lmr-' + i, `"${f.factorName}" Location Mentor Rating`, 1, 5);
-    if (dmrEl && dmrEl.value) checkRange('pf-dmr-' + i, `"${f.factorName}" Domain Mentor Rating`,   1, 5);
+    // Stars are now radio widgets — no range check needed, values are always 1–5 or null
+    // Validation is optional: only warn if submitting and no star selected
   });
   if (numErrors.length) {
     showToast('Please fix: ' + numErrors[0], 'error');
@@ -3873,11 +3698,11 @@ async function pfSave(isSubmit) {
   // Collect evaluation factors — each with all 6 columns, service merges by role
   const factors = resolvedFactors.map((f, i) => ({
     factorName:              f.factorName,
-    selfRating:              pfNum(document.getElementById('pf-sr-' + i)?.value),
+    selfRating:              starVal('pf-sr-' + i),
     selfRationale:           document.getElementById('pf-srat-' + i)?.value || '',
-    locationMentorRating:    pfNum(document.getElementById('pf-lmr-' + i)?.value),
+    locationMentorRating:    starVal('pf-lmr-' + i),
     locationMentorRationale: document.getElementById('pf-lmrat-' + i)?.value || '',
-    domainMentorRating:      pfNum(document.getElementById('pf-dmr-' + i)?.value),
+    domainMentorRating:      starVal('pf-dmr-' + i),
     domainMentorRationale:   document.getElementById('pf-dmrat-' + i)?.value || '',
   }));
 
@@ -3910,9 +3735,10 @@ async function pfSave(isSubmit) {
   };
 
   let endpoint;
-  if (isStudent)      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
-  else if (isLoc)     endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/location-mentor`;
-  else                endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+  if (isStudent)       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
+  else if (isLocRole)  endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/location-mentor`;
+  else if (isDomRole)  endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+  else                 endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
 
   try {
     const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
@@ -3944,6 +3770,27 @@ function pfSetTA(id, val, readOnly) {
   el.value    = val ?? '';
   el.disabled = !!readOnly;
 }
+/** Build a 5-star radio widget. id is used as the radio group name. */
+function starWidget(id, currentVal, disabled) {
+  const cls = disabled ? 'star-rating disabled' : 'star-rating';
+  // Rendered in reverse order (flex-direction: row-reverse) so 5 is leftmost
+  let html = `<div class="${cls}" id="${id}-wrap">`;
+  for (let s = 5; s >= 1; s--) {
+    const checked = Number(currentVal) === s ? 'checked' : '';
+    const dis     = disabled ? 'disabled' : '';
+    html += `<input type="radio" name="${id}" id="${id}-${s}" value="${s}" ${checked} ${dis}>`;
+    html += `<label for="${id}-${s}" title="${s} star${s > 1 ? 's' : ''}">★</label>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/** Read selected star value (1-5) or null if none selected. */
+function starVal(id) {
+  const el = document.querySelector(`input[name="${id}"]:checked`);
+  return el ? parseInt(el.value) : null;
+}
+
 function pfNum(v) {
   if (v === null || v === undefined || v === '') return null;
   const n = parseFloat(v);
@@ -4000,42 +3847,8 @@ function renderAppraisalTable(list) {
 }
 
 function openAppraisalForm(appraisalId) {
-  // Switch to the portal view and open the inline appraisal form.
-  // Works for all roles — the form shows role-appropriate editable fields.
-  const roles = currentUser.roles || [];
-  const isPortalRole = roles.some(r =>
-    ['STUDENT','LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
-
-  if (isPortalRole) {
-    // Already in portal view — just open the form
-    showPortal();
-    // Give the portal a moment to render, then open the form
-    setTimeout(() => openPortalForm(appraisalId), 100);
-  } else {
-    // Admin/Evaluator — switch to portal view temporarily to show the form
-    document.getElementById('dashboardView').classList.remove('active');
-    document.getElementById('portalView').classList.add('active');
-    // Populate minimal nav info so the view renders correctly
-    const name = currentUser.fullName || currentUser.email;
-    document.getElementById('portalUserName').textContent = name;
-    document.getElementById('portalAvatar').textContent =
-      name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
-    document.getElementById('portalUserRole').textContent =
-      (currentUser.roles || []).join(', ');
-    // Override back button to return to dashboard
-    const backBtn = document.querySelector('.btn-back-portal');
-    if (backBtn) {
-      backBtn.textContent = '← Back to Dashboard';
-      backBtn.onclick = () => {
-        closePortalForm();
-        document.getElementById('portalView').classList.remove('active');
-        document.getElementById('dashboardView').classList.add('active');
-        backBtn.textContent = '← Back to list';
-        backBtn.onclick = closePortalForm;
-      };
-    }
-    openPortalForm(appraisalId);
-  }
+  _openedFromDashboard = !((currentUser.roles || []).includes('STUDENT'));
+  openPortalForm(appraisalId);
 }
 
 // ── Create appraisal modal (student portal — period picker only) ──────────────
@@ -4528,19 +4341,48 @@ async function openMentoringForm(id) {
   }
 }
 
+let _openedMTEFromDashboard = false;
+
 function closeMentoringForm() {
   document.getElementById('portalMentoringForm').style.display = 'none';
-  document.getElementById('portalMentoringList').style.display = '';
   mfCurrentRecord = null;
+  _openedMTEFromDashboard = false;
+
+  const roles = currentUser.roles || [];
+  if (roles.includes('STUDENT')) {
+    document.getElementById('portalMentoringList').style.display = '';
+    loadMentoringList();
+  } else {
+    loadMentoringAdmin(); // refresh dashboard MTE list
+  }
 }
 
 // ── Populate form from record ─────────────────────────────────────────────────
 function mfPopulateForm(r) {
   const roles     = currentUser.roles || [];
   const isStudent = roles.includes('STUDENT');
-  const isLoc     = roles.includes('LOCATION_MENTOR');
-  const isDom     = roles.includes('DOMAIN_MENTOR');
-  const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
+  const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER');  // Only CCU gets full write access
+  const myId      = currentUser.id;
+
+  // Mentor edit rights: must have the role AND be the assigned mentor for this record
+  // Derive edit rights from the record's actual mentor FKs first,
+  // falling back to mapping role if FK not yet set (new record).
+  // This handles the case where a user has both LOCATION_MENTOR and DOMAIN_MENTOR
+  // roles but is only assigned as one type for this specific student.
+  const myIdStr = String(currentUser.id);
+  const hasLocRole = roles.includes('LOCATION_MENTOR');
+  const hasDomRole = roles.includes('DOMAIN_MENTOR');
+  // Check FK match first
+  const isAssignedLoc = r.locationMentorUser && String(r.locationMentorUser.id) === myIdStr;
+  const isAssignedDom = r.domainMentorUser   && String(r.domainMentorUser.id)   === myIdStr;
+  // For new records (no FK yet), fall back to role only
+  const _locRole = hasLocRole && (isAssignedLoc || (!r.id && !hasDomRole) || (!r.locationMentorUser && !r.domainMentorUser));
+  const _domRole = hasDomRole && (isAssignedDom || (!r.id && !hasLocRole) || (r.domainMentorUser == null && !_locRole && hasDomRole));
+  // If neither FK matches, use role assignment as final fallback but prefer dom if both roles
+  const _locRoleEff = hasLocRole && (isAssignedLoc || (!isAssignedDom && !hasDomRole));
+  const _domRoleEff = hasDomRole && (isAssignedDom || (!isAssignedLoc && !_locRoleEff));
+  const isLoc = _locRoleEff || isAdmin;
+  const isDom = _domRoleEff || isAdmin;
 
   const month = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || 'New MTE';
   document.getElementById('mfTitle').textContent    = r.id ? month : 'New Monthly Thinking Exercise';
@@ -4583,9 +4425,10 @@ function mfPopulateForm(r) {
   mfSet('mf-actionPlan',      r.actionPlan);
   if (completedCb) completedCb.checked = !!r.completedByStudent;
 
-  // Mentor review fields
-  const locRO = !isLoc && !isAdmin;
-  const domRO = !isDom && !isAdmin;
+  // Mentor review fields — each mentor can only edit their own section
+  // A domain-only mentor cannot edit location fields, and vice versa
+  const locRO = !(_locRoleEff || isAdmin);
+  const domRO = !(_domRoleEff || isAdmin);
   const locComment = document.getElementById('mf-locComment');
   const domComment = document.getElementById('mf-domComment');
   const locCb = document.getElementById('mf-locReviewed');
@@ -4614,17 +4457,33 @@ function mfPopulateForm(r) {
   ['btn-addBook','btn-addAcademic','btn-addFinancial']
     .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isStudent || isAdmin ? '' : 'none'; });
 
-  // Submit bar
-  document.getElementById('mf-submitInfo').textContent = r.completedByStudent
+  // Submit bar — message reflects the current user's own submission status
+  const mySubmitted = isStudent ? r.completedByStudent
+                    : _locRoleEff ? r.reviewedByLocationMentor
+                    : _domRoleEff ? r.reviewedByDomainMentor
+                    : isAdmin   ? (r.completedByStudent && r.reviewedByLocationMentor && r.reviewedByDomainMentor)
+                    : false;
+  document.getElementById('mf-submitInfo').textContent = mySubmitted
     ? 'You have already submitted. You can update and re-submit.'
     : 'Fill your section then submit.';
-  document.getElementById('mf-btnSubmit').textContent = r.completedByStudent
-    ? '✓ Update Record' : 'Submit ✓';
+  document.getElementById('mf-btnSubmit').textContent = mySubmitted
+    ? '✓ Update & Re-submit' : 'Submit ✓';
 }
 
 function mfSet(id, val) {
   const el = document.getElementById(id);
-  if (el && val !== null && val !== undefined) el.value = val;
+  if (!el) return;
+  // Treat '—' stored in DB as empty so placeholder shows instead
+  const clean = (val === null || val === undefined || val === '—' || val === '-') ? '' : val;
+  el.value = clean;
+}
+
+/** Read a field value — returns null if empty or still the placeholder dash */
+function mfVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const v = el.value.trim();
+  return (v === '' || v === '—' || v === '-') ? null : v;
 }
 
 // ── Dynamic table builders ────────────────────────────────────────────────────
@@ -4742,28 +4601,28 @@ function mfCollect() {
   });
 
   return {
-    yearOfStudy:               document.getElementById('mf-yearOfStudy')?.value    || '',
-    submissionMonth:           document.getElementById('mf-submissionMonth')?.value || '',
-    submissionYear:            document.getElementById('mf-submissionYear')?.value  || '',
-    college:                   document.getElementById('mf-college')?.value         || '',
-    department:                document.getElementById('mf-department')?.value      || '',
-    coCurricularActivities:    document.getElementById('mf-coCurricular')?.value    || '',
-    extraCurricularActivities: document.getElementById('mf-extraCurricular')?.value || '',
-    difficulties:              document.getElementById('mf-difficulties')?.value    || '',
-    examResults:               document.getElementById('mf-examResults')?.value     || '',
-    sleepHabits:               document.getElementById('mf-sleep')?.value           || '',
-    exerciseHabits:            document.getElementById('mf-exercise')?.value        || '',
-    eatingHabits:              document.getElementById('mf-eat')?.value             || '',
-    newAcquaintances:          document.getElementById('mf-acquaintances')?.value   || '',
-    essay:                     document.getElementById('mf-essay')?.value           || '',
-    actionPlan:                document.getElementById('mf-actionPlan')?.value      || '',
+    yearOfStudy:               mfVal('mf-yearOfStudy')    || '',
+    submissionMonth:           mfVal('mf-submissionMonth') || '',
+    submissionYear:            mfVal('mf-submissionYear')  || '',
+    college:                   mfVal('mf-college'),
+    department:                mfVal('mf-department'),
+    coCurricularActivities:    mfVal('mf-coCurricular'),
+    extraCurricularActivities: mfVal('mf-extraCurricular'),
+    difficulties:              mfVal('mf-difficulties'),
+    examResults:               mfVal('mf-examResults'),
+    sleepHabits:               mfVal('mf-sleep'),
+    exerciseHabits:            mfVal('mf-exercise'),
+    eatingHabits:              mfVal('mf-eat'),
+    newAcquaintances:          mfVal('mf-acquaintances'),
+    essay:                     mfVal('mf-essay'),
+    actionPlan:                mfVal('mf-actionPlan'),
     completedByStudent:        document.getElementById('mf-completed')?.checked     || false,
-    locationMentorComment:     document.getElementById('mf-locComment')?.value      || '',
+    locationMentorComment:     mfVal('mf-locComment'),
     reviewedByLocationMentor:  document.getElementById('mf-locReviewed')?.checked   || false,
-    domainMentorComment:       document.getElementById('mf-domComment')?.value      || '',
+    domainMentorComment:       mfVal('mf-domComment'),
     reviewedByDomainMentor:    document.getElementById('mf-domReviewed')?.checked   || false,
-    centerHeadComment:         document.getElementById('mf-centerHeadComment')?.value  || '',
-    centralTeamComment:        document.getElementById('mf-centralTeamComment')?.value || '',
+    centerHeadComment:         mfVal('mf-centerHeadComment'),
+    centralTeamComment:        mfVal('mf-centralTeamComment'),
     reviewedByCenterHead:      document.getElementById('mf-centerHeadReviewed')?.checked || false,
     readingBooks:              books,
     academicProgressList:      academic,
@@ -4828,14 +4687,34 @@ async function mfSave(isSubmit) {
 
     // ── Step 2: PUT the full data to the appropriate role endpoint ────────────
     let endpoint;
-    if (isStudent)         endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
-    else if (isLoc)        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
-    else if (isDom)        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
-    else if (isAdmin)      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
-    else {
-      showToast('Cannot save — unknown role', 'error');
-      btn.disabled = false; btn.textContent = 'Submit ✓';
-      return;
+    if (isStudent) {
+      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
+    } else if (isAdmin && !isLocRole && !isDomRole) {
+      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
+    } else {
+      // For mentors: pick endpoint based on their actual role.
+      // If user has both roles, check which comment field they filled.
+      const filledLoc = !!(document.getElementById('mf-locComment')?.value?.trim());
+      const filledDom = !!(document.getElementById('mf-domComment')?.value?.trim());
+      if (isDomRole && !isLocRole) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
+      } else if (isLocRole && !isDomRole) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
+      } else if (isDomRole && filledDom && !filledLoc) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
+      } else if (isLocRole && filledLoc) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
+      } else if (isDomRole) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
+      } else if (isLocRole) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
+      } else if (isAdmin) {
+        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
+      } else {
+        showToast('Cannot save — unknown role', 'error');
+        btn.disabled = false; btn.textContent = 'Submit ✓';
+        return;
+      }
     }
 
     if (isSubmit && isStudent) dto.completedByStudent = true;
@@ -5513,6 +5392,241 @@ async function doAssignStudentToCenter() {
     if (btn)    btn.textContent = 'Change Center';
   } catch(e) { showToast(e.message, 'error'); }
 }
+// ══ CONTROL PANEL ════════════════════════════════════════════════════════════
+
+function openControlPanel() {
+  document.getElementById('controlPanelBackdrop').classList.add('open');
+}
+
+function closeControlPanel(e) {
+  if (!e || e.target === document.getElementById('controlPanelBackdrop')) {
+    document.getElementById('controlPanelBackdrop').classList.remove('open');
+  }
+}
+
+function cpNav(view) {
+  closeControlPanel();
+  switchView(view);
+}
+
+// Show/hide control panel items based on role (mirrors tab visibility)
+function syncControlPanel(visibleViews) {
+  // Only manage items that have a cpi- element (all of them do)
+  // Always show the 3 core views; show extras based on role
+  ['applications','appraisals','mentoring','assignments','centers',
+   'iqassessor','loans','roles'].forEach(v => {
+    const el = document.getElementById('cpi-' + v);
+    if (el) el.style.display = visibleViews.includes(v) ? '' : 'none';
+  });
+}
+
+// Call after showDashboard sets tab visibility
+function updateCPActiveItem(view) {
+  document.querySelectorAll('.cp-item').forEach(el => el.classList.remove('cp-active'));
+  const item = document.getElementById('cpi-' + view);
+  if (item) item.classList.add('cp-active');
+  const label = document.getElementById('navCurrentSection');
+  if (label) label.textContent = CP_LABELS[view] || view;
+}
+
+// ══ ROLE MANAGEMENT ══════════════════════════════════════════════════════════
+
+let _allRoles = [];
+let _allUsers = [];
+let _roleEditorUserId = null;
+
+async function loadRoleManagement() {
+  const tbody = document.getElementById('rmTableBody');
+  tbody.innerHTML = `<tr><td colspan="4"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
+  try {
+    const [usersRes, rolesRes] = await Promise.all([
+      apiFetch(`${API}/management/users`),
+      apiFetch(`${API}/management/roles`),
+    ]);
+    _allUsers = await usersRes.json();
+    _allRoles = await rolesRes.json();
+
+    // Guard against non-array responses (e.g. error objects)
+    if (!Array.isArray(_allUsers)) { console.warn('users response:', _allUsers); _allUsers = []; }
+    if (!Array.isArray(_allRoles)) { console.warn('roles response:', _allRoles); _allRoles = []; }
+
+    // Populate role filter dropdown — exclude STUDENT
+    const sel = document.getElementById('rmRoleFilter');
+    sel.innerHTML = '<option value="">All Roles</option>' +
+      _allRoles.filter(r => r.roleName !== 'STUDENT')
+        .map(r => `<option value="${esc(r.roleName)}">${esc(r.roleName)}</option>`).join('');
+
+    renderRMTable(_allUsers);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="4" style="color:var(--red);padding:16px;">${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderRMTable(users) {
+  const tbody = document.getElementById('rmTableBody');
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:32px;">No users found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const roles = (u.roles || []).map(r =>
+      `<span class="status-badge s-IQ_ASSESSMENT_REQUIRED" style="font-size:10px;margin:1px 2px;">${esc(r.roleName)}</span>`
+    ).join('');
+    return `<tr>
+      <td style="font-weight:500;">${esc(u.fullName || '—')}</td>
+      <td style="font-size:13px;color:var(--muted);">${esc(u.email)}</td>
+      <td>${roles || '<span style="color:var(--muted);font-size:12px;">No roles</span>'}</td>
+      <td>
+        <button class="btn-view" onclick="openRoleEditor(${u.id})" style="margin-right:4px;">Edit Roles</button>
+        <button class="btn-save" onclick="openEditUser(${u.id})" style="margin-right:4px;">Edit</button>
+        <button class="btn-remove" onclick="doDeactivateUser(${u.id}, '${esc(u.email)}')">Deactivate</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function filterRMTable() {
+  const q    = (document.getElementById('rmSearch').value || '').toLowerCase();
+  const role = document.getElementById('rmRoleFilter').value;
+  const filtered = _allUsers.filter(u => {
+    const matchQ = !q || (u.fullName||'').toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    const matchR = !role || (u.roles||[]).some(r => r.roleName === role);
+    return matchQ && matchR;
+  });
+  renderRMTable(filtered);
+}
+
+function toggleNewUserForm() {
+  const panel = document.getElementById('newUserPanel');
+  const show  = panel.style.display === 'none';
+  panel.style.display = show ? '' : 'none';
+  if (show) { document.getElementById('nu-email').focus(); }
+}
+
+async function doCreateNewUser() {
+  const name  = document.getElementById('nu-name').value.trim();
+  const email = document.getElementById('nu-email').value.trim();
+  const pwd   = document.getElementById('nu-password').value;
+  if (!email) { showToast('Email is required', 'error'); return; }
+  if (!pwd || pwd.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  try {
+    await apiFetchChecked(`${API}/management/users/create`, {
+      method: 'POST',
+      body: JSON.stringify({ fullName: name || email, email, password: pwd, role: null })
+    });
+    showToast(`User ${email} created`, 'success');
+    toggleNewUserForm();
+    document.getElementById('nu-name').value = '';
+    document.getElementById('nu-email').value = '';
+    document.getElementById('nu-password').value = '';
+    loadRoleManagement();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+function openRoleEditor(userId) {
+  _roleEditorUserId = userId;
+  const user = _allUsers.find(u => u.id === userId);
+  if (!user) return;
+  document.getElementById('roleEditorTitle').textContent   = 'Edit Roles — ' + (user.fullName || user.email);
+  document.getElementById('roleEditorSubtitle').textContent = user.email;
+  const userRoles = new Set((user.roles || []).map(r => r.roleName));
+  document.getElementById('roleCheckboxes').innerHTML = _allRoles
+    .filter(r => r.roleName !== 'STUDENT')
+    .map(r => `
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" value="${esc(r.roleName)}" ${userRoles.has(r.roleName) ? 'checked' : ''}
+        style="width:15px;height:15px;"/>
+      ${esc(r.roleName)}
+    </label>`).join('');
+  document.getElementById('roleEditorBackdrop').style.display = 'flex';
+}
+
+function closeRoleEditor() {
+  document.getElementById('roleEditorBackdrop').style.display = 'none';
+  _roleEditorUserId = null;
+}
+
+async function saveRoleEditor() {
+  if (!_roleEditorUserId) return;
+  const roles = [...document.querySelectorAll('#roleCheckboxes input:checked')]
+    .map(cb => cb.value);
+  try {
+    await apiFetchChecked(`${API}/management/users/${_roleEditorUserId}/roles`, {
+      method: 'PUT',
+      body: JSON.stringify({ roles })
+    });
+    showToast('Roles updated', 'success');
+    closeRoleEditor();
+    loadRoleManagement();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function openEditUser(userId) {
+  const user = _allUsers.find(u => u.id === userId);
+  if (!user) return;
+  const name  = prompt('Full name:', user.fullName || '');
+  if (name === null) return; // cancelled
+  const email = prompt('Email:', user.email);
+  if (!email || !email.trim()) { showToast('Email is required', 'error'); return; }
+  try {
+    await apiFetchChecked(`${API}/management/users/${userId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ fullName: name, email: email.trim() })
+    });
+    showToast('User updated', 'success');
+    loadRoleManagement();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function doDeactivateUser(userId, email) {
+  if (!confirm(`Deactivate user ${email}? They will no longer be able to log in.`)) return;
+  try {
+    await apiFetchChecked(`${API}/management/users/${userId}`, { method: 'DELETE' });
+    showToast(`${email} deactivated`, 'success');
+    loadRoleManagement();
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+// ══ CHANGE PASSWORD ═══════════════════════════════════════════════════════════
+
+function openChangePassword() {
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value     = '';
+  document.getElementById('cp-confirm').value = '';
+  const err = document.getElementById('cp-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  document.getElementById('changePasswordBackdrop').style.display = 'flex';
+  setTimeout(() => document.getElementById('cp-current').focus(), 50);
+}
+
+function closeChangePassword() {
+  document.getElementById('changePasswordBackdrop').style.display = 'none';
+}
+
+async function doChangePassword() {
+  const current = document.getElementById('cp-current').value;
+  const newPwd  = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const errEl   = document.getElementById('cp-error');
+
+  const showErr = msg => {
+    errEl.textContent = msg; errEl.style.display = '';
+  };
+  errEl.style.display = 'none';
+
+  if (!current) { showErr('Please enter your current password'); return; }
+  if (newPwd.length < 6) { showErr('New password must be at least 6 characters'); return; }
+  if (newPwd !== confirm) { showErr('Passwords do not match'); return; }
+
+  try {
+    await apiFetchChecked(`${API}/auth/change-password`, {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+    });
+    showToast('Password changed successfully!', 'success');
+    closeChangePassword();
+  } catch(e) { showErr(e.message); }
+}
 </script>
 <!-- ── CENTER ASSIGNMENT MODAL ── -->
 <div id="centerAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
@@ -5558,5 +5672,482 @@ async function doAssignStudentToCenter() {
   </div>
 </div>
 
+    <div id="portalFormWrap" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto;padding:24px 32px;">
+
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+        <button class="btn-back-portal" onclick="closePortalForm()">← Back to list</button>
+        <div>
+          <div class="page-heading" id="pfStudentName" style="font-size:22px;">—</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="pfPeriod">—</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;" id="pfSubmitStamps"></div>
+      </div>
+
+      <!-- ── SECTION TABS ── -->
+      <div style="display:flex;gap:6px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px;">
+        <button class="pf-tab active" onclick="pfSwitchTab('academic')"   id="pft-academic">Academic Record</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('evaluation')" id="pft-evaluation">Reflective Evaluation</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('comments')"   id="pft-comments">Comments</button>
+        <button class="pf-tab"        onclick="pfSwitchTab('actionplan')" id="pft-actionplan">Action Plan</button>
+      </div>
+
+      <!-- Academic Record tab -->
+      <div class="pf-panel active" id="pfp-academic">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Academic Performance — Last Semester</div>
+            <span class="pf-role-badge pf-student">Student fills this section</span>
+          </div>
+          <div class="section-body" style="padding:0;">
+            <div style="padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+              <div class="hf"><label>CGPA Last Semester</label><input type="number" id="pf-cgpaLast" step="0.01" min="0" max="10" placeholder="e.g. 7.58" /></div>
+              <div class="hf"><label>CGPA Today</label><input type="number" id="pf-cgpaToday" step="0.01" min="0" max="10" placeholder="e.g. 7.38" /></div>
+              <div class="hf"><label>Domicile Address</label><input type="text" id="pf-domicile" placeholder="Home address" /></div>
+              <div class="hf"><label>Current Address</label><input type="text" id="pf-current" placeholder="Current address" /></div>
+            </div>
+            <table class="academic-table" style="margin:0;">
+              <thead><tr><th style="width:44px">No.</th><th>Course</th><th style="width:80px">ISE 1</th><th style="width:80px">ISE 2</th><th style="width:80px">ESE</th><th style="width:80px">Grade</th></tr></thead>
+              <tbody id="pf-academicBody"></tbody>
+              <tfoot>
+                <tr class="sgpa-row">
+                  <td colspan="3" style="text-align:right;padding-right:12px;font-size:12px;">SGPA =</td>
+                  <td><input type="number" id="pf-sgpa" step="0.01" min="0" max="10" placeholder="SGPA" class="rating-input" style="width:70px;" /></td>
+                  <td style="text-align:right;font-size:12px;">CGPA =</td>
+                  <td><input type="number" id="pf-cgpa" step="0.01" min="0" max="10" placeholder="CGPA" class="rating-input" style="width:70px;" /></td>
+                </tr>
+              </tfoot>
+            </table>
+            <div style="padding:12px 20px;">
+              <button class="btn-add-row" id="pf-btnAddRow" onclick="pfAddRow()">+ Add Subject</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reflective Evaluation tab -->
+      <div class="pf-panel" id="pfp-evaluation">
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-title">Reflective Evaluation</div>
+            <span class="pf-role-badge pf-student" style="margin-right:6px;">Student → self</span>
+            <span class="pf-role-badge pf-mentor" style="margin-right:6px;">Location Mentor</span>
+            <span class="pf-role-badge pf-mentor" style="background:var(--green-dim);color:var(--green);">Domain Mentor</span>
+          </div>
+          <div class="section-body" style="padding:0;overflow-x:auto;">
+            <table class="eval-table" id="pf-evalTable">
+              <thead>
+                <tr>
+                  <th style="min-width:140px;">Factor</th>
+                  <th style="min-width:220px;">Description</th>
+                  <th class="col-student" style="width:80px;">Self<br>Rating<br><small style="font-weight:400;font-size:10px;text-transform:none;">(1-5)</small></th>
+                  <th class="col-student" style="min-width:160px;">Self Rationale</th>
+                  <th class="col-mentor" style="width:80px;">Loc. Mentor<br>Rating</th>
+                  <th class="col-mentor" style="min-width:160px;">Loc. Mentor Rationale</th>
+                  <th class="col-domain" style="width:80px;">Dom. Mentor<br>Rating</th>
+                  <th class="col-domain" style="min-width:160px;">Dom. Mentor Rationale</th>
+                </tr>
+              </thead>
+              <tbody id="pf-evalBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments tab -->
+      <div class="pf-panel" id="pfp-comments">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Comments &amp; Observations</div></div>
+          <div class="section-body">
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-student">Student</span> Mentee's Comments</div>
+              <textarea class="comment-textarea" id="pf-studentComments" placeholder="Student's overall reflections…"></textarea>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-mentor">Location Mentor</span> Location Mentor's Comments</div>
+              <textarea class="comment-textarea" id="pf-locComments" placeholder="Location mentor's observations…"></textarea>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label"><span class="pf-role-badge pf-mentor">Domain Mentor</span> Domain Mentor's Comments</div>
+              <textarea class="comment-textarea" id="pf-domComments" placeholder="Domain mentor's observations…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Plan tab -->
+      <div class="pf-panel" id="pfp-actionplan">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">Facilitating &amp; Inhibiting Factors</div></div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:20px;">
+              <div style="padding:16px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-student">Student / Appraisee</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Self</div>
+                <textarea class="comment-textarea" id="pf-facSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Facilitating — Environmental</div>
+                <textarea class="comment-textarea" id="pf-facEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Self</div>
+                <textarea class="comment-textarea" id="pf-inhSelf" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Inhibiting — Environmental</div>
+                <textarea class="comment-textarea" id="pf-inhEnv" style="min-height:60px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Support Required from Foundation</div>
+                <textarea class="comment-textarea" id="pf-support" style="min-height:60px;" placeholder="…"></textarea>
+              </div>
+              <div style="padding:16px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-mentor">Location Mentor</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
+                <textarea class="comment-textarea" id="pf-locFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
+                <textarea class="comment-textarea" id="pf-locSupport" style="min-height:100px;" placeholder="…"></textarea>
+              </div>
+              <div style="padding:16px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);">
+                  <span class="pf-role-badge pf-mentor">Domain Mentor</span>
+                </div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on factors</div>
+                <textarea class="comment-textarea" id="pf-domFactors" style="min-height:100px;margin-bottom:10px;" placeholder="…"></textarea>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Comments on support required</div>
+                <textarea class="comment-textarea" id="pf-domSupport" style="min-height:100px;" placeholder="…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">New Action Plan</div><span style="font-size:12px;color:var(--muted);margin-left:8px;">Student fills; mentors review in discussion</span></div>
+          <div class="section-body">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px;">
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Curricular</div>
+                <textarea class="comment-textarea" id="pf-acCurricular" style="min-height:90px;" placeholder="Academic goals…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Co-Curricular</div>
+                <textarea class="comment-textarea" id="pf-acCo" style="min-height:90px;" placeholder="Technical / project goals…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Extra-Curricular</div>
+                <textarea class="comment-textarea" id="pf-acExtra" style="min-height:90px;" placeholder="Sports, arts, clubs…"></textarea>
+              </div>
+              <div style="padding:14px;border-right:1px solid var(--border);">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Reading</div>
+                <textarea class="comment-textarea" id="pf-acReading" style="min-height:90px;" placeholder="Books, podcasts, YouTube…"></textarea>
+              </div>
+              <div style="padding:14px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);">Networking</div>
+                <textarea class="comment-textarea" id="pf-acNetworking" style="min-height:90px;" placeholder="Connections to build…"></textarea>
+              </div>
+            </div>
+            <div class="comment-block">
+              <div class="comment-label" style="font-size:11px;">Central Mentoring Team Comments</div>
+              <textarea class="comment-textarea" id="pf-centralComments" placeholder="Central team observations…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
+        <div id="pf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
+        <div style="display:flex;gap:12px;flex-shrink:0;">
+          <button class="btn-save" onclick="pfSave(false)">Save Draft</button>
+          <button class="btn-submit" id="pf-btnSubmit" onclick="pfSave(true)">Start / Update Appraisal ✓</button>
+        </div>
+      </div>
+    </div><!-- /portalFormWrap -->
+    <div id="portalMentoringForm" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:200;overflow-y:auto;padding:24px 32px;">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:24px;">
+        <button class="btn-back-portal" onclick="closeMentoringForm()">← Back to list</button>
+        <div>
+          <div class="page-heading" id="mfTitle" style="font-size:22px;">Mentoring Record</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:2px;" id="mfSubtitle"></div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;" id="mfReviewStamps"></div>
+      </div>
+
+      <!-- Basic Info -->
+      <div class="mf-section">
+        <div class="mf-section-header">Basic Info</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-3">
+            <div><div class="mf-label">Year of Study <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-yearOfStudy" placeholder="e.g. 2nd Yr"/></div>
+            <div><div class="mf-label">Submission Month <span style="color:#e85252;">*</span></div><input class="mf-input" id="mf-submissionMonth" placeholder="e.g. July"/></div>
+            <div><div class="mf-label">Submission Year</div><input class="mf-input" id="mf-submissionYear" placeholder="e.g. 2025"/></div>
+            <div><div class="mf-label">College</div><input class="mf-input" id="mf-college" placeholder="College name"/></div>
+            <div><div class="mf-label">Department</div><input class="mf-input" id="mf-department" placeholder="Department"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Co and Extra Curricular -->
+      <div class="mf-section">
+        <div class="mf-section-header">Co and Extra Curricular Progress Plan</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div><div class="mf-label">Co Curricular Activities</div><textarea class="mf-textarea" id="mf-coCurricular" placeholder="Describe co-curricular activities…"></textarea></div>
+            <div><div class="mf-label">Extra Curricular Activities</div><textarea class="mf-textarea" id="mf-extraCurricular" placeholder="Describe extra-curricular activities…"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Difficulties and Results -->
+      <div class="mf-section">
+        <div class="mf-section-header">Difficulties and Results</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div><div class="mf-label">Difficulties</div><textarea class="mf-textarea" id="mf-difficulties" placeholder="Any difficulties faced…"></textarea></div>
+            <div><div class="mf-label">Results of the Exams</div><textarea class="mf-textarea" id="mf-examResults" placeholder="Exam results…"></textarea></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reading Books -->
+      <div class="mf-section">
+        <div class="mf-section-header">Reading Books</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-booksTable">
+            <thead><tr>
+              <th>Book from Ladder</th><th>Book outside Ladder</th>
+              <th>Book Ladder Status</th><th>Review of the Book</th><th></th>
+            </tr></thead>
+            <tbody id="mf-booksBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addBook" onclick="mfAddBook()">+ Add Book Entry</button>
+        </div>
+      </div>
+
+      <!-- Exercise / Eat / Sleep -->
+      <div class="mf-section">
+        <div class="mf-section-header">Exercise, Eat and Sleep Habits</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-3">
+            <div><div class="mf-label">Sleep</div><input class="mf-input" id="mf-sleep" placeholder="e.g. 11pm to 6am"/></div>
+            <div><div class="mf-label">Exercise</div><input class="mf-input" id="mf-exercise" placeholder="e.g. 1 hr/day, body weight…"/></div>
+            <div><div class="mf-label">Eat</div><input class="mf-input" id="mf-eat" placeholder="e.g. Regular"/></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Friends -->
+      <div class="mf-section">
+        <div class="mf-section-header">New Friends and Acquaintances</div>
+        <div class="mf-section-body">
+          <div class="mf-label">Bio Details</div>
+          <textarea class="mf-textarea" id="mf-acquaintances" style="min-height:80px;" placeholder="Describe new people you met…"></textarea>
+        </div>
+      </div>
+
+      <!-- Essay -->
+      <div class="mf-section">
+        <div class="mf-section-header">Essay</div>
+        <div class="mf-section-body">
+          <div class="mf-label">Essay</div>
+          <textarea class="mf-textarea" id="mf-essay" style="min-height:100px;" placeholder="Write your essay for this month…"></textarea>
+        </div>
+      </div>
+
+      <!-- Action Plan -->
+      <div class="mf-section">
+        <div class="mf-section-header">Action Plan for Coming Months</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Action Plan</div>
+          <textarea class="mf-textarea" id="mf-actionPlan" style="min-height:80px;" placeholder="Describe your action plan…"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:14px;" id="mf-completedWrap">
+            <input type="checkbox" id="mf-completed"/>
+            <label for="mf-completed">Completed by Student</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Academic Progress table -->
+      <div class="mf-section">
+        <div class="mf-section-header">Academic Progress / Vacation Plan</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-academicTable">
+            <thead><tr>
+              <th>#</th><th>Subject or Activity</th><th>Self Assessment</th><th>Justification</th><th></th>
+            </tr></thead>
+            <tbody id="mf-academicBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addAcademic" onclick="mfAddAcademic()">+ Add Subject</button>
+        </div>
+      </div>
+
+      <!-- Financial Requirements table -->
+      <div class="mf-section">
+        <div class="mf-section-header">Financial Requirement for Next 3 Months</div>
+        <div class="mf-section-body">
+          <table class="mf-table" id="mf-financialTable">
+            <thead><tr>
+              <th>#</th><th>Month</th><th>Description</th><th>Amount (₹)</th><th></th>
+            </tr></thead>
+            <tbody id="mf-financialBody"></tbody>
+          </table>
+          <button class="btn-mf-add" id="btn-addFinancial" onclick="mfAddFinancial()">+ Add Entry</button>
+        </div>
+      </div>
+
+      <!-- Location Mentor Review -->
+      <div class="mf-section">
+        <div class="mf-section-header" style="color:#378add;">Review by Location Mentor</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Location Mentor Comment</div>
+          <textarea class="mf-textarea" id="mf-locComment" placeholder="Location mentor feedback…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-locReviewed"/>
+            <label for="mf-locReviewed">Reviewed by Location Mentor</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domain Mentor Review -->
+      <div class="mf-section">
+        <div class="mf-section-header" style="color:#3ecf8e;">Review by Domain Mentor</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Domain Mentor Comment</div>
+          <textarea class="mf-textarea" id="mf-domComment" placeholder="Domain mentor feedback…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-domReviewed"/>
+            <label for="mf-domReviewed">Reviewed by Domain Mentor</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Admin / Center Head Review (admin only) -->
+      <div class="mf-section" id="mf-adminSection" style="display:none;">
+        <div class="mf-section-header" style="color:var(--accent);">Additional Reviews</div>
+        <div class="mf-section-body">
+          <div class="mf-grid mf-grid-2">
+            <div>
+              <div class="mf-label" style="margin-bottom:8px;">Center Head Comment</div>
+              <textarea class="mf-textarea" id="mf-centerHeadComment" placeholder="Center head comment…" style="min-height:72px;"></textarea>
+              <div class="mf-checkbox-row" style="margin-top:10px;">
+                <input type="checkbox" id="mf-centerHeadReviewed"/>
+                <label for="mf-centerHeadReviewed">Reviewed by Center Head</label>
+              </div>
+            </div>
+            <div>
+              <div class="mf-label" style="margin-bottom:8px;">Central Team Comments</div>
+              <textarea class="mf-textarea" id="mf-centralTeamComment" placeholder="Central team comment…" style="min-height:72px;"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Save / Submit bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
+        <div id="mf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
+        <div style="display:flex;gap:12px;flex-shrink:0;">
+          <button class="btn-save" onclick="mfSave(false)">Save Draft</button>
+          <button class="btn-submit" id="mf-btnSubmit" onclick="mfSave(true)">Submit ✓</button>
+        </div>
+      </div>
+
+    </div><!-- /portalMentoringForm -->
+
+<!-- ── CHANGE PASSWORD MODAL ── -->
+<div class="modal-backdrop" id="changePasswordBackdrop" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeChangePassword()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px;display:flex;flex-direction:column;gap:14px;">
+      <div class="assign-field">
+        <label>Current Password</label>
+        <input type="password" id="cp-current" placeholder="Your current password"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div class="assign-field">
+        <label>New Password</label>
+        <input type="password" id="cp-new" placeholder="Min 6 characters"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div class="assign-field">
+        <label>Confirm New Password</label>
+        <input type="password" id="cp-confirm" placeholder="Repeat new password"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div id="cp-error" style="font-size:13px;color:var(--red);display:none;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-save" onclick="closeChangePassword()">Cancel</button>
+      <button class="btn-assign" onclick="doChangePassword()">Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONTROL PANEL MODAL ── -->
+<div id="controlPanelBackdrop" onclick="closeControlPanel(event)">
+  <div class="cp-panel" onclick="event.stopPropagation()">
+    <div class="cp-panel-title">Navigation</div>
+    <div class="cp-grid" id="cpGrid">
+
+      <div class="cp-item" id="cpi-applications" onclick="cpNav('applications')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
+          <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>
+        </svg>
+        <span class="cp-item-label">Applications</span>
+      </div>
+
+      <div class="cp-item" id="cpi-appraisals" onclick="cpNav('appraisals')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        <span class="cp-item-label">Appraisals</span>
+      </div>
+
+      <div class="cp-item" id="cpi-mentoring" onclick="cpNav('mentoring')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="cp-item-label">MTE</span>
+      </div>
+
+      <div class="cp-item" id="cpi-assignments" style="display:none" onclick="cpNav('assignments')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+          <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        <span class="cp-item-label">Mentor Assignments</span>
+      </div>
+
+      <div class="cp-item" id="cpi-centers" style="display:none" onclick="cpNav('centers')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="cp-item-label">Centers</span>
+      </div>
+
+      <div class="cp-item" id="cpi-iqassessor" style="display:none" onclick="cpNav('iqassessor')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="cp-item-label">IQ Assessors</span>
+      </div>
+
+      <div class="cp-item" id="cpi-loans" style="display:none" onclick="cpNav('loans')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+        <span class="cp-item-label">Loan Requests</span>
+      </div>
+
+      <div class="cp-item" id="cpi-roles" style="display:none" onclick="cpNav('roles')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 009 9"/>
+        </svg>
+        <span class="cp-item-label">Role Management</span>
+      </div>
+
+    </div>
+  </div>
+</div>
 </body>
 </html>

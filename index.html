@@ -1374,6 +1374,46 @@ td {
 .eval-save-bar { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
 
 
+/* ── Dashboard ───────────────────────────────────────────────────────────── */
+.dash-section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .7px;
+  text-transform: uppercase; color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.dash-card {
+  background: var(--surface2);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 16px 14px;
+  cursor: pointer;
+  transition: border-color .15s, transform .1s, box-shadow .15s;
+  position: relative;
+  overflow: hidden;
+}
+.dash-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--dc, var(--accent));
+  border-radius: 12px 12px 0 0;
+}
+.dash-card:hover {
+  border-color: var(--dc, var(--accent));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.15);
+}
+.dash-icon { font-size: 22px; margin-bottom: 10px; line-height: 1; }
+.dash-val  {
+  font-size: 28px; font-weight: 700; color: var(--dc, var(--text));
+  line-height: 1; margin-bottom: 6px;
+}
+.dash-label { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
+
 /* ── Control Panel Modal ─────────────────────────────────────────────────── */
 #controlPanelBackdrop {
   position: fixed; inset: 0; background: rgba(0,0,0,.45);
@@ -1523,8 +1563,137 @@ td {
   <!-- Main -->
   <div class="main-content">
 
-    <!-- ── APPLICATIONS PANEL ── -->
-    <div class="view-panel active" id="panel-applications">
+    <!-- ══ HOME DASHBOARD PANEL ══════════════════════════════════════════════ -->
+    <div class="view-panel active" id="panel-home">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">GEF <span>Dashboard</span></div>
+          <div class="page-meta" id="dashLastUpdated">Loading…</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-save" onclick="loadDashboard()" style="font-size:12px;padding:6px 12px;">↻ Refresh</button>
+        </div>
+      </div>
+
+      <!-- ── STUDENTS ────────────────────────────────────────────────────────── -->
+      <div class="dash-section-label">Students</div>
+      <div class="dash-grid" id="dash-students">
+        <div class="dash-card" style="--dc:#4a8fe8" onclick="dashNav('students','all')">
+          <div class="dash-icon">🎓</div>
+          <div class="dash-val" id="dv-totalStudents">—</div>
+          <div class="dash-label">Total Students</div>
+        </div>
+        <div class="dash-card" style="--dc:#3ecf8e" onclick="cpNav('applications')">
+          <div class="dash-icon">✅</div>
+          <div class="dash-val" id="dv-approved">—</div>
+          <div class="dash-label">Approved</div>
+        </div>
+        <div class="dash-card" style="--dc:#e8c84a" onclick="cpNav('applications')">
+          <div class="dash-icon">📋</div>
+          <div class="dash-val" id="dv-newApp">—</div>
+          <div class="dash-label">New Applications</div>
+        </div>
+        <div class="dash-card" style="--dc:#e85252" onclick="cpNav('applications')">
+          <div class="dash-icon">❌</div>
+          <div class="dash-val" id="dv-rejected">—</div>
+          <div class="dash-label">Rejected</div>
+        </div>
+        <div class="dash-card" style="--dc:#9b59b6" onclick="cpNav('applications')">
+          <div class="dash-icon">🏠</div>
+          <div class="dash-val" id="dv-homeVisit">—</div>
+          <div class="dash-label">Home Visit Pending</div>
+        </div>
+        <div class="dash-card" style="--dc:#e67e22" onclick="cpNav('applications')">
+          <div class="dash-icon">🔬</div>
+          <div class="dash-val" id="dv-iqAssess">—</div>
+          <div class="dash-label">IQ Assessment</div>
+        </div>
+      </div>
+
+      <!-- ── MENTORS ─────────────────────────────────────────────────────────── -->
+      <div class="dash-section-label" style="margin-top:28px;">Mentors</div>
+      <div class="dash-grid" id="dash-mentors">
+        <div class="dash-card" style="--dc:#1abc9c" onclick="dashNav('mentors','all')">
+          <div class="dash-icon">👥</div>
+          <div class="dash-val" id="dv-totalMentors">—</div>
+          <div class="dash-label">Total Mentors</div>
+        </div>
+        <div class="dash-card" style="--dc:#3ecf8e" onclick="dashNav('students','all-mentors')">
+          <div class="dash-icon">🔗</div>
+          <div class="dash-val" id="dv-bothMentors">—</div>
+          <div class="dash-label">Students with Both Mentors</div>
+        </div>
+        <div class="dash-card" style="--dc:#e85252" onclick="dashNav('students','missing-mentor')">
+          <div class="dash-icon">⚠️</div>
+          <div class="dash-val" id="dv-missingMentor">—</div>
+          <div class="dash-label">Students Missing a Mentor</div>
+        </div>
+        <div class="dash-card" style="--dc:#e8824a" onclick="dashNav('students','no-loc-mentor')">
+          <div class="dash-icon">📍</div>
+          <div class="dash-val" id="dv-noLocMentor">—</div>
+          <div class="dash-label">No Location Mentor</div>
+        </div>
+        <div class="dash-card" style="--dc:#4a8fe8" onclick="dashNav('students','no-dom-mentor')">
+          <div class="dash-icon">🎯</div>
+          <div class="dash-val" id="dv-noDomMentor">—</div>
+          <div class="dash-label">No Domain Mentor</div>
+        </div>
+      </div>
+
+      <!-- ── LOANS & AGREEMENTS ─────────────────────────────────────────────── -->
+      <div class="dash-section-label" style="margin-top:28px;">Loans & Agreements</div>
+      <div class="dash-grid" id="dash-loans">
+        <div class="dash-card" style="--dc:#2ecc71" onclick="dashNav('students','agreement-signed')">
+          <div class="dash-icon">✍️</div>
+          <div class="dash-val" id="dv-agreementSigned">—</div>
+          <div class="dash-label">Agreements Signed</div>
+        </div>
+        <div class="dash-card" style="--dc:#e8c84a" onclick="dashNav('students','agreement-pending')">
+          <div class="dash-icon">⏳</div>
+          <div class="dash-val" id="dv-agreementPending">—</div>
+          <div class="dash-label">Agreements Pending</div>
+        </div>
+        <div class="dash-card" style="--dc:#3498db" onclick="cpNav('loans')">
+          <div class="dash-icon">💰</div>
+          <div class="dash-val" id="dv-totalLoans">—</div>
+          <div class="dash-label">Loan Requests</div>
+        </div>
+        <div class="dash-card" style="--dc:#e8c84a" onclick="cpNav('loans')">
+          <div class="dash-icon">🔄</div>
+          <div class="dash-val" id="dv-pendingLoans">—</div>
+          <div class="dash-label">Pending Loans</div>
+        </div>
+        <div class="dash-card" style="--dc:#3ecf8e" onclick="cpNav('loans')">
+          <div class="dash-icon">✅</div>
+          <div class="dash-val" id="dv-approvedLoans">—</div>
+          <div class="dash-label">Approved Loans</div>
+        </div>
+        <div class="dash-card" style="--dc:#3ecf8e" onclick="cpNav('loans')">
+          <div class="dash-icon">₹</div>
+          <div class="dash-val" id="dv-totalLoanAmount">—</div>
+          <div class="dash-label">Total Approved Amount</div>
+        </div>
+      </div>
+
+      <!-- ── ACTIVITY ───────────────────────────────────────────────────────── -->
+      <div class="dash-section-label" style="margin-top:28px;">Activity</div>
+      <div class="dash-grid" id="dash-activity">
+        <div class="dash-card" style="--dc:#9b59b6" onclick="cpNav('appraisals')">
+          <div class="dash-icon">📊</div>
+          <div class="dash-val" id="dv-totalAppraisals">—</div>
+          <div class="dash-label">Total Appraisals</div>
+        </div>
+        <div class="dash-card" style="--dc:#e67e22" onclick="cpNav('mentoring')">
+          <div class="dash-icon">📝</div>
+          <div class="dash-val" id="dv-totalMTE">—</div>
+          <div class="dash-label">Total MTEs</div>
+        </div>
+      </div>
+
+    </div><!-- /panel-home -->
+
+        <!-- ── APPLICATIONS PANEL ── -->
+    <div class="view-panel" id="panel-applications">
 
     <div class="page-header">
       <div>
@@ -1533,7 +1702,9 @@ td {
       </div>
     </div>
 
-    <!-- Stats Cards -->
+
+
+    <!-- Stats Cards (Applications panel) -->
     <div class="stats-row" id="statsRow">
       <div class="stat-card" style="--card-accent:#9ba3c0" onclick="filterByStatus('')">
         <div class="stat-val" id="stat-total" style="color:#9ba3c0">—</div>
@@ -2353,6 +2524,7 @@ let isDomRole = (currentUser?.roles || []).includes('DOMAIN_MENTOR');
 
 // ── Control panel labels — declared early (const is not hoisted) ──────────
 const CP_LABELS = {
+  home:         'Dashboard',
   applications: 'Applications', appraisals: 'Appraisals', mentoring: 'MTE',
   assignments:  'Mentor Assignments', centers: 'Centers',
   iqassessor:   'IQ Assessors', loans: 'Loan Requests', roles: 'Role Management'
@@ -2533,7 +2705,7 @@ function showDashboard() {
   }
 
   // Determine which views are accessible for this user
-  const visibleViews = ['applications','appraisals','mentoring'];
+  const visibleViews = ['home','applications','appraisals','mentoring'];
   if (isAdmin) {
     visibleViews.push('assignments','centers','iqassessor','loans');
   }
@@ -2543,8 +2715,9 @@ function showDashboard() {
   }
   if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
   syncControlPanel(visibleViews);
-  updateCPActiveItem('applications');
+  updateCPActiveItem('home');
 
+  loadDashboard();
   loadStats();
   loadApplications();
   loadAppraisals();
@@ -2559,6 +2732,7 @@ function switchView(view) {
   const tab = document.getElementById('tab-' + view);
   if (tab) tab.classList.add('active');
   updateCPActiveItem(view);
+  if (view === 'home')       loadDashboard();
   if (view === 'appraisals') loadAppraisals();
   if (view === 'mentoring')  loadMentoringAdmin();
   if (view === 'centers')    loadCenters();
@@ -5392,6 +5566,176 @@ async function doAssignStudentToCenter() {
     if (btn)    btn.textContent = 'Change Center';
   } catch(e) { showToast(e.message, 'error'); }
 }
+// ══ DASHBOARD DRILL-DOWN ══════════════════════════════════════════════════════
+
+let _drillData = [];
+
+const DRILL_TITLES = {
+  'students:all':              'All Students',
+  'students:all-mentors':      'Students with Both Mentors Assigned',
+  'students:missing-mentor':   'Students Missing at Least One Mentor',
+  'students:no-loc-mentor':    'Students with No Location Mentor',
+  'students:no-dom-mentor':    'Students with No Domain Mentor',
+  'students:agreement-signed': 'Approved Students — Agreement Signed',
+  'students:agreement-pending':'Approved Students — Agreement NOT Signed',
+  'mentors:all':               'All Mentors',
+};
+
+async function dashNav(type, filter) {
+  const key   = `${type}:${filter}`;
+  const title = DRILL_TITLES[key] || 'List';
+  document.getElementById('dashDrillTitle').textContent    = title;
+  document.getElementById('dashDrillSearch').value         = '';
+  document.getElementById('dashDrillCount').textContent    = '';
+  document.getElementById('dashDrillBody').innerHTML       =
+    '<tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>';
+  document.getElementById('dashDrillBackdrop').style.display = 'flex';
+
+  try {
+    let url, rows;
+    if (type === 'mentors') {
+      url  = `${API}/management/dashboard/mentors`;
+      const res = await apiFetch(url);
+      rows = await res.json();
+      renderDrillMentors(rows);
+    } else {
+      url  = `${API}/management/dashboard/students?filter=${encodeURIComponent(filter)}`;
+      const res = await apiFetch(url);
+      rows = await res.json();
+      renderDrillStudents(rows);
+    }
+    _drillData = rows;
+    document.getElementById('dashDrillCount').textContent = rows.length + ' record(s)';
+  } catch(e) {
+    document.getElementById('dashDrillBody').innerHTML =
+      `<tr><td colspan="6" style="color:var(--red);padding:16px;">${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderDrillStudents(rows) {
+  document.getElementById('dashDrillHead').innerHTML = `
+    <tr><th>#</th><th>Name</th><th>Email</th><th>Location Mentor</th>
+        <th>Domain Mentor</th><th>Status / Agreement</th></tr>`;
+  if (!rows.length) {
+    document.getElementById('dashDrillBody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">No students found.</td></tr>';
+    return;
+  }
+  document.getElementById('dashDrillBody').innerHTML = rows.map((r, i) => {
+    const agr = r.agreementSigned
+      ? '<span style="color:var(--green);font-size:11px;">✅ Signed</span>'
+      : '<span style="color:var(--text-muted);font-size:11px;">⏳ Pending</span>';
+    return `<tr>
+      <td class="td-id">${i+1}</td>
+      <td style="font-weight:500;">${esc(r.fullName || '—')}</td>
+      <td style="font-size:12px;color:var(--muted);">${esc(r.email)}</td>
+      <td style="font-size:12px;">${esc(r.locationMentor || '—')}</td>
+      <td style="font-size:12px;">${esc(r.domainMentor || '—')}</td>
+      <td style="font-size:12px;">${esc(r.appStatus || '—')} ${r.appStatus === 'APPROVED' ? agr : ''}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderDrillMentors(rows) {
+  document.getElementById('dashDrillHead').innerHTML = `
+    <tr><th>#</th><th>Name</th><th>Email</th><th>Roles</th>
+        <th>Loc Students</th><th>Dom Students</th></tr>`;
+  if (!rows.length) {
+    document.getElementById('dashDrillBody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px;">No mentors found.</td></tr>';
+    return;
+  }
+  document.getElementById('dashDrillBody').innerHTML = rows.map((r, i) => `
+    <tr>
+      <td class="td-id">${i+1}</td>
+      <td style="font-weight:500;">${esc(r.fullName || '—')}</td>
+      <td style="font-size:12px;color:var(--muted);">${esc(r.email)}</td>
+      <td style="font-size:11px;">${esc(r.roles || '—')}</td>
+      <td style="text-align:center;">${r.locStudents || 0}</td>
+      <td style="text-align:center;">${r.domStudents || 0}</td>
+    </tr>`).join('');
+}
+
+function filterDashDrill() {
+  const q = document.getElementById('dashDrillSearch').value.toLowerCase();
+  if (!q) {
+    // Re-render all
+    if (_drillData[0]?.roles !== undefined) renderDrillMentors(_drillData);
+    else renderDrillStudents(_drillData);
+    return;
+  }
+  const filtered = _drillData.filter(r =>
+    (r.fullName||'').toLowerCase().includes(q) ||
+    (r.email||'').toLowerCase().includes(q) ||
+    (r.locationMentor||'').toLowerCase().includes(q) ||
+    (r.domainMentor||'').toLowerCase().includes(q)
+  );
+  if (_drillData[0]?.roles !== undefined) renderDrillMentors(filtered);
+  else renderDrillStudents(filtered);
+  document.getElementById('dashDrillCount').textContent =
+    filtered.length + ' of ' + _drillData.length + ' record(s)';
+}
+
+function closeDashDrill() {
+  document.getElementById('dashDrillBackdrop').style.display = 'none';
+  _drillData = [];
+}
+
+// ══ HOME DASHBOARD ═══════════════════════════════════════════════════════════
+
+async function loadDashboard() {
+  document.getElementById('dashLastUpdated').textContent = 'Loading…';
+  try {
+    const res  = await apiFetch(`${API}/management/dashboard`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const apps = d.applications || {};
+
+    // Students
+    set('dv-totalStudents', d.totalStudents);
+    set('dv-approved',       apps.approved);
+    set('dv-newApp',         apps.newApplication);
+    set('dv-rejected',       (apps.majorDiscrepenciesRejected||0) +
+                             (apps.notFittingCriteriaRejected||0) +
+                             (apps.iqAssessmentRequiredRejected||0) +
+                             (apps.rejectedAfterHomeVisit||0));
+    set('dv-homeVisit',      apps.homeVisitNeeded);
+    set('dv-iqAssess',       apps.iqAssessmentRequired);
+
+    // Mentors
+    set('dv-totalMentors',   d.totalMentors);
+    set('dv-bothMentors',    d.studentsWithBothMentors);
+    set('dv-missingMentor',  d.studentsMissingMentor);
+    set('dv-noLocMentor',    d.studentsWithoutLocMentor);
+    set('dv-noDomMentor',    d.studentsWithoutDomMentor);
+
+    // Loans & agreements
+    set('dv-agreementSigned',  d.agreementSigned);
+    set('dv-agreementPending', d.agreementPending);
+    set('dv-totalLoans',       d.totalLoans);
+    set('dv-pendingLoans',     d.pendingLoans);
+    set('dv-approvedLoans',    d.approvedLoans);
+    const amt = Number(d.totalApprovedLoanAmount || 0);
+    document.getElementById('dv-totalLoanAmount').textContent =
+      amt >= 100000 ? '₹' + (amt/100000).toFixed(1) + 'L'
+                    : '₹' + amt.toLocaleString('en-IN');
+
+    // Activity
+    set('dv-totalAppraisals', d.totalAppraisals);
+    set('dv-totalMTE',        d.totalMTE);
+
+    document.getElementById('dashLastUpdated').textContent =
+      'Last updated: ' + new Date().toLocaleTimeString('en-IN');
+  } catch(e) {
+    document.getElementById('dashLastUpdated').textContent = 'Failed to load: ' + e.message;
+  }
+}
+
+function set(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = (val === null || val === undefined) ? '—' : val;
+}
+
 // ══ CONTROL PANEL ════════════════════════════════════════════════════════════
 
 function openControlPanel() {
@@ -5413,7 +5757,7 @@ function cpNav(view) {
 function syncControlPanel(visibleViews) {
   // Only manage items that have a cpi- element (all of them do)
   // Always show the 3 core views; show extras based on role
-  ['applications','appraisals','mentoring','assignments','centers',
+  ['home','applications','appraisals','mentoring','assignments','centers',
    'iqassessor','loans','roles'].forEach(v => {
     const el = document.getElementById('cpi-' + v);
     if (el) el.style.display = visibleViews.includes(v) ? '' : 'none';
@@ -6086,6 +6430,14 @@ async function doChangePassword() {
     <div class="cp-panel-title">Navigation</div>
     <div class="cp-grid" id="cpGrid">
 
+      <div class="cp-item cp-active" id="cpi-home" onclick="cpNav('home')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="cp-item-label">Dashboard</span>
+      </div>
+
       <div class="cp-item" id="cpi-applications" onclick="cpNav('applications')">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
@@ -6147,6 +6499,30 @@ async function doChangePassword() {
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD DRILL-DOWN MODAL ── -->
+<div class="modal-backdrop" id="dashDrillBackdrop" style="display:none;">
+  <div class="modal" style="max-width:760px;max-height:80vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title" id="dashDrillTitle">List</div>
+      <button class="modal-close" onclick="closeDashDrill()">✕</button>
+    </div>
+    <div style="padding:12px 20px 0;border-bottom:1px solid var(--border);">
+      <input type="text" id="dashDrillSearch" placeholder="Search…" oninput="filterDashDrill()"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:8px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:10px;"/>
+    </div>
+    <div class="modal-body" style="flex:1;overflow-y:auto;padding:0;">
+      <table class="appraisal-list-table" style="margin:0;">
+        <thead id="dashDrillHead"></thead>
+        <tbody id="dashDrillBody">
+          <tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer" style="font-size:12px;color:var(--muted);" id="dashDrillCount"></div>
   </div>
 </div>
 </body>

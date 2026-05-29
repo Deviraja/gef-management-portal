@@ -3663,9 +3663,15 @@ function pfPopulateForm(a) {
   // isAdmin (CCU) can edit any section. EVALUATOR is read-only — they observe but don't comment.
   const myId  = currentUser.id;
   // Allow any assigned mentor to edit — backend enforces exact assignment check
-  // isLocRole/isDomRole are module-level; isLoc/isDom also allow CCU
-  const isLoc = isLocRole || isAdmin;
-  const isDom = isDomRole || isAdmin;
+  // Determine edit rights from the appraisal FK — handles dual-role mentors
+  const _pfMyId   = String(currentUser.id);
+  const _pfAssLoc = a.locationMentorUser && String(a.locationMentorUser.id) === _pfMyId;
+  const _pfAssDom = a.domainMentorUser   && String(a.domainMentorUser.id)   === _pfMyId;
+  // For new appraisals (no FK set yet) fall back to role
+  const _pfHasLoc = isLocRole && (_pfAssLoc || (!_pfAssDom && !isDomRole));
+  const _pfHasDom = isDomRole && (_pfAssDom || (!_pfAssLoc && !_pfHasLoc));
+  const isLoc = _pfHasLoc || isAdmin;
+  const isDom = _pfHasDom || isAdmin;
 
   // Header
   document.getElementById('pfStudentName').textContent =
@@ -3780,6 +3786,15 @@ function pfPopulateForm(a) {
   pfSetTA('pf-domSupport',    ap.domainMentorSupportComments,   !isDom);
   pfSetTA('pf-centralComments', ap.centralTeamComments, true); // admin-only
 
+  // ── Sweep: clear any residual dash values from every textarea/input in the form
+  document.querySelectorAll(
+    '#portalFormWrap textarea, #portalFormWrap input[type="text"], #portalFormWrap input[type="number"]'
+  ).forEach(el => {
+    if (!el.disabled && /^[\s\-\u2013\u2014]+$/.test(el.value)) {
+      el.value = '';
+    }
+  });
+
   // Submit button label
   const mySubmitted = (isStudent && a.studentSubmittedAt) ||
                       (isLoc && a.locationMentorSubmittedAt) ||
@@ -3795,21 +3810,43 @@ function pfPopulateForm(a) {
 // ── Academic row helpers ──────────────────────────────────────────────────────
 function pfAddRow(data = {}, readOnly = false) {
   pfRowCount++;
-  const d = readOnly ? 'disabled' : '';
+  const d        = readOnly ? 'disabled' : '';
+  const hasCourse = !!(data.courseName && String(data.courseName).trim());
+  const mLock    = (readOnly || !hasCourse) ? 'disabled' : '';
   const tr = document.createElement('tr');
   tr.innerHTML = `
     <td style="color:var(--muted);text-align:center;">${pfRowCount}</td>
     <td><input type="text"   data-row="${pfRowCount}" data-field="courseName"
-         class="academic-inp" value="${esc(data.courseName||'')}" placeholder="Course name" ${d} /></td>
+         class="academic-inp" value="${escVal(data.courseName)}"
+         placeholder="Course name (required)" ${d}
+         oninput="pfToggleMarks(this)" /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="ise1Marks"
-         class="academic-inp" value="${data.ise1Marks||''}" placeholder="ISE 1" ${d} /></td>
+         class="academic-inp" value="${escVal(data.ise1Marks)}" placeholder="ISE 1" ${mLock} /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="ise2Marks"
-         class="academic-inp" value="${data.ise2Marks||''}" placeholder="ISE 2" ${d} /></td>
+         class="academic-inp" value="${escVal(data.ise2Marks)}" placeholder="ISE 2" ${mLock} /></td>
     <td><input type="number" data-row="${pfRowCount}" data-field="eseMarks"
-         class="academic-inp" value="${data.eseMarks||''}" placeholder="ESE" ${d} /></td>
+         class="academic-inp" value="${escVal(data.eseMarks)}" placeholder="ESE"   ${mLock} /></td>
     <td><input type="text"   data-row="${pfRowCount}" data-field="grade"
-         class="academic-inp" value="${esc(data.grade||'')}" placeholder="Grade" ${d} /></td>`;
+         class="academic-inp" value="${escVal(data.grade)}" placeholder="Grade" ${mLock} /></td>`;
   document.getElementById('pf-academicBody').appendChild(tr);
+}
+
+/** Escape for use in input value= attributes — never returns — */
+function escVal(s) {
+  const v = _cleanVal(s);
+  if (!v) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function pfToggleMarks(courseInput) {
+  const tr     = courseInput.closest('tr');
+  const hasVal = courseInput.value.trim().length > 0;
+  tr.querySelectorAll('[data-field="ise1Marks"],[data-field="ise2Marks"],' +
+                       '[data-field="eseMarks"],[data-field="grade"]')
+    .forEach(el => {
+      el.disabled = !hasVal;
+      if (!hasVal) el.value = '';
+    });
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────────
@@ -3909,10 +3946,24 @@ async function pfSave(isSubmit) {
   };
 
   let endpoint;
-  if (isStudent)       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
-  else if (isLocRole)  endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/location-mentor`;
-  else if (isDomRole)  endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
-  else                 endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+  if (isStudent) {
+    endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
+  } else {
+    const _isCCU = (currentUser.roles||[]).includes('CENTRAL_COMMITTEE_USER');
+    const _myId        = String(currentUser.id);
+    const _a           = pfCurrentAppraisal || {};
+    const _assignedLoc = _a.locationMentorUser && String(_a.locationMentorUser.id) === _myId;
+    const _assignedDom = _a.domainMentorUser   && String(_a.domainMentorUser.id)   === _myId;
+    if (_isCCU && !isLocRole && !isDomRole) {
+      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+    } else if (_assignedDom || (isDomRole && !_assignedLoc)) {
+      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+    } else if (_assignedLoc || isLocRole) {
+      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/location-mentor`;
+    } else {
+      endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
+    }
+  }
 
   try {
     const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
@@ -3932,16 +3983,23 @@ async function pfSave(isSubmit) {
 }
 
 // ── Tiny helpers ──────────────────────────────────────────────────────────────
+function _cleanVal(v) {
+  if (v === null || v === undefined) return '';
+  const s = String(v).trim();
+  // Strip any value that is only dashes, em-dashes, en-dashes, or spaces
+  if (/^[\s\-\u2013\u2014]+$/.test(s)) return '';
+  return s;
+}
 function pfSet(id, val, readOnly) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.value    = val ?? '';
+  el.value    = _cleanVal(val);
   el.disabled = !!readOnly;
 }
 function pfSetTA(id, val, readOnly) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.value    = val ?? '';
+  el.value    = _cleanVal(val);
   el.disabled = !!readOnly;
 }
 /** Build a 5-star radio widget. id is used as the radio group name. */

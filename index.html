@@ -2924,7 +2924,6 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
@@ -6313,9 +6312,10 @@ async function dashNav(type, filter) {
 }
 
 function renderDrillStudents(rows) {
-  const isCCU   = (currentUser.roles||[]).includes('CENTRAL_COMMITTEE_USER');
-  const isEval  = (currentUser.roles||[]).includes('EVALUATOR');
-  const canApprove = isCCU || isEval;
+  const isCCU      = (currentUser.roles||[]).includes('CENTRAL_COMMITTEE_USER');
+  const isEval     = (currentUser.roles||[]).includes('EVALUATOR');
+  const isMentor   = (currentUser.roles||[]).some(r => ['LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
+  const canApprove = isCCU || isEval || isMentor;
 
   document.getElementById('dashDrillHead').innerHTML = `
     <tr><th>#</th><th>Name</th><th>Email</th><th>Location Mentor</th>
@@ -6352,7 +6352,7 @@ function renderDrillStudents(rows) {
 }
 
 async function doApproveStudentDirect(email, name, btn) {
-  if (!confirm(`Mark "${name}" (${email}) as APPROVED?\n\nThis will create or update their application to APPROVED status, allowing them to access appraisals and MTEs.`)) return;
+  if (!confirm(`Mark "${name}" (${email}) as APPROVED?\n\nThis will:\n• Set their application to APPROVED\n• Mark their agreement as signed\n• Allow them to access appraisals and MTEs`)) return;
   btn.disabled = true;
   btn.textContent = '…';
   try {

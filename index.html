@@ -2924,6 +2924,7 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
+// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
@@ -6329,6 +6330,9 @@ function renderDrillStudents(rows) {
     const agr = r.agreementSigned
       ? '<span style="color:var(--green);font-size:11px;">✅ Signed</span>'
       : '<span style="color:var(--text-muted);font-size:11px;">⏳ Pending</span>';
+    const directBadge = r.directApproved
+      ? '<span style="background:rgba(230,126,34,.15);color:#e67e22;font-size:10px;padding:2px 6px;border-radius:8px;margin-left:4px;" title="Approved directly by admin — no full application on file">⚡ Direct</span>'
+      : '';
     const approveBtn = canApprove && !isApproved
       ? `<button class="btn-assign" style="font-size:11px;padding:4px 10px;"
            onclick="doApproveStudentDirect('${esc(r.email)}', '${esc(r.fullName)}', this)">
@@ -6341,7 +6345,7 @@ function renderDrillStudents(rows) {
       <td style="font-size:12px;color:var(--muted);">${esc(r.email)}</td>
       <td style="font-size:12px;">${esc(r.locationMentor || '—')}</td>
       <td style="font-size:12px;">${esc(r.domainMentor || '—')}</td>
-      <td style="font-size:12px;">${esc(r.appStatus || '—')} ${isApproved ? agr : ''}</td>
+      <td style="font-size:12px;">${esc(r.appStatus || '—')} ${isApproved ? agr : ''} ${directBadge}</td>
       ${canApprove ? `<td>${approveBtn}</td>` : ''}
     </tr>`;
   }).join('');

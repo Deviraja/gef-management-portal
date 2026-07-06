@@ -675,12 +675,14 @@ td {
 .s-MAJOR_DISCREPENCIES_REJECTED    { background: var(--red-dim);        color: var(--red); }
 .s-NOT_FITTING_CRITERIA_REJECTED   { background: rgba(200,60,60,.15);   color: #e07070; }
 .s-APPLICATION_INCOMPLETE            { background: rgba(255,180,0,.15);    color: #e8a800; }
+.s-NEW_APPLICATION_UPDATED           { background: rgba(74,143,232,.15);   color: #4a8fe8; }
 .s-REFERENCE_INTERVIEW_PENDING       { background: rgba(74,143,232,.15);   color: #4a8fe8; }
 .s-REFERENCE_CHECK_CLEARED           { background: rgba(62,207,142,.15);   color: #3ecf8e; }
 .s-REFERENCE_CHECK_FAILED            { background: rgba(232,82,82,.15);    color: #e85252; }
 .s-INTERIM_APPROVER_REVIEW           { background: rgba(155,89,182,.15);   color: #9b59b6; }
 .s-INTERIM_APPROVER_RETURNED         { background: rgba(230,126,34,.15);   color: #e67e22; }
 .s-INTERIM_APPROVER_APPROVED         { background: rgba(39,174,96,.15);    color: #27ae60; }
+.s-INTERIM_APPROVER_REJECTED         { background: rgba(232,82,82,.15);    color: #e85252; }
 .s-IQ_ASSESSMENT_REQUIRED          { background: rgba(232,130,74,.15);  color: var(--accent); }
 .s-IQ_ASSESSMENT_REQUIRED_REJECTED { background: rgba(200,80,50,.15);   color: #d06040; }
 .s-HOME_VISIT_NEEDED               { background: rgba(74,143,232,.15);  color: var(--accent2); }
@@ -2861,6 +2863,10 @@ td {
       <input id="transitionIqWhatsapp" type="text" placeholder="WhatsApp mobile (optional)"
         style="display:none;background:var(--surface2);border:1.5px solid var(--border);
                border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;width:180px;"/>
+      <!-- Reference Interviewer selector — shown only when REFERENCE_INTERVIEW_PENDING is chosen -->
+      <select id="transitionRefInterviewerSelect" style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;min-width:200px;">
+        <option value="">— assign reference interviewer —</option>
+      </select>
       <!-- Interim Approver selector — shown only when INTERIM_APPROVER_REVIEW is chosen -->
       <select id="transitionInterimApproverSelect" style="display:none;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:13px;min-width:200px;">
         <option value="">— assign interim approver —</option>
@@ -2902,6 +2908,262 @@ td {
   <span id="toastMsg">Done</span>
 </div>
 
+<!-- ── CONTROL PANEL MODAL ── -->
+<div id="controlPanelBackdrop" onclick="closeControlPanel(event)">
+  <div class="cp-panel" onclick="event.stopPropagation()">
+    <div class="cp-panel-title">Navigation</div>
+    <div class="cp-grid" id="cpGrid">
+
+      <div class="cp-item cp-active" id="cpi-home" onclick="cpNav('home')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="cp-item-label">Dashboard</span>
+      </div>
+
+      <div class="cp-item" id="cpi-applications" onclick="cpNav('applications')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
+          <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>
+        </svg>
+        <span class="cp-item-label">Applications</span>
+      </div>
+
+      <div class="cp-item" id="cpi-appraisals" onclick="cpNav('appraisals')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+        </svg>
+        <span class="cp-item-label">Appraisals</span>
+      </div>
+
+      <div class="cp-item" id="cpi-mentoring" onclick="cpNav('mentoring')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+        <span class="cp-item-label">MTE</span>
+      </div>
+
+      <div class="cp-item" id="cpi-assignments" style="display:none" onclick="cpNav('assignments')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
+          <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
+        </svg>
+        <span class="cp-item-label">Mentor Assignments</span>
+      </div>
+
+      <div class="cp-item" id="cpi-centers" style="display:none" onclick="cpNav('centers')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span class="cp-item-label">Centers</span>
+      </div>
+
+      <div class="cp-item" id="cpi-iqassessor" style="display:none" onclick="cpNav('iqassessor')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span class="cp-item-label">IQ Assessors</span>
+      </div>
+
+      <div class="cp-item" id="cpi-loans" style="display:none" onclick="cpNav('loans')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+        <span class="cp-item-label">Loan Requests</span>
+      </div>
+
+      <div class="cp-item" id="cpi-roles" style="display:none" onclick="cpNav('roles')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 009 9"/>
+        </svg>
+        <span class="cp-item-label">Role Management</span>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+so getElementById returns null
+// during the synchronous showDashboard() call. Re-apply once DOM is ready.
+let _pendingVisibleViews = null;
+document.addEventListener('DOMContentLoaded', () => {
+  if (_pendingVisibleViews) {
+    syncControlPanel(_pendingVisibleViews);
+    updateCPActiveItem('home');
+    _pendingVisibleViews = null;
+  }
+});
+
+// ══ CHANGE PASSWORD ═══════════════════════════════════════════════════════════
+
+function openChangePassword() {
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value     = '';
+  document.getElementById('cp-confirm').value = '';
+  const err = document.getElementById('cp-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  document.getElementById('changePasswordBackdrop').style.display = 'flex';
+  setTimeout(() => document.getElementById('cp-current').focus(), 50);
+}
+
+function closeChangePassword() {
+  document.getElementById('changePasswordBackdrop').style.display = 'none';
+}
+
+async function doChangePassword() {
+  const current = document.getElementById('cp-current').value;
+  const newPwd  = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const errEl   = document.getElementById('cp-error');
+
+  const showErr = msg => {
+    errEl.textContent = msg; errEl.style.display = '';
+  };
+  errEl.style.display = 'none';
+
+  if (!current) { showErr('Please enter your current password'); return; }
+  if (newPwd.length < 6) { showErr('New password must be at least 6 characters'); return; }
+  if (newPwd !== confirm) { showErr('Passwords do not match'); return; }
+
+  try {
+    await apiFetchChecked(`${API}/auth/change-password`, {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+    });
+    showToast('Password changed successfully!', 'success');
+    closeChangePassword();
+  } catch(e) { showErr(e.message); }
+}
+</script>
+<!-- ── CENTER ASSIGNMENT MODAL ── -->
+<div id="centerAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Assign to Center</div>
+    <div id="caStudentName" style="font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
+    <div class="assign-field" style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
+        Select Center <span style="color:#e85252;">*</span>
+      </label>
+      <select id="caCenterSelect"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+        <option value="">— loading centers… —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-save" onclick="closeCenterAssignModal()">Cancel</button>
+      <button class="btn-assign" onclick="doAssignStudentToCenter()">Assign →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MENTOR ASSIGNMENT MODAL ── -->
+<div id="mentorAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;" id="mentorModalTitle">Assign Mentor</div>
+    <div id="mentorModalCurrent" style="font-size:12px;color:var(--muted);margin-bottom:20px;"></div>
+    <div class="assign-field" style="margin-bottom:20px;">
+      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
+        Select Mentor <span style="color:#e85252;">*</span>
+      </label>
+      <select id="maMentorSelect"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
+        <option value="">— loading… —</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn-save" onclick="closeMentorAssignModal()">Cancel</button>
+      <button class="btn-assign" onclick="doAssignMentorInModal()">Assign →</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- ── CHANGE PASSWORD MODAL ── -->
+<div class="modal-backdrop" id="changePasswordBackdrop" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Change Password</div>
+      <button class="modal-close" onclick="closeChangePassword()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px;display:flex;flex-direction:column;gap:14px;">
+      <div class="assign-field">
+        <label>Current Password</label>
+        <input type="password" id="cp-current" placeholder="Your current password"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div class="assign-field">
+        <label>New Password</label>
+        <input type="password" id="cp-new" placeholder="Min 6 characters"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div class="assign-field">
+        <label>Confirm New Password</label>
+        <input type="password" id="cp-confirm" placeholder="Repeat new password"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
+      </div>
+      <div id="cp-error" style="font-size:13px;color:var(--red);display:none;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-save" onclick="closeChangePassword()">Cancel</button>
+      <button class="btn-assign" onclick="doChangePassword()">Change Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DASHBOARD DRILL-DOWN MODAL ── -->
+<div class="modal-backdrop" id="dashDrillBackdrop" style="display:none;">
+  <div class="modal" style="max-width:760px;max-height:80vh;display:flex;flex-direction:column;">
+    <div class="modal-header">
+      <div class="modal-title" id="dashDrillTitle">List</div>
+      <button class="modal-close" onclick="closeDashDrill()">✕</button>
+    </div>
+    <div style="padding:12px 20px 0;border-bottom:1px solid var(--border);">
+      <input type="text" id="dashDrillSearch" placeholder="Search…" oninput="filterDashDrill()"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+               padding:8px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:10px;"/>
+    </div>
+    <div class="modal-body" style="flex:1;overflow-y:auto;padding:0;">
+      <table class="appraisal-list-table" style="margin:0;">
+        <thead id="dashDrillHead"></thead>
+        <tbody id="dashDrillBody">
+          <tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer" style="font-size:12px;color:var(--muted);" id="dashDrillCount"></div>
+  </div>
+</div>
+
+<!-- ── AGREEMENT SIGNED CONFIRMATION MODAL ── -->
+<div class="modal-backdrop" id="agreementConfirmBackdrop" style="display:none;">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <div class="modal-title">Confirm Agreement Signed</div>
+      <button class="modal-close" onclick="closeAgreementConfirmModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <div style="font-size:14px;line-height:1.6;color:var(--text);">
+        Are you sure you want to mark the agreement as <strong>signed</strong>?
+      </div>
+      <div style="margin-top:12px;padding:12px;background:rgba(232,82,82,.08);border:1px solid rgba(232,82,82,.3);border-radius:8px;font-size:13px;color:#e85252;">
+        ⚠️ This action <strong>cannot be undone</strong>. Once marked as signed, the agreement status is permanent and no further status transitions will be allowed.
+      </div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-save" onclick="closeAgreementConfirmModal()">Cancel</button>
+      <button class="btn-assign" onclick="confirmAgreementSigned()"
+        style="background:var(--green,#3ecf8e);">✓ Yes, Mark as Signed</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 function applyTheme(light) {
@@ -2924,7 +3186,8 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
-const API = '/api/v1'; // resolved relative to current host
+const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
+// const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -3157,6 +3420,9 @@ function showDashboard() {
   if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
   syncControlPanel(visibleViews);
   updateCPActiveItem('home');
+  // Modal HTML is parsed after script — re-apply once DOM is fully ready
+  _pendingVisibleViews = visibleViews;
+  setTimeout(() => { syncControlPanel(visibleViews); updateCPActiveItem('home'); _pendingVisibleViews = null; }, 0);
 
   loadDashboard();
   loadStats();
@@ -3469,6 +3735,7 @@ function populateTransitionDropdown() {
     { v: 'REFERENCE_CHECK_FAILED',        l: 'Reference Check Failed',         show: isRef || isAdmin },
     // Evaluator / CCU standard transitions
     { v: 'APPLICATION_INCOMPLETE',        l: 'Application Incomplete',         show: isAdmin },
+    { v: 'NEW_APPLICATION_UPDATED',       l: 'Mark as Updated (after review)',  show: isAdmin },
     { v: 'REFERENCE_INTERVIEW_PENDING',   l: 'Send for Reference Interview',   show: isAdmin },
     { v: 'INTERIM_APPROVER_REVIEW',       l: 'Send to Interim Approver',       show: isAdmin },
     { v: 'INTERIM_APPROVER_REVIEW',       l: 'Re-send to Interim Approver',    show: isAdmin },
@@ -3481,6 +3748,7 @@ function populateTransitionDropdown() {
     // INTERIM_APPROVER specific
     { v: 'INTERIM_APPROVER_RETURNED',     l: 'Return to Evaluator (needs info)', show: isInter || isCCU },
     { v: 'INTERIM_APPROVER_APPROVED',     l: 'Interim Approved',               show: isInter || isCCU },
+    { v: 'INTERIM_APPROVER_REJECTED',     l: 'Interim Rejected',               show: isInter || isCCU },
     // IQ Assessor
     { v: 'IQ_ASSESSMENT_REQUIRED_REJECTED', l: 'IQ Assessment Rejected',       show: isIqAss || isAdmin },
   ];
@@ -3747,11 +4015,26 @@ async function onTransitionSelectChange() {
   const iqSel        = document.getElementById('transitionIqAssessorSelect');
   const iqWhatsapp   = document.getElementById('transitionIqWhatsapp');
   const interimSel   = document.getElementById('transitionInterimApproverSelect');
+  const refSel       = document.getElementById('transitionRefInterviewerSelect');
 
   // Hide all extras first
   iqSel.style.display      = 'none';
   iqWhatsapp.style.display = 'none';
   interimSel.style.display = 'none';
+  refSel.style.display     = 'none';
+
+  if (status === 'REFERENCE_INTERVIEW_PENDING') {
+    refSel.style.display = '';
+    if (refSel.options.length <= 1) {
+      refSel.innerHTML = '<option value="">Loading…</option>';
+      try {
+        const res = await apiFetch(`${API}/management/users/reference-interviewers`);
+        const interviewers = await res.json();
+        refSel.innerHTML = '<option value="">— assign reference interviewer —</option>' +
+          interviewers.map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
+      } catch(e) { refSel.innerHTML = '<option value="">Failed to load</option>'; }
+    }
+  }
 
   if (status === 'IQ_ASSESSMENT_REQUIRED') {
     iqSel.style.display      = '';
@@ -3774,9 +4057,7 @@ async function onTransitionSelectChange() {
         const approvers = await res.json();
         interimSel.innerHTML = '<option value="">— assign interim approver —</option>' +
           approvers.map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
-      } catch(e) {
-        interimSel.innerHTML = '<option value="">Failed to load approvers</option>';
-      }
+      } catch(e) { interimSel.innerHTML = '<option value="">Failed to load approvers</option>'; }
     }
   }
 }
@@ -3806,6 +4087,19 @@ async function doTransition() {
     }
 
     showToast(`Status updated to ${fmtStatus(toStatus)}`, 'success');
+
+    // Assign reference interviewer if moving to REFERENCE_INTERVIEW_PENDING
+    const refInterviewerId = document.getElementById('transitionRefInterviewerSelect')?.value;
+    if (toStatus === 'REFERENCE_INTERVIEW_PENDING' && refInterviewerId) {
+      try {
+        await apiFetchChecked(`${API}/management/applications/${currentAppId}/assign-reference-interviewer`, {
+          method: 'POST', body: JSON.stringify({ interviewerUserId: Number(refInterviewerId) })
+        });
+        showToast('Reference Interviewer assigned', 'success');
+      } catch(e) {
+        showToast('Status updated but Reference Interviewer assignment failed: ' + e.message, 'error');
+      }
+    }
 
     // If moving to IQ_ASSESSMENT_REQUIRED and an assessor was selected, assign them
     const iqAssessorId = document.getElementById('transitionIqAssessorSelect')?.value;
@@ -3850,6 +4144,8 @@ async function doTransition() {
     document.getElementById('transitionIqWhatsapp').value = '';
     document.getElementById('transitionInterimApproverSelect').style.display = 'none';
     document.getElementById('transitionInterimApproverSelect').value = '';
+    document.getElementById('transitionRefInterviewerSelect').style.display = 'none';
+    document.getElementById('transitionRefInterviewerSelect').value = '';
   } catch (err) {
     showToast(err.message, 'error');
   } finally {
@@ -6692,249 +6988,7 @@ async function doDeactivateUser(userId, email) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-// ══ CHANGE PASSWORD ═══════════════════════════════════════════════════════════
-
-function openChangePassword() {
-  document.getElementById('cp-current').value = '';
-  document.getElementById('cp-new').value     = '';
-  document.getElementById('cp-confirm').value = '';
-  const err = document.getElementById('cp-error');
-  if (err) { err.style.display = 'none'; err.textContent = ''; }
-  document.getElementById('changePasswordBackdrop').style.display = 'flex';
-  setTimeout(() => document.getElementById('cp-current').focus(), 50);
-}
-
-function closeChangePassword() {
-  document.getElementById('changePasswordBackdrop').style.display = 'none';
-}
-
-async function doChangePassword() {
-  const current = document.getElementById('cp-current').value;
-  const newPwd  = document.getElementById('cp-new').value;
-  const confirm = document.getElementById('cp-confirm').value;
-  const errEl   = document.getElementById('cp-error');
-
-  const showErr = msg => {
-    errEl.textContent = msg; errEl.style.display = '';
-  };
-  errEl.style.display = 'none';
-
-  if (!current) { showErr('Please enter your current password'); return; }
-  if (newPwd.length < 6) { showErr('New password must be at least 6 characters'); return; }
-  if (newPwd !== confirm) { showErr('Passwords do not match'); return; }
-
-  try {
-    await apiFetchChecked(`${API}/auth/change-password`, {
-      method: 'POST',
-      body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
-    });
-    showToast('Password changed successfully!', 'success');
-    closeChangePassword();
-  } catch(e) { showErr(e.message); }
-}
-</script>
-<!-- ── CENTER ASSIGNMENT MODAL ── -->
-<div id="centerAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Assign to Center</div>
-    <div id="caStudentName" style="font-size:13px;color:var(--muted);margin-bottom:20px;"></div>
-    <div class="assign-field" style="margin-bottom:20px;">
-      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
-        Select Center <span style="color:#e85252;">*</span>
-      </label>
-      <select id="caCenterSelect"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
-               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
-        <option value="">— loading centers… —</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn-save" onclick="closeCenterAssignModal()">Cancel</button>
-      <button class="btn-assign" onclick="doAssignStudentToCenter()">Assign →</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MENTOR ASSIGNMENT MODAL ── -->
-<div id="mentorAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:500px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
-    <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;" id="mentorModalTitle">Assign Mentor</div>
-    <div id="mentorModalCurrent" style="font-size:12px;color:var(--muted);margin-bottom:20px;"></div>
-    <div class="assign-field" style="margin-bottom:20px;">
-      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--muted);display:block;margin-bottom:6px;">
-        Select Mentor <span style="color:#e85252;">*</span>
-      </label>
-      <select id="maMentorSelect"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
-               padding:10px 12px;color:var(--text);font-size:13px;outline:none;">
-        <option value="">— loading… —</option>
-      </select>
-    </div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;">
-      <button class="btn-save" onclick="closeMentorAssignModal()">Cancel</button>
-      <button class="btn-assign" onclick="doAssignMentorInModal()">Assign →</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-<!-- ── CHANGE PASSWORD MODAL ── -->
-<div class="modal-backdrop" id="changePasswordBackdrop" style="display:none;">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header">
-      <div class="modal-title">Change Password</div>
-      <button class="modal-close" onclick="closeChangePassword()">✕</button>
-    </div>
-    <div class="modal-body" style="padding:24px;display:flex;flex-direction:column;gap:14px;">
-      <div class="assign-field">
-        <label>Current Password</label>
-        <input type="password" id="cp-current" placeholder="Your current password"
-          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
-      </div>
-      <div class="assign-field">
-        <label>New Password</label>
-        <input type="password" id="cp-new" placeholder="Min 6 characters"
-          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
-      </div>
-      <div class="assign-field">
-        <label>Confirm New Password</label>
-        <input type="password" id="cp-confirm" placeholder="Repeat new password"
-          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"/>
-      </div>
-      <div id="cp-error" style="font-size:13px;color:var(--red);display:none;"></div>
-    </div>
-    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
-      <button class="btn-save" onclick="closeChangePassword()">Cancel</button>
-      <button class="btn-assign" onclick="doChangePassword()">Change Password</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── CONTROL PANEL MODAL ── -->
-<div id="controlPanelBackdrop" onclick="closeControlPanel(event)">
-  <div class="cp-panel" onclick="event.stopPropagation()">
-    <div class="cp-panel-title">Navigation</div>
-    <div class="cp-grid" id="cpGrid">
-
-      <div class="cp-item cp-active" id="cpi-home" onclick="cpNav('home')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-          <polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        <span class="cp-item-label">Dashboard</span>
-      </div>
-
-      <div class="cp-item" id="cpi-applications" onclick="cpNav('applications')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/>
-          <rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>
-        </svg>
-        <span class="cp-item-label">Applications</span>
-      </div>
-
-      <div class="cp-item" id="cpi-appraisals" onclick="cpNav('appraisals')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-        </svg>
-        <span class="cp-item-label">Appraisals</span>
-      </div>
-
-      <div class="cp-item" id="cpi-mentoring" onclick="cpNav('mentoring')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
-          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-        </svg>
-        <span class="cp-item-label">MTE</span>
-      </div>
-
-      <div class="cp-item" id="cpi-assignments" style="display:none" onclick="cpNav('assignments')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/>
-          <line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>
-        </svg>
-        <span class="cp-item-label">Mentor Assignments</span>
-      </div>
-
-      <div class="cp-item" id="cpi-centers" style="display:none" onclick="cpNav('centers')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
-        </svg>
-        <span class="cp-item-label">Centers</span>
-      </div>
-
-      <div class="cp-item" id="cpi-iqassessor" style="display:none" onclick="cpNav('iqassessor')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-          <line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        <span class="cp-item-label">IQ Assessors</span>
-      </div>
-
-      <div class="cp-item" id="cpi-loans" style="display:none" onclick="cpNav('loans')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
-        </svg>
-        <span class="cp-item-label">Loan Requests</span>
-      </div>
-
-      <div class="cp-item" id="cpi-roles" style="display:none" onclick="cpNav('roles')">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 009 9"/>
-        </svg>
-        <span class="cp-item-label">Role Management</span>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- ── DASHBOARD DRILL-DOWN MODAL ── -->
-<div class="modal-backdrop" id="dashDrillBackdrop" style="display:none;">
-  <div class="modal" style="max-width:760px;max-height:80vh;display:flex;flex-direction:column;">
-    <div class="modal-header">
-      <div class="modal-title" id="dashDrillTitle">List</div>
-      <button class="modal-close" onclick="closeDashDrill()">✕</button>
-    </div>
-    <div style="padding:12px 20px 0;border-bottom:1px solid var(--border);">
-      <input type="text" id="dashDrillSearch" placeholder="Search…" oninput="filterDashDrill()"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
-               padding:8px 12px;color:var(--text);font-size:13px;outline:none;margin-bottom:10px;"/>
-    </div>
-    <div class="modal-body" style="flex:1;overflow-y:auto;padding:0;">
-      <table class="appraisal-list-table" style="margin:0;">
-        <thead id="dashDrillHead"></thead>
-        <tbody id="dashDrillBody">
-          <tr><td colspan="6"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="modal-footer" style="font-size:12px;color:var(--muted);" id="dashDrillCount"></div>
-  </div>
-</div>
-
-<!-- ── AGREEMENT SIGNED CONFIRMATION MODAL ── -->
-<div class="modal-backdrop" id="agreementConfirmBackdrop" style="display:none;">
-  <div class="modal" style="max-width:420px;">
-    <div class="modal-header">
-      <div class="modal-title">Confirm Agreement Signed</div>
-      <button class="modal-close" onclick="closeAgreementConfirmModal()">✕</button>
-    </div>
-    <div class="modal-body" style="padding:24px;">
-      <div style="font-size:14px;line-height:1.6;color:var(--text);">
-        Are you sure you want to mark the agreement as <strong>signed</strong>?
-      </div>
-      <div style="margin-top:12px;padding:12px;background:rgba(232,82,82,.08);border:1px solid rgba(232,82,82,.3);border-radius:8px;font-size:13px;color:#e85252;">
-        ⚠️ This action <strong>cannot be undone</strong>. Once marked as signed, the agreement status is permanent and no further status transitions will be allowed.
-      </div>
-    </div>
-    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
-      <button class="btn-save" onclick="closeAgreementConfirmModal()">Cancel</button>
-      <button class="btn-assign" onclick="confirmAgreementSigned()"
-        style="background:var(--green,#3ecf8e);">✓ Yes, Mark as Signed</button>
-    </div>
-  </div>
-</div>
+// ── Re-sync control panel after full DOM is parsed ───────────────────────────
+// Control panel modal HTML is after </script>
 </body>
 </html>

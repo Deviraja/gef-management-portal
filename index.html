@@ -3186,7 +3186,6 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
-// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
@@ -3494,6 +3493,7 @@ function authHeaders() {
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers: authHeaders() });
   if (res.status === 401) { doLogout(); throw new Error('Session expired'); }
+  if (res.status === 413) throw new Error('The uploaded file is too large (max 15 MB). Please reduce the file size and try again.');
   return res;
 }
 

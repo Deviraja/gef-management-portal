@@ -6615,13 +6615,17 @@ function renderDrillStudents(rows) {
   const isEval     = (currentUser.roles||[]).includes('EVALUATOR');
   const isMentor   = (currentUser.roles||[]).some(r => ['LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r));
   const canApprove = isCCU || isEval || isMentor;
+  const canDisable = isCCU;
+  const cols = 6 + (canApprove ? 1 : 0) + (canDisable ? 1 : 0);
 
   document.getElementById('dashDrillHead').innerHTML = `
     <tr><th>#</th><th>Name</th><th>Email</th><th>Location Mentor</th>
-        <th>Domain Mentor</th><th>Status / Agreement</th>${canApprove ? '<th></th>' : ''}</tr>`;
+        <th>Domain Mentor</th><th>Status / Agreement</th>
+        ${canApprove ? '<th>Approve</th>' : ''}
+        ${canDisable ? '<th>Disable</th>' : ''}</tr>`;
   if (!rows.length) {
     document.getElementById('dashDrillBody').innerHTML =
-      `<tr><td colspan="${canApprove ? 7 : 6}" style="text-align:center;color:var(--muted);padding:32px;">No students found.</td></tr>`;
+      `<tr><td colspan="${cols}" style="text-align:center;color:var(--muted);padding:32px;">No students found.</td></tr>`;
     return;
   }
   document.getElementById('dashDrillBody').innerHTML = rows.map((r, i) => {
@@ -6638,6 +6642,12 @@ function renderDrillStudents(rows) {
            ✓ Approve
          </button>`
       : (isApproved ? '<span style="color:var(--green);font-size:11px;">✓ Approved</span>' : '');
+    const disableBtn = canDisable
+      ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;"
+           onclick="doDisableStudent(${r.id}, '${esc(r.email)}', '${esc(r.fullName)}', this)">
+           Disable
+         </button>`
+      : '';
     return `<tr>
       <td class="td-id">${i+1}</td>
       <td style="font-weight:500;">${esc(r.fullName || '—')}</td>
@@ -6646,8 +6656,28 @@ function renderDrillStudents(rows) {
       <td style="font-size:12px;">${esc(r.domainMentor || '—')}</td>
       <td style="font-size:12px;">${esc(r.appStatus || '—')} ${isApproved ? agr : ''} ${directBadge}</td>
       ${canApprove ? `<td>${approveBtn}</td>` : ''}
+      ${canDisable ? `<td>${disableBtn}</td>` : ''}
     </tr>`;
   }).join('');
+}
+
+async function doDisableStudent(userId, email, name, btn) {
+  if (!confirm(`Disable account for "${name}" (${email})?
+
+The student will receive an email notifying them their account has been disabled and they will no longer be able to log in.`)) return;
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    await apiFetchChecked(`${API}/management/users/${userId}`, { method: 'DELETE' });
+    showToast(`${name}'s account has been disabled`, 'success');
+    btn.closest('td').innerHTML = '<span style="color:var(--muted);font-size:11px;">Disabled</span>';
+    btn.closest('tr').style.opacity = '0.5';
+    loadDashboard();
+  } catch(e) {
+    showToast('Failed: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Disable';
+  }
 }
 
 async function doApproveStudentDirect(email, name, btn) {

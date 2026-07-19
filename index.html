@@ -4773,12 +4773,14 @@ async function pfSave(isSubmit) {
   if (isStudent) {
     endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
   } else {
-    const _isCCU = (currentUser.roles||[]).includes('CENTRAL_COMMITTEE_USER');
+    const _pfRoles2    = currentUser.roles || [];
+    const _isCCU       = _pfRoles2.includes('CENTRAL_COMMITTEE_USER');
     const _myId        = String(currentUser.id);
     const _a           = pfCurrentAppraisal || {};
     const _assignedLoc = _a.locationMentorUser && String(_a.locationMentorUser.id) === _myId;
     const _assignedDom = _a.domainMentorUser   && String(_a.domainMentorUser.id)   === _myId;
-    if (_isCCU && !isLocRole && !isDomRole) {
+    // CCU is superuser — always use admin/evaluator endpoint
+    if (_isCCU) {
       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
     } else if (_assignedDom || (isDomRole && !_assignedLoc)) {
       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
@@ -5744,7 +5746,8 @@ async function mfSave(isSubmit) {
     let endpoint;
     if (isStudent) {
       endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
-    } else if (isAdmin && !isLocRole && !isDomRole) {
+    } else if (isAdmin) {
+      // CCU / EVALUATOR superuser — use /admin regardless of mentor roles
       endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
     } else {
       // For mentors: pick endpoint based on their actual role.

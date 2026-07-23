@@ -6685,7 +6685,7 @@ async function doApproveStudentDirect(email, name, btn) {
   btn.disabled = true;
   btn.textContent = '…';
   try {
-    await apiFetchChecked(`${API}/management/students/${encodeURIComponent(email)}/approve`, {
+    await apiFetchChecked(`${API}/management/students/approve?email=${encodeURIComponent(email)}`, {
       method: 'POST'
     });
     showToast(`${name} approved successfully`, 'success');

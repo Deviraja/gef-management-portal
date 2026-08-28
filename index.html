@@ -1383,6 +1383,20 @@ td {
 .eval-save-bar { display:flex; gap:10px; margin-top:14px; justify-content:flex-end; }
 
 
+/* ── Mentor Matrix ───────────────────────────────────────────────────────────── */
+.mm-cell    { display:flex; flex-direction:column; gap:4px; }
+.mm-add-row { display:flex; gap:6px; align-items:center; }
+.mm-select  { flex:1; background:var(--surface2); border:1.5px solid var(--border);
+  border-radius:7px; padding:5px 8px; color:var(--text); font-size:12px; outline:none; min-width:0; }
+.mm-btn     { font-size:11px !important; padding:5px 10px !important; white-space:nowrap; }
+.mm-tag     { display:inline-flex; align-items:center; gap:4px;
+  background:rgba(15,110,86,.12); color:var(--accent);
+  border:1px solid rgba(15,110,86,.25); border-radius:20px;
+  padding:3px 8px 3px 10px; font-size:12px; font-weight:500; width:fit-content; }
+.mm-remove  { background:none; border:none; color:var(--muted); cursor:pointer;
+  font-size:11px; line-height:1; padding:0 2px; }
+.mm-remove:hover { color:var(--red); }
+
 /* ── Dashboard ───────────────────────────────────────────────────────────── */
 .dash-section-label {
   font-size: 11px; font-weight: 700; letter-spacing: .7px;
@@ -1514,6 +1528,13 @@ td {
         <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" />
       </div>
       <button class="btn-login" id="btnLogin" onclick="doLogin()">Sign In</button>
+      <div style="text-align:center;margin-top:12px;">
+        <button onclick="openForgotPassword()"
+          style="background:none;border:none;color:var(--muted);font-size:13px;
+                 cursor:pointer;text-decoration:underline;padding:0;">
+          Forgot password?
+        </button>
+      </div>
 
       <div style="display:flex;justify-content:center;margin-top:20px;">
         <div class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">
@@ -2130,6 +2151,38 @@ td {
         </table>
       </div>
     </div><!-- /panel-roles -->
+
+    <!-- ══ QUICK MENTOR ASSIGNMENT PANEL ══════════════════════════════════════ -->
+    <div class="view-panel" id="panel-mentormatrix">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Quick <span>Mentor Assignment</span></div>
+          <div class="page-meta" id="mmMeta">Assign location and domain mentors to students in one place</div>
+        </div>
+        <div class="page-header-actions">
+          <input type="text" id="mmSearch" placeholder="Search student…" oninput="filterMentorMatrix()"
+            style="background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;
+                   padding:7px 12px;color:var(--text);font-size:13px;outline:none;width:200px;"/>
+          <button class="btn-save" onclick="loadMentorMatrix()" style="font-size:12px;padding:6px 12px;">↻ Refresh</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="appraisal-list-table" id="mmTable" style="min-width:900px;">
+          <thead>
+            <tr>
+              <th style="width:30px;">#</th>
+              <th>Student</th>
+              <th>Email</th>
+              <th style="min-width:240px;">Location Mentor(s)</th>
+              <th style="min-width:240px;">Domain Mentor(s)</th>
+            </tr>
+          </thead>
+          <tbody id="mmBody">
+            <tr><td colspan="5"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div><!-- /panel-mentormatrix -->
 
     <!-- ── ROLE EDITOR MODAL ── -->
     <div class="modal-backdrop" id="roleEditorBackdrop" style="display:none;">
@@ -2982,62 +3035,20 @@ td {
         <span class="cp-item-label">Role Management</span>
       </div>
 
+      <div class="cp-item" id="cpi-mentormatrix" style="display:none" onclick="cpNav('mentormatrix')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+          <path d="M16 3.13a4 4 0 010 7.75"/>
+        </svg>
+        <span class="cp-item-label">Quick Mentor Assignment</span>
+      </div>
+
     </div>
   </div>
 </div>
 
-so getElementById returns null
-// during the synchronous showDashboard() call. Re-apply once DOM is ready.
-let _pendingVisibleViews = null;
-document.addEventListener('DOMContentLoaded', () => {
-  if (_pendingVisibleViews) {
-    syncControlPanel(_pendingVisibleViews);
-    updateCPActiveItem('home');
-    _pendingVisibleViews = null;
-  }
-});
-
-// ══ CHANGE PASSWORD ═══════════════════════════════════════════════════════════
-
-function openChangePassword() {
-  document.getElementById('cp-current').value = '';
-  document.getElementById('cp-new').value     = '';
-  document.getElementById('cp-confirm').value = '';
-  const err = document.getElementById('cp-error');
-  if (err) { err.style.display = 'none'; err.textContent = ''; }
-  document.getElementById('changePasswordBackdrop').style.display = 'flex';
-  setTimeout(() => document.getElementById('cp-current').focus(), 50);
-}
-
-function closeChangePassword() {
-  document.getElementById('changePasswordBackdrop').style.display = 'none';
-}
-
-async function doChangePassword() {
-  const current = document.getElementById('cp-current').value;
-  const newPwd  = document.getElementById('cp-new').value;
-  const confirm = document.getElementById('cp-confirm').value;
-  const errEl   = document.getElementById('cp-error');
-
-  const showErr = msg => {
-    errEl.textContent = msg; errEl.style.display = '';
-  };
-  errEl.style.display = 'none';
-
-  if (!current) { showErr('Please enter your current password'); return; }
-  if (newPwd.length < 6) { showErr('New password must be at least 6 characters'); return; }
-  if (newPwd !== confirm) { showErr('Passwords do not match'); return; }
-
-  try {
-    await apiFetchChecked(`${API}/auth/change-password`, {
-      method: 'POST',
-      body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
-    });
-    showToast('Password changed successfully!', 'success');
-    closeChangePassword();
-  } catch(e) { showErr(e.message); }
-}
-</script>
 <!-- ── CENTER ASSIGNMENT MODAL ── -->
 <div id="centerAssignBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:3000;align-items:center;justify-content:center;">
   <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px 32px;min-width:360px;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
@@ -3164,8 +3175,61 @@ async function doChangePassword() {
   </div>
 </div>
 
-<script>
-// ── Theme toggle ──────────────────────────────────────────────────────────────
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────<script>
+
+// ── Re-sync control panel after full DOM is parsed ─────────────────────────
+let _pendingVisibleViews = null;
+document.addEventListener('DOMContentLoaded', () => {
+  if (_pendingVisibleViews) {
+    syncControlPanel(_pendingVisibleViews);
+    updateCPActiveItem('home');
+    _pendingVisibleViews = null;
+  }
+});
+
+// ══ CHANGE PASSWORD ═══════════════════════════════════════════════════════════
+
+function openChangePassword() {
+  document.getElementById('cp-current').value = '';
+  document.getElementById('cp-new').value     = '';
+  document.getElementById('cp-confirm').value = '';
+  const err = document.getElementById('cp-error');
+  if (err) { err.style.display = 'none'; err.textContent = ''; }
+  document.getElementById('changePasswordBackdrop').style.display = 'flex';
+  setTimeout(() => document.getElementById('cp-current').focus(), 50);
+}
+
+function closeChangePassword() {
+  document.getElementById('changePasswordBackdrop').style.display = 'none';
+}
+
+async function doChangePassword() {
+  const current = document.getElementById('cp-current').value;
+  const newPwd  = document.getElementById('cp-new').value;
+  const confirm = document.getElementById('cp-confirm').value;
+  const errEl   = document.getElementById('cp-error');
+
+  const showErr = msg => {
+    errEl.textContent = msg; errEl.style.display = '';
+  };
+  errEl.style.display = 'none';
+
+  if (!current) { showErr('Please enter your current password'); return; }
+  if (newPwd.length < 6) { showErr('New password must be at least 6 characters'); return; }
+  if (newPwd !== confirm) { showErr('Passwords do not match'); return; }
+
+  try {
+    await apiFetchChecked(`${API}/auth/change-password`, {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+    });
+    showToast('Password changed successfully!', 'success');
+    closeChangePassword();
+  } catch(e) { showErr(e.message); }
+}
+
+
 function applyTheme(light) {
   document.body.classList.toggle('light-mode', light);
   const label = document.getElementById('themeLabel');
@@ -3186,6 +3250,7 @@ function toggleTheme() {
 })();
 
 // ── Config ────────────────────────────────────────────────────────────────────
+// const API = 'http://localhost:8080/api/v1'; // resolved relative to current host
 const API = '/api/v1'; // resolved relative to current host
 const PAGE_SIZE = 20;
 
@@ -3201,7 +3266,8 @@ const CP_LABELS = {
   home:         'Dashboard',
   applications: 'Applications', appraisals: 'Appraisals', mentoring: 'MTE',
   assignments:  'Mentor Assignments', centers: 'Centers',
-  iqassessor:   'IQ Assessors', loans: 'Loan Requests', roles: 'Role Management'
+  iqassessor:   'IQ Assessors', loans: 'Loan Requests', roles: 'Role Management',
+  mentormatrix: 'Quick Mentor Assignment'
 };
 
 // ── Appraisal / MTE form state — declared early so init() can safely reference them ──
@@ -3415,6 +3481,7 @@ function showDashboard() {
   if (isCCU || isEval) {
     if (!visibleViews.includes('loans')) visibleViews.push('loans');
     visibleViews.push('roles');
+    visibleViews.push('mentormatrix');
   }
   if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
   syncControlPanel(visibleViews);
@@ -3445,6 +3512,7 @@ function switchView(view) {
   if (view === 'iqassessor') loadIqAssessorPanel();
   if (view === 'loans')      loadLoanRequests();
   if (view === 'roles')      loadRoleManagement();
+  if (view === 'mentormatrix') loadMentorMatrix();
 }
 
 // ── Load Monthly Thinking Exercises for admin view ─────────────────────────────────────
@@ -3493,7 +3561,6 @@ function authHeaders() {
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers: authHeaders() });
   if (res.status === 401) { doLogout(); throw new Error('Session expired'); }
-  if (res.status === 413) throw new Error('The uploaded file is too large (max 15 MB). Please reduce the file size and try again.');
   return res;
 }
 
@@ -4773,14 +4840,12 @@ async function pfSave(isSubmit) {
   if (isStudent) {
     endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/student`;
   } else {
-    const _pfRoles2    = currentUser.roles || [];
-    const _isCCU       = _pfRoles2.includes('CENTRAL_COMMITTEE_USER');
+    const _isCCU = (currentUser.roles||[]).includes('CENTRAL_COMMITTEE_USER');
     const _myId        = String(currentUser.id);
     const _a           = pfCurrentAppraisal || {};
     const _assignedLoc = _a.locationMentorUser && String(_a.locationMentorUser.id) === _myId;
     const _assignedDom = _a.domainMentorUser   && String(_a.domainMentorUser.id)   === _myId;
-    // CCU is superuser — always use admin/evaluator endpoint
-    if (_isCCU) {
+    if (_isCCU && !isLocRole && !isDomRole) {
       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
     } else if (_assignedDom || (isDomRole && !_assignedLoc)) {
       endpoint = `${API}/appraisal/${pfCurrentAppraisal.id}/domain-mentor`;
@@ -5746,8 +5811,7 @@ async function mfSave(isSubmit) {
     let endpoint;
     if (isStudent) {
       endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
-    } else if (isAdmin) {
-      // CCU / EVALUATOR superuser — use /admin regardless of mentor roles
+    } else if (isAdmin && !isLocRole && !isDomRole) {
       endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
     } else {
       // For mentors: pick endpoint based on their actual role.
@@ -6564,6 +6628,126 @@ async function doAssignStudentToCenter() {
     if (btn)    btn.textContent = 'Change Center';
   } catch(e) { showToast(e.message, 'error'); }
 }
+// ══ QUICK MENTOR ASSIGNMENT MATRIX ═══════════════════════════════════════════
+
+let _mmData    = [];
+let _mmMentors = [];
+
+async function loadMentorMatrix() {
+  const tbody = document.getElementById('mmBody');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="5"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>';
+  try {
+    const [matrixRes, usersRes] = await Promise.all([
+      apiFetch(`${API}/management/students/mentor-matrix`),
+      apiFetch(`${API}/management/users`)
+    ]);
+    _mmData    = await matrixRes.json();
+    const users = await usersRes.json();
+    _mmMentors = users.filter(u =>
+      (u.roles||[]).some(r => ['LOCATION_MENTOR','DOMAIN_MENTOR'].includes(r.roleName)));
+    const meta = document.getElementById('mmMeta');
+    if (meta) meta.textContent = `${_mmData.length} students · ${_mmMentors.length} mentors`;
+    renderMentorMatrix(_mmData);
+  } catch(e) {
+    if (tbody) tbody.innerHTML = `<tr><td colspan="5" style="color:var(--red);padding:16px;">Failed to load: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderMentorMatrix(rows) {
+  const tbody = document.getElementById('mmBody');
+  if (!tbody) return;
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px;">No students found.</td></tr>';
+    return;
+  }
+  const locOptions = _mmMentors
+    .filter(u => (u.roles||[]).some(r => r.roleName === 'LOCATION_MENTOR'))
+    .map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
+  const domOptions = _mmMentors
+    .filter(u => (u.roles||[]).some(r => r.roleName === 'DOMAIN_MENTOR'))
+    .map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
+
+  tbody.innerHTML = rows.map((s, i) => {
+    const locTags = (s.locMentors||[]).map(m =>
+      `<span class="mm-tag">${esc(m.fullName)}
+        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'LOCATION_MENTOR',this)" title="Remove">✕</button>
+      </span>`).join('');
+    const domTags = (s.domMentors||[]).map(m =>
+      `<span class="mm-tag">${esc(m.fullName)}
+        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'DOMAIN_MENTOR',this)" title="Remove">✕</button>
+      </span>`).join('');
+    return `<tr id="mm-row-${s.id}">
+      <td class="td-id">${i+1}</td>
+      <td style="font-weight:500;">${esc(s.fullName)}</td>
+      <td style="font-size:12px;color:var(--muted);">${esc(s.email)}</td>
+      <td>
+        <div class="mm-cell">
+          ${locTags}
+          <div class="mm-add-row">
+            <select class="mm-select" id="mm-loc-${s.id}">
+              <option value="">+ Add location mentor</option>${locOptions}
+            </select>
+            <button class="btn-assign mm-btn" onclick="mmAssign(${s.id},'LOCATION_MENTOR')">Assign</button>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div class="mm-cell">
+          ${domTags}
+          <div class="mm-add-row">
+            <select class="mm-select" id="mm-dom-${s.id}">
+              <option value="">+ Add domain mentor</option>${domOptions}
+            </select>
+            <button class="btn-assign mm-btn" onclick="mmAssign(${s.id},'DOMAIN_MENTOR')">Assign</button>
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function mmAssign(studentUserId, mentorRole) {
+  const selId = mentorRole === 'LOCATION_MENTOR' ? `mm-loc-${studentUserId}` : `mm-dom-${studentUserId}`;
+  const sel   = document.getElementById(selId);
+  if (!sel?.value) { showToast('Please select a mentor first', 'error'); return; }
+  try {
+    await apiFetchChecked(`${API}/management/students/${studentUserId}/assign-mentor`, {
+      method: 'POST',
+      body: JSON.stringify({ mentorUserId: Number(sel.value), mentorRole })
+    });
+    showToast('Mentor assigned ✓', 'success');
+    sel.value = '';
+    await refreshMmRow(studentUserId);
+  } catch(e) { showToast(e.message, 'error'); }
+}
+
+async function mmRemoveMentor(studentUserId, mentorRole, btn) {
+  if (!confirm('Remove this mentor assignment?')) return;
+  btn.disabled = true;
+  try {
+    await apiFetchChecked(
+      `${API}/management/students/${studentUserId}/assign-mentor?mentorRole=${mentorRole}`,
+      { method: 'DELETE' });
+    showToast('Mentor removed', 'success');
+    await refreshMmRow(studentUserId);
+  } catch(e) { showToast(e.message, 'error'); btn.disabled = false; }
+}
+
+async function refreshMmRow(studentUserId) {
+  const res = await apiFetch(`${API}/management/students/mentor-matrix`);
+  _mmData   = await res.json();
+  const q   = document.getElementById('mmSearch')?.value?.toLowerCase() || '';
+  renderMentorMatrix(q ? _mmData.filter(s =>
+    s.fullName.toLowerCase().includes(q) || s.email.toLowerCase().includes(q)) : _mmData);
+}
+
+function filterMentorMatrix() {
+  const q = document.getElementById('mmSearch').value.toLowerCase();
+  renderMentorMatrix(q
+    ? _mmData.filter(s => s.fullName.toLowerCase().includes(q) || s.email.toLowerCase().includes(q))
+    : _mmData);
+}
+
 // ══ DASHBOARD DRILL-DOWN ══════════════════════════════════════════════════════
 
 let _drillData = [];
@@ -6662,9 +6846,7 @@ function renderDrillStudents(rows) {
 }
 
 async function doDisableStudent(userId, email, name, btn) {
-  if (!confirm(`Disable account for "${name}" (${email})?
-
-The student will receive an email notifying them their account has been disabled and they will no longer be able to log in.`)) return;
+  if (!confirm(`Disable account for "${name}" (${email})?\n\nThe student will receive an email notifying them their account has been disabled and they will no longer be able to log in.`)) return;
   btn.disabled = true;
   btn.textContent = '…';
   try {
@@ -6685,14 +6867,13 @@ async function doApproveStudentDirect(email, name, btn) {
   btn.disabled = true;
   btn.textContent = '…';
   try {
+    // Use query param to avoid URL encoding issues with @ in email
     await apiFetchChecked(`${API}/management/students/approve?email=${encodeURIComponent(email)}`, {
       method: 'POST'
     });
     showToast(`${name} approved successfully`, 'success');
-    // Update the button in-place
     btn.closest('td').innerHTML = '<span style="color:var(--green);font-size:11px;">✓ Approved</span>';
     btn.closest('tr').querySelector('td:nth-child(6)').textContent = 'APPROVED';
-    // Reload dashboard stats
     loadDashboard();
   } catch(e) {
     showToast('Failed: ' + e.message, 'error');
@@ -6823,7 +7004,7 @@ function syncControlPanel(visibleViews) {
   // Only manage items that have a cpi- element (all of them do)
   // Always show the 3 core views; show extras based on role
   ['home','applications','appraisals','mentoring','assignments','centers',
-   'iqassessor','loans','roles'].forEach(v => {
+   'iqassessor','loans','roles','mentormatrix'].forEach(v => {
     const el = document.getElementById('cpi-' + v);
     if (el) el.style.display = visibleViews.includes(v) ? '' : 'none';
   });
@@ -7022,6 +7203,82 @@ async function doDeactivateUser(userId, email) {
 }
 
 // ── Re-sync control panel after full DOM is parsed ───────────────────────────
-// Control panel modal HTML is after </script>
+// Control panel modal HTML is after 
+
+// ══ FORGOT PASSWORD ═══════════════════════════════════════════════════════════
+
+function openForgotPassword() {
+  document.getElementById('forgotEmail').value = '';
+  document.getElementById('forgotError').style.display = 'none';
+  document.getElementById('forgotSuccess').style.display = 'none';
+  document.getElementById('btnForgotSubmit').disabled = false;
+  document.getElementById('btnForgotSubmit').textContent = 'Send New Password';
+  document.getElementById('forgotPasswordBackdrop').style.display = 'flex';
+  setTimeout(() => document.getElementById('forgotEmail').focus(), 50);
+}
+
+function closeForgotPassword() {
+  document.getElementById('forgotPasswordBackdrop').style.display = 'none';
+}
+
+async function doForgotPassword() {
+  const email   = document.getElementById('forgotEmail').value.trim();
+  const errEl   = document.getElementById('forgotError');
+  const succEl  = document.getElementById('forgotSuccess');
+  const btn     = document.getElementById('btnForgotSubmit');
+
+  errEl.style.display  = 'none';
+  succEl.style.display = 'none';
+
+  if (!email) { errEl.textContent = 'Please enter your email address.'; errEl.style.display = ''; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+
+  try {
+    const res = await fetch(`${API}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    succEl.textContent  = data.message || 'If an account exists for this email, a new password has been sent.';
+    succEl.style.display = '';
+    btn.textContent = 'Sent ✓';
+    setTimeout(() => closeForgotPassword(), 3000);
+  } catch(e) {
+    errEl.textContent = 'Failed to send. Please try again.';
+    errEl.style.display = '';
+    btn.disabled = false;
+    btn.textContent = 'Send New Password';
+  }
+}
+
+</script>
+
+<!-- ── FORGOT PASSWORD MODAL ── -->
+<div class="modal-backdrop" id="forgotPasswordBackdrop" style="display:none;z-index:5000;">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header">
+      <div class="modal-title">Reset Password</div>
+      <button class="modal-close" onclick="closeForgotPassword()">✕</button>
+    </div>
+    <div class="modal-body" style="padding:24px;">
+      <p style="font-size:14px;color:var(--muted);margin:0 0 16px;">
+        Enter your email address and we'll send you a new temporary password.
+      </p>
+      <input type="email" id="forgotEmail" placeholder="your@email.com"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);
+               border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;
+               outline:none;box-sizing:border-box;"/>
+      <div id="forgotError" style="font-size:13px;color:#e85252;margin-top:8px;display:none;"></div>
+      <div id="forgotSuccess" style="font-size:13px;color:var(--green,#3ecf8e);margin-top:8px;display:none;"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;">
+      <button class="btn-save" onclick="closeForgotPassword()">Cancel</button>
+      <button class="btn-assign" id="btnForgotSubmit" onclick="doForgotPassword()">Send New Password</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

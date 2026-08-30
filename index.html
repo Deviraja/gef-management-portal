@@ -2184,6 +2184,24 @@ td {
       </div>
     </div><!-- /panel-mentormatrix -->
 
+    <!-- ══ FEATURE FLAGS PANEL ════════════════════════════════════════════════ -->
+    <div class="view-panel" id="panel-featureflags">
+      <div class="page-header">
+        <div>
+          <div class="page-heading">Feature <span>Flags</span></div>
+          <div class="page-meta">Enable or disable features for students across the platform</div>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn-save" onclick="loadFeatureFlags()" style="font-size:12px;padding:6px 12px;">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="assign-card" style="max-width:700px;">
+        <div id="featureFlagsWrap">
+          <div style="color:var(--muted);padding:20px;">Loading…</div>
+        </div>
+      </div>
+    </div><!-- /panel-featureflags -->
+
     <!-- ── ROLE EDITOR MODAL ── -->
     <div class="modal-backdrop" id="roleEditorBackdrop" style="display:none;">
       <div class="modal" style="max-width:520px;">
@@ -3045,6 +3063,13 @@ td {
         <span class="cp-item-label">Quick Mentor Assignment</span>
       </div>
 
+      <div class="cp-item" id="cpi-featureflags" style="display:none" onclick="cpNav('featureflags')">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        <span class="cp-item-label">Feature Flags</span>
+      </div>
+
     </div>
   </div>
 </div>
@@ -3267,7 +3292,8 @@ const CP_LABELS = {
   applications: 'Applications', appraisals: 'Appraisals', mentoring: 'MTE',
   assignments:  'Mentor Assignments', centers: 'Centers',
   iqassessor:   'IQ Assessors', loans: 'Loan Requests', roles: 'Role Management',
-  mentormatrix: 'Quick Mentor Assignment'
+  mentormatrix:  'Quick Mentor Assignment',
+  featureflags:  'Feature Flags'
 };
 
 // ── Appraisal / MTE form state — declared early so init() can safely reference them ──
@@ -3482,6 +3508,7 @@ function showDashboard() {
     if (!visibleViews.includes('loans')) visibleViews.push('loans');
     visibleViews.push('roles');
     visibleViews.push('mentormatrix');
+    visibleViews.push('featureflags');
   }
   if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
   syncControlPanel(visibleViews);
@@ -3512,7 +3539,8 @@ function switchView(view) {
   if (view === 'iqassessor') loadIqAssessorPanel();
   if (view === 'loans')      loadLoanRequests();
   if (view === 'roles')      loadRoleManagement();
-  if (view === 'mentormatrix') loadMentorMatrix();
+  if (view === 'mentormatrix')  loadMentorMatrix();
+  if (view === 'featureflags')   loadFeatureFlags();
 }
 
 // ── Load Monthly Thinking Exercises for admin view ─────────────────────────────────────
@@ -6927,6 +6955,65 @@ function closeDashDrill() {
   _drillData = [];
 }
 
+// ══ FEATURE FLAGS ════════════════════════════════════════════════════════════
+
+let _flags = {};
+
+async function loadFeatureFlags() {
+  try {
+    const res = await apiFetch(`${API}/feature-flags`);
+    if (res.ok) {
+      const flags = await res.json();
+      flags.forEach(f => { _flags[f.flagName] = f; });
+      renderFlagToggles();
+    }
+  } catch(e) { console.warn('Feature flags load failed:', e.message); }
+}
+
+function renderFlagToggles() {
+  const wrap = document.getElementById('featureFlagsWrap');
+  if (!wrap) return;
+  const defs = [
+    { name: 'STUDENT_MTE_ENABLED', label: 'Student MTE (Monthly Thinking Exercise)',
+      desc: 'When off, students cannot see or access the MTE tab in the student portal.' },
+  ];
+  wrap.innerHTML = defs.map(d => {
+    const flag    = _flags[d.name];
+    const enabled = flag ? flag.enabled : true;
+    const who     = flag?.updatedBy ? `Last changed by ${esc(flag.updatedBy)}` : 'Default setting';
+    return `<div style="display:flex;align-items:flex-start;gap:20px;padding:16px 0;border-bottom:1px solid var(--border);">
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:600;color:var(--text);">${esc(d.label)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">${esc(d.desc)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(who)}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+        <span style="font-size:13px;font-weight:500;color:${enabled ? 'var(--green)' : 'var(--muted)'};">
+          ${enabled ? 'Enabled' : 'Disabled'}
+        </span>
+        <button class="${enabled ? 'btn-remove' : 'btn-assign'}"
+          style="font-size:12px;padding:6px 14px;min-width:80px;"
+          onclick="toggleFlag('${esc(d.name)}', ${!enabled})">
+          ${enabled ? 'Disable' : 'Enable'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleFlag(flagName, enable) {
+  try {
+    const res = await apiFetchChecked(`${API}/feature-flags/${flagName}`, {
+      method: 'POST',
+      body: JSON.stringify({ enabled: enable })
+    });
+    const updated = await res.json();
+    _flags[flagName] = updated;
+    renderFlagToggles();
+    showToast(`Feature "${flagName}" ${enable ? 'enabled' : 'disabled'} ✓`, 'success');
+  } catch(e) { showToast('Failed: ' + e.message, 'error'); }
+}
+
 // ══ HOME DASHBOARD ═══════════════════════════════════════════════════════════
 
 async function loadDashboard() {
@@ -7004,7 +7091,7 @@ function syncControlPanel(visibleViews) {
   // Only manage items that have a cpi- element (all of them do)
   // Always show the 3 core views; show extras based on role
   ['home','applications','appraisals','mentoring','assignments','centers',
-   'iqassessor','loans','roles','mentormatrix'].forEach(v => {
+   'iqassessor','loans','roles','mentormatrix','featureflags'].forEach(v => {
     const el = document.getElementById('cpi-' + v);
     if (el) el.style.display = visibleViews.includes(v) ? '' : 'none';
   });

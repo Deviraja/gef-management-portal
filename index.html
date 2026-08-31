@@ -1568,6 +1568,7 @@ td {
       <span id="tab-iqassessor" style="display:none"></span>
       <span id="tab-loans" style="display:none"></span>
       <span id="tab-roles" style="display:none"></span>
+      <span id="tab-featureflags" style="display:none"></span>
     </div>
     <!-- Active section indicator -->
     <span id="navCurrentSection" style="font-size:13px;font-weight:600;color:var(--text);margin-right:8px;">Applications</span>
@@ -1694,7 +1695,7 @@ td {
         <div class="dash-card" style="--dc:#3498db" onclick="cpNav('loans')">
           <div class="dash-icon">💰</div>
           <div class="dash-val" id="dv-totalLoans">—</div>
-          <div class="dash-label">Loan Requests</div>
+          <div class="dash-label">Financial Requirements</div>
         </div>
         <div class="dash-card" style="--dc:#e8c84a" onclick="cpNav('loans')">
           <div class="dash-icon">🔄</div>
@@ -2069,7 +2070,7 @@ td {
     </div><!-- /panel-iqassessor -->
 
     <!-- ── FINANCE APPROVER PANEL (part of IQ Assessor management area) ── -->
-    <!-- Finance Approver creation is embedded in the Loan Requests panel header -->
+    <!-- Finance Approver creation is embedded in the Financial Requirements panel header -->
 
 
     <!-- ── ROLE MANAGEMENT PANEL ── -->
@@ -3043,7 +3044,7 @@ td {
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
         </svg>
-        <span class="cp-item-label">Loan Requests</span>
+        <span class="cp-item-label">Financial Requirements</span>
       </div>
 
       <div class="cp-item" id="cpi-roles" style="display:none" onclick="cpNav('roles')">
@@ -3513,9 +3514,18 @@ function showDashboard() {
   if (isLoanViewer && !isAdmin && !isCCU) visibleViews.push('loans');
   syncControlPanel(visibleViews);
   updateCPActiveItem('home');
-  // Modal HTML is parsed after script — re-apply once DOM is fully ready
-  _pendingVisibleViews = visibleViews;
-  setTimeout(() => { syncControlPanel(visibleViews); updateCPActiveItem('home'); _pendingVisibleViews = null; }, 0);
+  // Store and re-apply after DOM is fully ready (cpi-* elements may not exist yet)
+  _pendingVisibleViews = [...visibleViews];
+  // Both setTimeout and DOMContentLoaded to handle all cases
+  const reapply = () => {
+    if (_pendingVisibleViews) {
+      syncControlPanel(_pendingVisibleViews);
+      updateCPActiveItem('home');
+      _pendingVisibleViews = null;
+    }
+  };
+  setTimeout(reapply, 0);
+  setTimeout(reapply, 200); // extra safety for slow DOM
 
   loadDashboard();
   loadStats();
@@ -3550,9 +3560,11 @@ async function loadMentoringAdmin() {
   try {
     const res  = await apiFetch(`${API}/mentoring`);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const list = await res.json();
+    const rawList = await res.json();
+    // Only show MTEs completed by student — drafts are not visible to management
+    const list = rawList.filter(r => r.completedByStudent === true);
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No Monthly Thinking Exercises yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No completed Monthly Thinking Exercises yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = list.map((r, i) => `

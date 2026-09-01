@@ -6424,7 +6424,6 @@ async function loadNonStudentUsers() {
     const res = await apiFetch(`${API}/management/users`);
     if (!res.ok) return [];
     const users = await res.json();
-    // Exclude students — keep everyone else (mentors, evaluators, admins, center heads, assessors)
     _allNonStudentUsers = users.filter(u =>
       !u.roles || !u.roles.some(r => r.roleName === 'STUDENT')
     );
@@ -6433,6 +6432,17 @@ async function loadNonStudentUsers() {
     console.warn('loadNonStudentUsers:', e.message);
     return [];
   }
+}
+
+function invalidateUserCache() {
+  _allNonStudentUsers = [];
+  _mmMentors = [];
+  // Reset selector option counts so they reload next time they're opened
+  ['transitionRefInterviewerSelect','transitionInterimApproverSelect',
+   'transitionIqAssessorSelect'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (sel) sel.innerHTML = '<option value="">— loading… —</option>';
+  });
 }
 
 async function loadCenterDropdowns() {
@@ -7226,6 +7236,8 @@ async function doCreateNewUser() {
       body: JSON.stringify({ fullName: name || email, email, mobile, password: pwd, roles })
     });
     showToast(`User ${email} created`, 'success');
+    // Clear cached user list so new user appears immediately in all dropdowns
+    invalidateUserCache();
     toggleNewUserForm();
     ['nu-name','nu-email','nu-mobile','nu-password'].forEach(id => {
       const el = document.getElementById(id);
@@ -7268,6 +7280,8 @@ async function saveRoleEditor() {
       body: JSON.stringify({ roles })
     });
     showToast('Roles updated', 'success');
+    // Clear caches so updated roles appear in dropdowns immediately
+    invalidateUserCache();
     closeRoleEditor();
     loadRoleManagement();
   } catch(e) { showToast(e.message, 'error'); }

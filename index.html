@@ -3575,7 +3575,7 @@ async function loadMentoringAdmin() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rawList = await res.json();
     // Only show MTEs completed by student — drafts are not visible to management
-    const list = rawList.filter(r => r.completedByStudent === true);
+    const list = rawList.filter(r => r.completedByStudent === true || r.completedByStudent === 1);
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No completed Monthly Thinking Exercises yet.</td></tr>`;
       return;

@@ -2607,60 +2607,73 @@ td {
         </div>
       </div>
 
+      <!-- Completed by Student indicator -->
+      <div class="mf-section" style="border:1.5px solid rgba(62,207,142,.3);background:rgba(62,207,142,.05);">
+        <div class="mf-section-body">
+          <div class="mf-checkbox-row">
+            <input type="checkbox" id="mf-completed" disabled/>
+            <label for="mf-completed" style="font-weight:600;font-size:14px;">✓ Completed by Student</label>
+          </div>
+        </div>
+      </div>
+
       <!-- Location Mentor Review -->
-      <div class="mf-section">
+      <div class="mf-section" id="mf-locSection">
         <div class="mf-section-header" style="color:#378add;">Review by Location Mentor</div>
         <div class="mf-section-body">
           <div class="mf-label" style="margin-bottom:8px;">Location Mentor Comment</div>
           <textarea class="mf-textarea" id="mf-locComment" placeholder="Location mentor feedback…" style="min-height:72px;"></textarea>
           <div class="mf-checkbox-row" style="margin-top:12px;">
             <input type="checkbox" id="mf-locReviewed"/>
-            <label for="mf-locReviewed">Reviewed by Location Mentor</label>
+            <label for="mf-locReviewed" style="font-weight:600;">✓ Reviewed by Location Mentor</label>
           </div>
         </div>
       </div>
 
       <!-- Domain Mentor Review -->
-      <div class="mf-section">
+      <div class="mf-section" id="mf-domSection">
         <div class="mf-section-header" style="color:#3ecf8e;">Review by Domain Mentor</div>
         <div class="mf-section-body">
           <div class="mf-label" style="margin-bottom:8px;">Domain Mentor Comment</div>
           <textarea class="mf-textarea" id="mf-domComment" placeholder="Domain mentor feedback…" style="min-height:72px;"></textarea>
           <div class="mf-checkbox-row" style="margin-top:12px;">
             <input type="checkbox" id="mf-domReviewed"/>
-            <label for="mf-domReviewed">Reviewed by Domain Mentor</label>
+            <label for="mf-domReviewed" style="font-weight:600;">✓ Reviewed by Domain Mentor</label>
           </div>
         </div>
       </div>
 
-      <!-- Admin / Center Head Review (admin only) -->
-      <div class="mf-section" id="mf-adminSection" style="display:none;">
-        <div class="mf-section-header" style="color:var(--accent);">Additional Reviews</div>
+      <!-- Center Head Review -->
+      <div class="mf-section" id="mf-centerHeadSection" style="display:none;">
+        <div class="mf-section-header" style="color:#9b59b6;">Review by Center Head</div>
         <div class="mf-section-body">
-          <div class="mf-grid mf-grid-2">
-            <div>
-              <div class="mf-label" style="margin-bottom:8px;">Center Head Comment</div>
-              <textarea class="mf-textarea" id="mf-centerHeadComment" placeholder="Center head comment…" style="min-height:72px;"></textarea>
-              <div class="mf-checkbox-row" style="margin-top:10px;">
-                <input type="checkbox" id="mf-centerHeadReviewed"/>
-                <label for="mf-centerHeadReviewed">Reviewed by Center Head</label>
-              </div>
-            </div>
-            <div>
-              <div class="mf-label" style="margin-bottom:8px;">Central Team Comments</div>
-              <textarea class="mf-textarea" id="mf-centralTeamComment" placeholder="Central team comment…" style="min-height:72px;"></textarea>
-            </div>
+          <div class="mf-label" style="margin-bottom:8px;">Center Head Comment</div>
+          <textarea class="mf-textarea" id="mf-centerHeadComment" placeholder="Center head comment…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-centerHeadReviewed"/>
+            <label for="mf-centerHeadReviewed" style="font-weight:600;">✓ Reviewed by Center Head</label>
           </div>
         </div>
       </div>
 
-      <!-- Save / Submit bar -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:20px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:24px;flex-wrap:wrap;">
-        <div id="mf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
-        <div style="display:flex;gap:12px;flex-shrink:0;">
-          <button class="btn-save" onclick="mfSave(false)">Save Draft</button>
-          <button class="btn-submit" id="mf-btnSubmit" onclick="mfSave(true)">Submit ✓</button>
+      <!-- Central Team Review (CCU only) -->
+      <div class="mf-section" id="mf-centralSection" style="display:none;">
+        <div class="mf-section-header" style="color:#e67e22;">Review by Central Team</div>
+        <div class="mf-section-body">
+          <div class="mf-label" style="margin-bottom:8px;">Central Team Comment</div>
+          <textarea class="mf-textarea" id="mf-centralTeamComment" placeholder="Central team comment…" style="min-height:72px;"></textarea>
+          <div class="mf-checkbox-row" style="margin-top:12px;">
+            <input type="checkbox" id="mf-centralReviewed"/>
+            <label for="mf-centralReviewed" style="font-weight:600;">✓ Reviewed by Central Team</label>
+          </div>
         </div>
+      </div>
+
+      <!-- Save bar -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 28px;display:flex;align-items:center;gap:16px;margin-top:24px;flex-wrap:wrap;">
+        <div id="mf-submitInfo" style="font-size:13px;color:var(--muted);flex:1;min-width:200px;"></div>
+        <div id="mf-saveMsg" style="font-size:13px;font-weight:600;color:var(--green);display:none;"></div>
+        <button class="btn-save" id="mf-btnSave" onclick="mfSave(false)">Save</button>
       </div>
 
     </div><!-- /portalMentoringForm -->
@@ -4797,7 +4810,7 @@ async function pfSave(isSubmit) {
 
   const btn = document.getElementById('pf-btnSubmit');
   btn.disabled = true;
-  btn.textContent = isSubmit ? 'Submitting…' : 'Saving…';
+  if (btn) btn.textContent = 'Saving…';
 
   // ── Validate numeric ranges before sending ──────────────────────────────────
   const numErrors = [];
@@ -5552,13 +5565,6 @@ function mfPopulateForm(r) {
     ? (r.studentUser?.fullName || '') + (r.college ? ' · ' + r.college : '')
     : 'Fill Basic Info and click Save Draft to create your record';
 
-  // Submission stamps (only shown for saved records)
-  const stamps = [];
-  if (r.completedByStudent)        stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Student</span>');
-  if (r.reviewedByLocationMentor)  stamps.push('<span style="font-size:11px;color:#378add;">✓ Loc Mentor</span>');
-  if (r.reviewedByDomainMentor)    stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Dom Mentor</span>');
-  document.getElementById('mfReviewStamps').innerHTML = stamps.join('&nbsp;');
-
   // Basic info
   mfSet('mf-yearOfStudy',    r.yearOfStudy);
   mfSet('mf-submissionMonth',r.submissionMonth);
@@ -5600,36 +5606,44 @@ function mfPopulateForm(r) {
   if (locCb) { locCb.checked = !!r.reviewedByLocationMentor; locCb.disabled = locRO; }
   if (domCb) { domCb.checked = !!r.reviewedByDomainMentor;   domCb.disabled = domRO; }
 
-  // Admin section
-  const adminSec = document.getElementById('mf-adminSection');
-  if (adminSec) adminSec.style.display = isAdmin ? '' : 'none';
-  if (isAdmin) {
-    mfSet('mf-centerHeadComment',  r.centerHeadComment);
-    mfSet('mf-centralTeamComment', r.centralTeamComment);
-    const chCb = document.getElementById('mf-centerHeadReviewed');
-    if (chCb) chCb.checked = !!r.reviewedByCenterHead;
-  }
+  // Center Head section — visible to CENTER_HEAD + CCU
+  const isCenterHead = roles.includes('CENTER_HEAD') || isAdmin;
+  const chSec = document.getElementById('mf-centerHeadSection');
+  if (chSec) chSec.style.display = isCenterHead ? '' : 'none';
+  const chComment = document.getElementById('mf-centerHeadComment');
+  const chCb      = document.getElementById('mf-centerHeadReviewed');
+  if (chComment) { chComment.value = r.centerHeadComment || ''; chComment.disabled = !isCenterHead; }
+  if (chCb)      { chCb.checked = !!r.reviewedByCenterHead;     chCb.disabled = !isCenterHead; }
+
+  // Central Team section — CCU only
+  const centralSec = document.getElementById('mf-centralSection');
+  if (centralSec) centralSec.style.display = isAdmin ? '' : 'none';
+  const ctComment = document.getElementById('mf-centralTeamComment');
+  const ctCb      = document.getElementById('mf-centralReviewed');
+  if (ctComment) { ctComment.value = r.centralTeamComment || ''; ctComment.disabled = !isAdmin; }
+  if (ctCb)      { ctCb.checked = !!r.reviewedByCentralTeam;    ctCb.disabled = !isAdmin; }
+
+  // Review stamps
+  const stamps = [];
+  if (r.completedByStudent)       stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Student</span>');
+  if (r.reviewedByLocationMentor) stamps.push('<span style="font-size:11px;color:#378add;">✓ Loc Mentor</span>');
+  if (r.reviewedByDomainMentor)   stamps.push('<span style="font-size:11px;color:#3ecf8e;">✓ Dom Mentor</span>');
+  if (r.reviewedByCenterHead)     stamps.push('<span style="font-size:11px;color:#9b59b6;">✓ Center Head</span>');
+  if (r.reviewedByCentralTeam)    stamps.push('<span style="font-size:11px;color:#e67e22;">✓ Central Team</span>');
+  const stampsEl = document.getElementById('mfReviewStamps');
+  if (stampsEl) stampsEl.innerHTML = stamps.join('&nbsp;');
+
+  // Submit info
+  document.getElementById('mf-submitInfo').textContent = '';
 
   // Dynamic tables
   mfBuildBooks(r.readingBooks || []);
   mfBuildAcademic(r.academicProgressList || []);
   mfBuildFinancial(r.financialRequirements || []);
 
-  // Add/delete buttons — students only
+  // Add/delete row buttons — students + admins can add rows; mentors are read-only
   ['btn-addBook','btn-addAcademic','btn-addFinancial']
     .forEach(id => { const el = document.getElementById(id); if (el) el.style.display = isStudent || isAdmin ? '' : 'none'; });
-
-  // Submit bar — message reflects the current user's own submission status
-  const mySubmitted = isStudent ? r.completedByStudent
-                    : _locRoleEff ? r.reviewedByLocationMentor
-                    : _domRoleEff ? r.reviewedByDomainMentor
-                    : isAdmin   ? (r.completedByStudent && r.reviewedByLocationMentor && r.reviewedByDomainMentor)
-                    : false;
-  document.getElementById('mf-submitInfo').textContent = mySubmitted
-    ? 'You have already submitted. You can update and re-submit.'
-    : 'Fill your section then submit.';
-  document.getElementById('mf-btnSubmit').textContent = mySubmitted
-    ? '✓ Update & Re-submit' : 'Submit ✓';
 }
 
 function mfSet(id, val) {
@@ -5784,8 +5798,9 @@ function mfCollect() {
     domainMentorComment:       mfVal('mf-domComment'),
     reviewedByDomainMentor:    document.getElementById('mf-domReviewed')?.checked   || false,
     centerHeadComment:         mfVal('mf-centerHeadComment'),
-    centralTeamComment:        mfVal('mf-centralTeamComment'),
     reviewedByCenterHead:      document.getElementById('mf-centerHeadReviewed')?.checked || false,
+    centralTeamComment:        mfVal('mf-centralTeamComment'),
+    reviewedByCentralTeam:     document.getElementById('mf-centralReviewed')?.checked    || false,
     readingBooks:              books,
     academicProgressList:      academic,
     financialRequirements:     financial,
@@ -5802,7 +5817,7 @@ async function mfSave(isSubmit) {
   const isDom     = roles.includes('DOMAIN_MENTOR');
   const isAdmin   = roles.includes('CENTRAL_COMMITTEE_USER') || roles.includes('ADMIN') || roles.includes('EVALUATOR');
 
-  const btn = document.getElementById('mf-btnSubmit');
+  const btn = document.getElementById('mf-btnSave');
   btn.disabled = true;
   btn.textContent = isSubmit ? 'Submitting…' : 'Saving…';
 
@@ -5818,7 +5833,7 @@ async function mfSave(isSubmit) {
         el.style.borderColor = '#e85252';
         el.focus();
         setTimeout(() => el.style.borderColor = '', 3000);
-        btn.disabled = false; btn.textContent = 'Submit ✓';
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
         return;
       }
       if (!dto.submissionMonth || !dto.submissionMonth.trim()) {
@@ -5827,7 +5842,7 @@ async function mfSave(isSubmit) {
         el.style.borderColor = '#e85252';
         el.focus();
         setTimeout(() => el.style.borderColor = '', 3000);
-        btn.disabled = false; btn.textContent = 'Submit ✓';
+        if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
         return;
       }
       const createRes = await apiFetchChecked(`${API}/mentoring`, {
@@ -5847,55 +5862,53 @@ async function mfSave(isSubmit) {
       mfCurrentRecord = await createRes.json();
     }
 
-    // ── Step 2: PUT the full data to the appropriate role endpoint ────────────
-    let endpoint;
-    if (isStudent) {
-      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/student`;
-    } else if (isAdmin && !isLocRole && !isDomRole) {
-      endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
-    } else {
-      // For mentors: pick endpoint based on their actual role.
-      // If user has both roles, check which comment field they filled.
-      const filledLoc = !!(document.getElementById('mf-locComment')?.value?.trim());
-      const filledDom = !!(document.getElementById('mf-domComment')?.value?.trim());
-      if (isDomRole && !isLocRole) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
-      } else if (isLocRole && !isDomRole) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
-      } else if (isDomRole && filledDom && !filledLoc) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
-      } else if (isLocRole && filledLoc) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
-      } else if (isDomRole) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`;
-      } else if (isLocRole) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/location-mentor`;
-      } else if (isAdmin) {
-        endpoint = `${API}/mentoring/${mfCurrentRecord.id}/admin`;
-      } else {
-        showToast('Cannot save — unknown role', 'error');
-        btn.disabled = false; btn.textContent = 'Submit ✓';
-        return;
-      }
+    // ── Step 2: PUT to all relevant endpoints based on role combination ─────────
+    // Build list of endpoints to call — CCU+mentor users hit all applicable ones
+    const endpoints = [];
+
+    // Mentor endpoints — if user has loc/dom role (including CCU who is also a mentor)
+    if (isLocRole) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/location-mentor`);
+    if (isDomRole) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`);
+
+    // Admin endpoint — CCU and CENTER_HEAD
+    const isCH = (currentUser.roles||[]).includes('CENTER_HEAD');
+    if (isAdmin || isCH) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/admin`);
+
+    // Pure evaluator with no mentor role — use admin endpoint to view/save admin fields
+    if (!isStudent && !isLocRole && !isDomRole && !isAdmin && !isCH) {
+      endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/admin`);
+    }
+
+    if (!endpoints.length) {
+      showToast('Cannot save — unknown role', 'error');
+      if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
+      return;
     }
 
     if (isSubmit && isStudent) dto.completedByStudent = true;
 
-    const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || 'HTTP ' + res.status);
+    // Call all endpoints sequentially — last one's result is stored
+    let updated = mfCurrentRecord;
+    for (const endpoint of endpoints) {
+      const res = await apiFetchChecked(endpoint, { method: 'PUT', body: JSON.stringify(dto) });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || 'HTTP ' + res.status);
+      }
+      updated = await res.json();
     }
-    const updated = await res.json();
     mfCurrentRecord = updated;
-    showToast(isSubmit ? 'Submitted successfully!' : 'Record saved successfully!', 'success');
-    // Return to mentoring list after save
-    setTimeout(() => closeMentoringForm(), 1200);
+    const saveMsg = document.getElementById('mf-saveMsg');
+    if (saveMsg) {
+      saveMsg.textContent = '✓ Saved at ' + new Date().toLocaleTimeString();
+      saveMsg.style.display = '';
+      setTimeout(() => { saveMsg.style.display = 'none'; }, 3000);
+    }
+    showToast('Saved successfully ✓', 'success');
   } catch(e) {
     showToast('Save failed: ' + e.message, 'error');
   } finally {
-    btn.disabled = false;
-    btn.textContent = 'Submit ✓';
+    if (btn) { btn.disabled = false; btn.textContent = 'Save'; }
   }
 }
 // ══ EVALUATION MODULE ══════════════════════════════════════════════════════

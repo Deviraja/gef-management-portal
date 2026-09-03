@@ -3575,8 +3575,8 @@ async function loadMentoringAdmin() {
     const res  = await apiFetch(`${API}/mentoring`);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const rawList = await res.json();
-    // Only show MTEs completed by student — drafts are not visible to management
-    const list = rawList.filter(r => r.completedByStudent === true || r.completedByStudent === 1);
+    // Only show MTEs completed by student — drafts not visible to management
+    const list = rawList.filter(r => !!r.completedByStudent);
     if (!list.length) {
       tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No completed Monthly Thinking Exercises yet.</td></tr>`;
       return;

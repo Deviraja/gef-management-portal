@@ -3355,6 +3355,7 @@ async function doLogin() {
   const btnEl    = document.getElementById('btnLogin');
 
   errEl.classList.remove('visible');
+  email = email.trim().toLowerCase();
   if (!email || !password) {
     errEl.textContent = 'Please enter your email and password.';
     errEl.classList.add('visible');

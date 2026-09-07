@@ -3355,8 +3355,8 @@ async function doLogin() {
   const btnEl    = document.getElementById('btnLogin');
 
   errEl.classList.remove('visible');
-  email = email.trim().toLowerCase();
-  if (!email || !password) {
+  const emailNorm = email.trim().toLowerCase();
+  if (!emailNorm || !password) {
     errEl.textContent = 'Please enter your email and password.';
     errEl.classList.add('visible');
     return;
@@ -3369,7 +3369,7 @@ async function doLogin() {
     const res = await fetch(`${API}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+      body: JSON.stringify({ email: emailNorm, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Login failed');

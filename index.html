@@ -1647,6 +1647,11 @@ td {
           <div class="dash-val" id="dv-iqAssess">—</div>
           <div class="dash-label">IQ Assessment</div>
         </div>
+        <div class="dash-card" style="--dc:#ff6b35" onclick="dashNav('students','pending-approval')">
+          <div class="dash-icon">⏳</div>
+          <div class="dash-val" id="dv-pendingApproval">—</div>
+          <div class="dash-label">Awaiting Approval</div>
+        </div>
       </div>
 
       <!-- ── MENTORS ─────────────────────────────────────────────────────────── -->
@@ -6836,6 +6841,7 @@ const DRILL_TITLES = {
   'students:no-dom-mentor':    'Students with No Domain Mentor',
   'students:agreement-signed': 'Approved Students — Agreement Signed',
   'students:agreement-pending':'Approved Students — Agreement NOT Signed',
+  'students:pending-approval': 'Students Awaiting Approval (no application yet)',
   'mentors:all':               'All Mentors',
 };
 
@@ -7082,6 +7088,10 @@ async function loadDashboard() {
                              (apps.rejectedAfterHomeVisit||0));
     set('dv-homeVisit',      apps.homeVisitNeeded);
     set('dv-iqAssess',       apps.iqAssessmentRequired);
+    // Students awaiting direct approval (STUDENT role, no approved application yet)
+    const pendingApproval = d.studentsAwaitingApproval ??
+      Math.max(0, (d.totalStudents || 0) - (apps.approved || 0));
+    set('dv-pendingApproval', pendingApproval);
 
     // Mentors
     set('dv-totalMentors',   d.totalMentors);

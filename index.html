@@ -3334,7 +3334,18 @@ let allApps       = [];   // cached current page rows for client-side search
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
 (function init() {
   if (authToken && currentUser) {
-    routeByRole();
+    // Refresh roles from backend on every page load so stale localStorage
+    // roles never silently disable buttons (e.g. Disable after role change).
+    fetch(`${API}/management/users?email=${encodeURIComponent(currentUser.email)}`, {
+      headers: { 'Authorization': 'Bearer ' + authToken }
+    }).then(r => r.ok ? r.json() : null).then(data => {
+      if (Array.isArray(data) && data.length > 0) {
+        const fresh = data[0];
+        currentUser.roles = (fresh.roles || []).map(r => r.roleName || r);
+        currentUser.fullName = fresh.fullName || currentUser.fullName;
+        localStorage.setItem('gef_user', JSON.stringify(currentUser));
+      }
+    }).catch(() => {}).finally(() => routeByRole());
   }
   document.getElementById('loginPassword')
     .addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
@@ -6929,16 +6940,14 @@ function renderDrillStudents(rows) {
       }
     }
 
-    // Prefer userId (platform_user.id) over id (application id)
-    const platformUserId = r.userId || r.platformUserId || r.userAccountId;
-    const disableBtn = canDisable && platformUserId
+    // Prefer userId (platform_user.id) over id (application id); fall back to lookup by email
+    const platformUserId = r.userId || r.platformUserId || r.userAccountId || null;
+    const disableBtn = canDisable
       ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;"
-           onclick="doDisableStudent(${platformUserId}, '${esc(r.email)}', '${esc(r.fullName)}', this)">
+           onclick="doDisableStudentSafe(${platformUserId}, '${esc(r.email)}', '${esc(r.fullName)}', this)">
            Disable
          </button>`
-      : (canDisable ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;opacity:0.5;"
-           title="Cannot disable — user ID not available. Ask backend to include userId in dashboard/students response."
-           disabled>Disable</button>` : '');
+      : '';
     return `<tr>
       <td class="td-id">${i+1}</td>
       <td style="font-weight:500;">${esc(r.fullName || '—')}</td>
@@ -6997,6 +7006,28 @@ async function doDisableStudent(userId, email, name, btn) {
     loadDashboard();
   } catch(e) {
     showToast('Failed: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.textContent = 'Disable';
+  }
+}
+
+async function doDisableStudentSafe(knownUserId, email, name, btn) {
+  // If we have the platform_user id already, use it directly
+  if (knownUserId) { doDisableStudent(knownUserId, email, name, btn); return; }
+  // Otherwise look it up from the users list by email
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    const res = await apiFetch(`${API}/management/users`);
+    const users = await res.json();
+    const found = (Array.isArray(users) ? users : (users.content || users.data || []));
+    const user = found.find(u => u.email === email);
+    if (!user || !user.id) throw new Error(`Could not find platform user for ${email}`);
+    btn.disabled = false;
+    btn.textContent = 'Disable';
+    doDisableStudent(user.id, email, name, btn);
+  } catch(e) {
+    showToast('Failed to resolve user: ' + e.message, 'error');
     btn.disabled = false;
     btn.textContent = 'Disable';
   }

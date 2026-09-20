@@ -3620,7 +3620,7 @@ function authHeaders() {
 
 async function apiFetch(url, options = {}) {
   const res = await fetch(url, { ...options, headers: authHeaders() });
-  if (res.status === 401 || res.status === 403) {
+  if (res.status === 401) {
     // Token expired or invalid — clear session and redirect to login
     localStorage.removeItem('gef_token');
     localStorage.removeItem('gef_user');
@@ -3631,6 +3631,12 @@ async function apiFetch(url, options = {}) {
       if (lv) lv.classList.add('active');
     }, 1500);
     throw new Error('Session expired');
+  }
+  if (res.status === 403) {
+    // Permission denied — do NOT log out, just surface the error
+    let msg = 'Permission denied';
+    try { const d = await res.clone().json(); msg = d.message || d.error || msg; } catch(_) {}
+    throw new Error(msg);
   }
   return res;
 }

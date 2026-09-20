@@ -6929,12 +6929,16 @@ function renderDrillStudents(rows) {
       }
     }
 
-    const disableBtn = canDisable
+    // Prefer userId (platform_user.id) over id (application id)
+    const platformUserId = r.userId || r.platformUserId || r.userAccountId;
+    const disableBtn = canDisable && platformUserId
       ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;"
-           onclick="doDisableStudent(${r.id}, '${esc(r.email)}', '${esc(r.fullName)}', this)">
+           onclick="doDisableStudent(${platformUserId}, '${esc(r.email)}', '${esc(r.fullName)}', this)">
            Disable
          </button>`
-      : '';
+      : (canDisable ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;opacity:0.5;"
+           title="Cannot disable — user ID not available. Ask backend to include userId in dashboard/students response."
+           disabled>Disable</button>` : '');
     return `<tr>
       <td class="td-id">${i+1}</td>
       <td style="font-weight:500;">${esc(r.fullName || '—')}</td>

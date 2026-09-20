@@ -7248,7 +7248,6 @@ function toggleNewUserForm() {
     const evalOnly = ['IQ_ASSESSOR','INTERIM_APPROVER','REFERENCE_INTERVIEWER'];
     const sel = document.getElementById('nu-roles');
     sel.innerHTML = _allRoles
-      .filter(r => r.roleName !== 'STUDENT')
       .filter(r => isCCU || evalOnly.includes(r.roleName))
       .map(r => `<option value="${esc(r.roleName)}">${esc(r.roleName)}</option>`)
       .join('');

@@ -6940,8 +6940,8 @@ function renderDrillStudents(rows) {
       }
     }
 
-    // Prefer userId (platform_user.id) over id (application id); fall back to lookup by email
-    const platformUserId = r.userId || r.platformUserId || r.userAccountId || null;
+    // r.id IS platform_user.id (confirmed from getDashboardStudentList backend)
+    const platformUserId = r.id || r.userId || r.platformUserId || r.userAccountId || null;
     const disableBtn = canDisable
       ? `<button class="btn-remove" style="font-size:11px;padding:4px 10px;"
            onclick="doDisableStudentSafe(${platformUserId}, '${esc(r.email)}', '${esc(r.fullName)}', this)">

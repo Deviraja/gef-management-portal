@@ -7001,8 +7001,9 @@ async function doDisableStudent(userId, email, name, btn) {
   try {
     await apiFetchChecked(`${API}/management/users/${userId}`, { method: 'DELETE' });
     showToast(`${name}'s account has been disabled`, 'success');
+    const row = btn.closest('tr');
     btn.closest('td').innerHTML = '<span style="color:var(--muted);font-size:11px;">Disabled</span>';
-    btn.closest('tr').style.opacity = '0.5';
+    if (row) row.style.opacity = '0.5';
     loadDashboard();
   } catch(e) {
     showToast('Failed: ' + e.message, 'error');

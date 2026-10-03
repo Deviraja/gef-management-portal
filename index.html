@@ -6762,9 +6762,11 @@ function renderMentorMatrix(rows) {
   }
   const locOptions = _mmMentors
     .filter(u => (u.roles||[]).some(r => r.roleName === 'LOCATION_MENTOR'))
+    .sort((a, b) => (a.fullName||a.email||'').localeCompare(b.fullName||b.email||''))
     .map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
   const domOptions = _mmMentors
     .filter(u => (u.roles||[]).some(r => r.roleName === 'DOMAIN_MENTOR'))
+    .sort((a, b) => (a.fullName||a.email||'').localeCompare(b.fullName||b.email||''))
     .map(u => `<option value="${u.id}">${esc(u.fullName||u.email)}</option>`).join('');
 
   tbody.innerHTML = rows.map((s, i) => {

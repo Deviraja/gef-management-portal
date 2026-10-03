@@ -6770,11 +6770,11 @@ function renderMentorMatrix(rows) {
   tbody.innerHTML = rows.map((s, i) => {
     const locTags = (s.locMentors||[]).map(m =>
       `<span class="mm-tag">${esc(m.fullName)}
-        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'LOCATION_MENTOR',this)" title="Remove">✕</button>
+        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'LOCATION_MENTOR',${m.id},this)" title="Remove">✕</button>
       </span>`).join('');
     const domTags = (s.domMentors||[]).map(m =>
       `<span class="mm-tag">${esc(m.fullName)}
-        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'DOMAIN_MENTOR',this)" title="Remove">✕</button>
+        <button class="mm-remove" onclick="mmRemoveMentor(${s.id},'DOMAIN_MENTOR',${m.id},this)" title="Remove">✕</button>
       </span>`).join('');
     return `<tr id="mm-row-${s.id}">
       <td class="td-id">${i+1}</td>
@@ -6821,12 +6821,12 @@ async function mmAssign(studentUserId, mentorRole) {
   } catch(e) { showToast(e.message, 'error'); }
 }
 
-async function mmRemoveMentor(studentUserId, mentorRole, btn) {
+async function mmRemoveMentor(studentUserId, mentorRole, mentorUserId, btn) {
   if (!confirm('Remove this mentor assignment?')) return;
   btn.disabled = true;
   try {
     await apiFetchChecked(
-      `${API}/management/students/${studentUserId}/assign-mentor?mentorRole=${mentorRole}`,
+      `${API}/management/students/${studentUserId}/assign-mentor?mentorRole=${mentorRole}&mentorUserId=${mentorUserId}`,
       { method: 'DELETE' });
     showToast('Mentor removed', 'success');
     await refreshMmRow(studentUserId);

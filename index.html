@@ -5139,6 +5139,7 @@ async function loadAssignmentDropdowns() {
     const data = await res.json();
     const apps = data.content || [];
     const sel  = document.getElementById('assignAppSelect');
+    apps.sort((a, b) => (a.studentFullName || '').localeCompare(b.studentFullName || ''));
     sel.innerHTML = `<option value="">Select application…</option>` +
       apps.map(a => `<option value="${a.id}" data-email="${a.email}">${esc(a.studentFullName)} (#${a.id})</option>`).join('');
   } catch(e) { /* non-critical */ }
@@ -5163,6 +5164,7 @@ function renderMentorSelect() {
       typeof r === 'string' ? r : r.roleName);
     return roleNames.some(rn => rn === 'LOCATION_MENTOR' || rn === 'DOMAIN_MENTOR');
   });
+  mentors.sort((a, b) => (a.fullName || a.email || '').localeCompare(b.fullName || b.email || ''));
   sel.innerHTML = `<option value="">Select mentor…</option>` +
     mentors.map(u => {
       const roleNames = (u.roles || []).map(r =>

@@ -1885,16 +1885,26 @@ td {
       <div class="page-header">
         <div>
           <div class="page-heading">Student <span>MTE</span></div>
-          <div class="page-meta">Monthly Monthly Thinking Exercises submitted by students</div>
+          <div class="page-meta">Showing up to 50 most recent completed Monthly Thinking Exercises</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="position:relative;">
+            <input type="text" id="mteSearchInput" placeholder="Search by student name (min 4 chars)…"
+              oninput="mteSearchDebounced()"
+              style="padding:8px 12px 8px 34px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);width:280px;outline:none;">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;">🔍</span>
+          </div>
+          <button class="btn-secondary" onclick="mteSearchClear()" id="mteSearchClearBtn" style="display:none;padding:7px 12px;font-size:12px;">✕ Clear</button>
         </div>
       </div>
+      <div id="mteSearchHint" style="font-size:12px;color:var(--muted);margin-bottom:8px;display:none;">Type at least 4 characters to search</div>
       <div class="table-wrap">
         <table class="appraisal-list-table">
           <thead>
             <tr>
               <th>#</th><th>Student</th><th>Month / Year</th><th>College</th>
               <th>Year of Study</th><th>Student</th><th>Loc. Mentor</th><th>Dom. Mentor</th>
-              <th>Created</th><th></th>
+              <th>Submitted</th><th></th>
             </tr>
           </thead>
           <tbody id="mentoringAdminTableBody">
@@ -3575,7 +3585,7 @@ function switchView(view) {
   updateCPActiveItem(view);
   if (view === 'home')       loadDashboard();
   if (view === 'appraisals') loadAppraisals();
-  if (view === 'mentoring')  loadMentoringAdmin();
+  if (view === 'mentoring')  { document.getElementById('mteSearchInput').value=''; document.getElementById('mteSearchClearBtn').style.display='none'; document.getElementById('mteSearchHint').style.display='none'; loadMentoringAdmin(''); }
   if (view === 'centers')    loadCenters();
   if (view === 'iqassessor') loadIqAssessorPanel();
   if (view === 'loans')      loadLoanRequests();
@@ -3585,20 +3595,45 @@ function switchView(view) {
 }
 
 // ── Load Monthly Thinking Exercises for admin view ─────────────────────────────────────
-async function loadMentoringAdmin() {
+let _mteSearchTimer = null;
+
+function mteSearchDebounced() {
+  const val = document.getElementById('mteSearchInput').value;
+  const hint = document.getElementById('mteSearchHint');
+  const clearBtn = document.getElementById('mteSearchClearBtn');
+  clearBtn.style.display = val.length > 0 ? '' : 'none';
+  if (_mteSearchTimer) clearTimeout(_mteSearchTimer);
+  if (val.length > 0 && val.length < 4) {
+    hint.style.display = '';
+    return;
+  }
+  hint.style.display = 'none';
+  _mteSearchTimer = setTimeout(() => loadMentoringAdmin(val || ''), 400);
+}
+
+function mteSearchClear() {
+  document.getElementById('mteSearchInput').value = '';
+  document.getElementById('mteSearchClearBtn').style.display = 'none';
+  document.getElementById('mteSearchHint').style.display = 'none';
+  loadMentoringAdmin('');
+}
+
+async function loadMentoringAdmin(search) {
   const tbody = document.getElementById('mentoringAdminTableBody');
   tbody.innerHTML = `<tr><td colspan="10"><div class="table-loading"><div class="spinner"></div>Loading…</div></td></tr>`;
   try {
-    const res  = await apiFetch(`${API}/mentoring`);
+    const url = search ? `${API}/mentoring/admin?search=${encodeURIComponent(search)}` : `${API}/mentoring/admin`;
+    const res  = await apiFetch(url);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const rawList = await res.json();
-    // Only show MTEs completed by student — drafts not visible to management
-    const list = rawList.filter(r => !!r.completedByStudent);
+    const list = await res.json();
     if (!list.length) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">No completed Monthly Thinking Exercises yet.</td></tr>`;
+      const msg = search
+        ? `No completed MTEs found matching "<strong>${esc(search)}</strong>".`
+        : 'No completed Monthly Thinking Exercises yet.';
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:32px;">${msg}</td></tr>`;
       return;
     }
-    tbody.innerHTML = list.map((r, i) => `
+    tbody.innerHTML = list.map((r) => `
       <tr style="cursor:pointer;" onclick="openMentoringAdmin(${r.id})">
         <td class="td-id">#${r.id}</td>
         <td>
@@ -5565,7 +5600,7 @@ function closeMentoringForm() {
     document.getElementById('portalMentoringList').style.display = '';
     loadMentoringList();
   } else {
-    loadMentoringAdmin(); // refresh dashboard MTE list
+    loadMentoringAdmin(document.getElementById('mteSearchInput')?.value || ''); // refresh dashboard MTE list
   }
 }
 

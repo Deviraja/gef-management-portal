@@ -1912,6 +1912,16 @@ td {
           </tbody>
         </table>
       </div>
+      <!-- ── Mentor list view (LOCATION_MENTOR / DOMAIN_MENTOR) ── -->
+      <div id="mentorMTEWrap" style="display:none;">
+        <div class="page-header" style="margin-bottom:8px;">
+          <div>
+            <div class="page-heading">Student <span>MTE</span></div>
+            <div class="page-meta" id="mentorMTESubheading">Monthly Thinking Exercises for your assigned students — sorted by latest submission</div>
+          </div>
+        </div>
+        <div id="mentorMTEList"></div>
+      </div>
     </div><!-- /panel-mentoring -->
 
     <!-- ── MENTOR ASSIGNMENTS PANEL (ADMIN only) ── -->
@@ -3585,7 +3595,28 @@ function switchView(view) {
   updateCPActiveItem(view);
   if (view === 'home')       loadDashboard();
   if (view === 'appraisals') loadAppraisals();
-  if (view === 'mentoring')  { document.getElementById('mteSearchInput').value=''; document.getElementById('mteSearchClearBtn').style.display='none'; document.getElementById('mteSearchHint').style.display='none'; loadMentoringAdmin(''); }
+  if (view === 'mentoring')  {
+    const _roles = currentUser?.roles || [];
+    const _isAdmin = _roles.includes('CENTRAL_COMMITTEE_USER') || _roles.includes('EVALUATOR');
+    const _isMentor = _roles.includes('LOCATION_MENTOR') || _roles.includes('DOMAIN_MENTOR');
+    if (_isMentor && !_isAdmin) {
+      // Show mentor list, hide admin search table
+      document.getElementById('mentorMTEWrap').style.display = '';
+      document.querySelector('#panel-mentoring .page-header').style.display = 'none';
+      document.getElementById('mteSearchHint').style.display = 'none';
+      document.querySelector('#panel-mentoring .table-wrap').style.display = 'none';
+      loadMentoringMentorView();
+    } else {
+      // Admin view
+      document.getElementById('mentorMTEWrap').style.display = 'none';
+      document.querySelector('#panel-mentoring .page-header').style.display = '';
+      document.querySelector('#panel-mentoring .table-wrap').style.display = '';
+      document.getElementById('mteSearchInput').value = '';
+      document.getElementById('mteSearchClearBtn').style.display = 'none';
+      document.getElementById('mteSearchHint').style.display = 'none';
+      loadMentoringAdmin('');
+    }
+  }
   if (view === 'centers')    loadCenters();
   if (view === 'iqassessor') loadIqAssessorPanel();
   if (view === 'loans')      loadLoanRequests();
@@ -3657,6 +3688,63 @@ async function loadMentoringAdmin(search) {
 function openMentoringAdmin(id) {
   _openedMTEFromDashboard = true;
   openMentoringForm(id);
+}
+
+// ── Mentor MTE list (LOCATION_MENTOR / DOMAIN_MENTOR in dashboard view) ──────
+async function loadMentoringMentorView() {
+  const wrap = document.getElementById('mentorMTEList');
+  wrap.innerHTML = `<div class="table-loading"><div class="spinner"></div>Loading…</div>`;
+  const roles = currentUser?.roles || [];
+  const isLoc = roles.includes('LOCATION_MENTOR');
+  const isDom = roles.includes('DOMAIN_MENTOR');
+  try {
+    const res = await apiFetch(`${API}/mentoring`);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    let list = await res.json();
+    if (!list.length) {
+      wrap.innerHTML = `<div style="padding:40px;text-align:center;color:var(--muted);">Your assigned students have not created any Monthly Thinking Exercises yet.</div>`;
+      return;
+    }
+    // Sort newest first
+    list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const rows = list.map(r => {
+      const stuDone = !!r.completedByStudent;
+      const locDone = !!r.reviewedByLocationMentor;
+      const domDone = !!r.reviewedByDomainMentor;
+      const myPending = stuDone && ((isLoc && !locDone) || (isDom && !domDone));
+      const rowBg = myPending ? 'background:rgba(232,162,74,.08);' : '';
+      const period = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || '—';
+      const flag = s => s
+        ? `<span class="status-badge s-APPROVED" style="font-size:10px;">✓</span>`
+        : `<span class="status-badge s-NEW_APPLICATION" style="font-size:10px;">○</span>`;
+      return `<tr style="cursor:pointer;${rowBg}" onclick="openMentoringForm(${r.id})">
+        <td>
+          <div style="font-weight:500;">${esc(r.studentUser?.fullName || '—')}</div>
+          <div style="font-size:11px;color:var(--muted);">${esc(r.studentUser?.email || '')}</div>
+        </td>
+        <td>${esc(period)}</td>
+        <td style="font-size:12px;color:var(--muted);">${esc(r.college || '—')}</td>
+        <td style="font-size:12px;">${esc(r.yearOfStudy || '—')}</td>
+        <td>${flag(stuDone)}</td>
+        ${isLoc ? `<td>${flag(locDone)}${myPending && !locDone ? ' <span style="font-size:10px;color:var(--accent);font-weight:600;">Needs review</span>' : ''}</td>` : ''}
+        ${isDom ? `<td>${flag(domDone)}${myPending && !domDone ? ' <span style="font-size:10px;color:var(--accent);font-weight:600;">Needs review</span>' : ''}</td>` : ''}
+        <td style="font-size:11px;color:var(--muted);">${fmtDate(r.createdAt)}</td>
+        <td><button class="btn-view" onclick="event.stopPropagation();openMentoringForm(${r.id})">Open →</button></td>
+      </tr>`;
+    }).join('');
+    wrap.innerHTML = `<div class="table-wrap"><table class="appraisal-list-table">
+      <thead><tr>
+        <th>Student</th><th>Period</th><th>College</th><th>Year</th>
+        <th title="Student submitted">Student</th>
+        ${isLoc ? '<th title="Location mentor reviewed">Loc Mentor</th>' : ''}
+        ${isDom ? '<th title="Domain mentor reviewed">Dom Mentor</th>' : ''}
+        <th>Submitted</th><th></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  } catch(e) {
+    wrap.innerHTML = `<div style="padding:32px;color:var(--muted);">Could not load records: ${esc(e.message)}</div>`;
+  }
 }
 
 // ── API helpers ────────────────────────────────────────────────────────────────
@@ -5654,11 +5742,19 @@ function closeMentoringForm() {
   _openedMTEFromDashboard = false;
 
   const roles = currentUser.roles || [];
-  if (roles.includes('STUDENT')) {
+  const isStudent  = roles.includes('STUDENT');
+  const isMentorOnly = (roles.includes('LOCATION_MENTOR') || roles.includes('DOMAIN_MENTOR'))
+                    && !roles.includes('CENTRAL_COMMITTEE_USER') && !roles.includes('EVALUATOR');
+
+  if (isStudent) {
     document.getElementById('portalMentoringList').style.display = '';
     loadMentoringList();
+  } else if (isMentorOnly) {
+    // Back to mentor table inside panel-mentoring (dashboard view)
+    loadMentoringMentorView();
   } else {
-    loadMentoringAdmin(document.getElementById('mteSearchInput')?.value || ''); // refresh dashboard MTE list
+    // Admin (CCU / EVALUATOR): refresh admin search table
+    loadMentoringAdmin(document.getElementById('mteSearchInput')?.value || '');
   }
 }
 

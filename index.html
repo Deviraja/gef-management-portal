@@ -5494,6 +5494,7 @@ async function loadMentoringList() {
   const isStudent = roles.includes('STUDENT');
   const isLoc     = roles.includes('LOCATION_MENTOR');
   const isDom     = roles.includes('DOMAIN_MENTOR');
+  const isMentor  = isLoc || isDom;
 
   // Heading varies by role
   const headingEl = document.getElementById('mentoringHeading');
@@ -5502,10 +5503,11 @@ async function loadMentoringList() {
     ? 'My <span>MTE</span>' : 'Student <span>MTE</span>';
   if (subEl) subEl.textContent = isStudent
     ? 'Monthly progress updates reviewed by your mentors'
-    : 'Monthly Monthly Thinking Exercises for your assigned students';
+    : 'Monthly Thinking Exercises for your assigned students — sorted by latest submission';
 
-  // Show "Add New" button only for students
+  // Show "Add New" button only for students; mentor view uses table layout
   document.getElementById('btnAddMentoringWrap').style.display = isStudent ? '' : 'none';
+  cards.style.display = isMentor ? 'block' : 'grid'; // override grid for table
 
   cards.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:20px;">Loading…</div>';
   // Reset form state directly — do NOT call closeMentoringForm() here as it would cause an infinite loop
@@ -5515,7 +5517,7 @@ async function loadMentoringList() {
   try {
     const res  = await apiFetch(`${API}/mentoring`);
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const list = await res.json();
+    let list = await res.json();
 
     if (!list.length) {
       cards.innerHTML = `<div class="no-appraisals">
@@ -5527,10 +5529,66 @@ async function loadMentoringList() {
       return;
     }
 
-    cards.innerHTML = list.map(r => buildMentoringCard(r, roles)).join('');
+    if (isMentor) {
+      // Sort: newest createdAt first (backend already does this, but be safe)
+      list = list.slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      cards.innerHTML = buildMentoringMentorTable(list, isLoc, isDom);
+    } else {
+      cards.innerHTML = list.map(r => buildMentoringCard(r, roles)).join('');
+    }
   } catch(e) {
     cards.innerHTML = `<div class="no-appraisals"><h3>Could not load records</h3><p>${esc(e.message)}</p></div>`;
   }
+}
+
+// ── Mentor table view: compact, date-sorted, shows pending review badge ──────
+function buildMentoringMentorTable(list, isLoc, isDom) {
+  const myId = String(currentUser.id);
+  const rows = list.map(r => {
+    const stuDone = !!r.completedByStudent;
+    const locDone = !!r.reviewedByLocationMentor;
+    const domDone = !!r.reviewedByDomainMentor;
+    // Highlight if student is done but MY section is still pending
+    const myPending = stuDone && (
+      (isLoc && !locDone) || (isDom && !domDone)
+    );
+    const rowStyle = myPending
+      ? 'background:rgba(var(--accent-rgb,255,160,0),.07);'
+      : '';
+    const period = [r.submissionMonth, r.submissionYear].filter(Boolean).join(' ') || '—';
+    const flag = s => s
+      ? `<span class="status-badge s-APPROVED" style="font-size:10px;">✓</span>`
+      : `<span class="status-badge s-NEW_APPLICATION" style="font-size:10px;">○</span>`;
+    return `<tr style="cursor:pointer;${rowStyle}" onclick="openMentoringForm(${r.id})">
+      <td>
+        <div style="font-weight:500;">${esc(r.studentUser?.fullName || '—')}</div>
+        <div style="font-size:11px;color:var(--muted);">${esc(r.studentUser?.email || '')}</div>
+      </td>
+      <td>${esc(period)}</td>
+      <td style="font-size:12px;color:var(--muted);">${esc(r.college || '—')}</td>
+      <td style="font-size:12px;">${esc(r.yearOfStudy || '—')}</td>
+      <td>${flag(stuDone)}</td>
+      ${isLoc ? `<td>${flag(locDone)}${myPending && isLoc && !locDone ? ' <span style="font-size:10px;color:var(--accent);font-weight:600;">Needs review</span>' : ''}</td>` : ''}
+      ${isDom ? `<td>${flag(domDone)}${myPending && isDom && !domDone ? ' <span style="font-size:10px;color:var(--accent);font-weight:600;">Needs review</span>' : ''}</td>` : ''}
+      <td style="font-size:11px;color:var(--muted);">${fmtDate(r.createdAt)}</td>
+      <td><button class="btn-view" onclick="event.stopPropagation();openMentoringForm(${r.id})">Open →</button></td>
+    </tr>`;
+  }).join('');
+
+  return `<table class="data-table" style="width:100%;">
+    <thead><tr>
+      <th>Student</th>
+      <th>Period</th>
+      <th>College</th>
+      <th>Year</th>
+      <th title="Student submitted">Student</th>
+      ${isLoc ? '<th title="Location mentor reviewed">Loc Mentor</th>' : ''}
+      ${isDom ? '<th title="Domain mentor reviewed">Dom Mentor</th>' : ''}
+      <th>Submitted</th>
+      <th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
 }
 
 function buildMentoringCard(r, roles) {

@@ -6092,9 +6092,22 @@ async function mfSave(isSubmit) {
     // Build list of endpoints to call — CCU+mentor users hit all applicable ones
     const endpoints = [];
 
-    // Mentor endpoints — if user has loc/dom role (including CCU who is also a mentor)
-    if (isLocRole) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/location-mentor`);
-    if (isDomRole) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`);
+    // Mentor endpoints — only call the endpoint for which this user is actually
+    // *assigned* on this record.  If the record has no assignment yet (new), fall
+    // back to role only.  This prevents a user who holds both LM and DM roles from
+    // calling the wrong endpoint when they are only assigned as one type.
+    const myIdStr2  = String(currentUser.id);
+    const recLoc    = mfCurrentRecord?.locationMentorUser;
+    const recDom    = mfCurrentRecord?.domainMentorUser;
+    const assignedLoc = recLoc && String(recLoc.id) === myIdStr2;
+    const assignedDom = recDom && String(recDom.id) === myIdStr2;
+    const noAssignment = !recLoc && !recDom; // brand-new record, no FK yet
+
+    const shouldCallLoc = isLoc && (assignedLoc || (noAssignment && !isDom));
+    const shouldCallDom = isDom && (assignedDom || (noAssignment && !isLoc) || (!assignedLoc && !recLoc && isDom));
+
+    if (shouldCallLoc) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/location-mentor`);
+    if (shouldCallDom) endpoints.push(`${API}/mentoring/${mfCurrentRecord.id}/domain-mentor`);
 
     // Admin endpoint — CCU and CENTER_HEAD
     const isCH = (currentUser.roles||[]).includes('CENTER_HEAD');

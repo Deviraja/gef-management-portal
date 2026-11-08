@@ -2036,6 +2036,32 @@ td {
           </div>
         </div>
       </div>
+
+      <!-- Assign Students panel -->
+      <div id="assignStudentsPanel" style="display:none;margin-top:20px;">
+        <div class="assign-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+            <div class="assign-title" style="margin:0;">Assign Students — <span id="asCENTER_NAME" style="color:var(--accent);font-weight:700;"></span></div>
+            <button class="btn-save" onclick="closeAssignStudentsPanel()">✕ Close</button>
+          </div>
+
+          <!-- Currently assigned -->
+          <div style="margin-bottom:18px;">
+            <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Currently Assigned</div>
+            <div id="asCurrentList" style="font-size:13px;color:var(--text);">Loading…</div>
+          </div>
+
+          <!-- Search & pick -->
+          <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Add Students</div>
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;">
+            <input id="asSearchInput" type="text" placeholder="Search by name or email…"
+              style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"
+              oninput="asSearchDebounce()" />
+            <button class="btn-assign" onclick="doAddSelectedStudents()">Assign Selected →</button>
+          </div>
+          <div id="asSearchResults" style="font-size:13px;color:var(--muted);">Type a name or email to search.</div>
+        </div>
+      </div>
     </div><!-- /panel-centers -->
 
     <!-- ── IQ ASSESSOR PANEL ── -->
@@ -6722,8 +6748,9 @@ async function loadCenters() {
         <td>${esc(c.city  || '—')}</td>
         <td>${esc(c.state || '—')}</td>
         <td style="font-size:12px;">${heads.length ? heads.join(', ') : '<span style="color:var(--muted);">None assigned</span>'}</td>
-        <td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn-view" onclick="openAssignHead(${c.id}, this)">Assign Head</button>
+          <button class="btn-view" style="background:var(--surface2);" onclick="openAssignStudents(${c.id}, this)">Assign Students</button>
         </td>
       </tr>`;
     }).join('');
@@ -6774,6 +6801,7 @@ async function openAssignHead(centerId, btnEl) {
   const sel = document.getElementById('ahUserSelect');
   sel.innerHTML = '<option value="">Loading users…</option>';
 
+  document.getElementById('assignStudentsPanel').style.display = 'none';
   document.getElementById('assignHeadPanel').style.display = '';
   document.getElementById('assignHeadPanel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
@@ -6806,6 +6834,143 @@ async function doAssignCenterHead() {
   } catch(e) {
     showToast(e.message, 'error');
   }
+}
+
+// ── Assign Students to Center ─────────────────────────────────────────────────
+let _asCenterId   = null;
+let _asSelected   = new Map(); // applicationId -> { studentFullName, email }
+let _asSearchTimer = null;
+
+async function openAssignStudents(centerId, btnEl) {
+  const centerName = btnEl.closest('tr')?.querySelector('td:nth-child(2)')?.textContent?.trim() || '#' + centerId;
+  _asCenterId = centerId;
+  _asSelected = new Map();
+  document.getElementById('asCENTER_NAME').textContent = centerName;
+  document.getElementById('asSearchInput').value = '';
+  document.getElementById('asSearchResults').innerHTML = 'Type a name or email to search.';
+  document.getElementById('asCurrentList').innerHTML = 'Loading…';
+
+  // close the head panel if open
+  document.getElementById('assignHeadPanel').style.display = 'none';
+
+  const panel = document.getElementById('assignStudentsPanel');
+  panel.style.display = '';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+  // load current assignments
+  try {
+    const res = await apiFetch(`${API}/management/centers/${centerId}/students`);
+    const list = await res.json();
+    const el = document.getElementById('asCurrentList');
+    if (!list.length) {
+      el.innerHTML = '<span style="color:var(--muted);">No students assigned yet.</span>';
+    } else {
+      el.innerHTML = list.map(s =>
+        `<div style="padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="font-weight:600;">${esc(s.studentFullName || '')}</span>
+          <span style="color:var(--muted);margin-left:8px;font-size:12px;">${esc(s.email || '')}</span>
+          <span style="margin-left:8px;font-size:11px;color:var(--green);">${esc(s.currentStatus || '')}</span>
+        </div>`
+      ).join('');
+    }
+  } catch(e) {
+    document.getElementById('asCurrentList').innerHTML = '<span style="color:var(--red);">Failed to load.</span>';
+  }
+}
+
+function closeAssignStudentsPanel() {
+  document.getElementById('assignStudentsPanel').style.display = 'none';
+  _asCenterId = null;
+  _asSelected = new Map();
+}
+
+function asSearchDebounce() {
+  clearTimeout(_asSearchTimer);
+  _asSearchTimer = setTimeout(doAsSearch, 350);
+}
+
+async function doAsSearch() {
+  const q = document.getElementById('asSearchInput').value.trim();
+  const el = document.getElementById('asSearchResults');
+  if (q.length < 2) {
+    el.innerHTML = 'Type at least 2 characters to search.';
+    return;
+  }
+  el.innerHTML = '<div class="table-loading"><div class="spinner"></div>Searching…</div>';
+  try {
+    const res = await apiFetch(`${API}/management/students/search?q=${encodeURIComponent(q)}`);
+    const results = await res.json();
+    if (!results.length) {
+      el.innerHTML = '<span style="color:var(--muted);">No students found.</span>';
+      return;
+    }
+    el.innerHTML = results.map(s => {
+      const checked = _asSelected.has(s.applicationId) ? 'checked' : '';
+      const otherCenter = s.currentCenterId && s.currentCenterId !== _asCenterId
+        ? `<span style="font-size:11px;color:#e8a000;margin-left:6px;">⚠ Currently: ${esc(s.currentCenterName)}</span>` : '';
+      const thisCenter = s.currentCenterId === _asCenterId
+        ? `<span style="font-size:11px;color:var(--green);margin-left:6px;">✓ Already assigned here</span>` : '';
+      return `<label style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid var(--border);cursor:pointer;">
+        <input type="checkbox" ${checked} onchange="asToggleStudent(${s.applicationId}, this, ${JSON.stringify(s.studentFullName || '')}, ${JSON.stringify(s.email || '')})" style="width:16px;height:16px;cursor:pointer;" />
+        <span>
+          <span style="font-weight:600;">${esc(s.studentFullName || '')}</span>
+          <span style="color:var(--muted);margin-left:8px;font-size:12px;">${esc(s.email || '')}</span>
+          <span style="margin-left:8px;font-size:11px;color:var(--muted);">${esc(s.currentStatus || '')}</span>
+          ${otherCenter}${thisCenter}
+        </span>
+      </label>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<span style="color:var(--red);">${esc(e.message)}</span>`;
+  }
+}
+
+function asToggleStudent(appId, cb, name, email) {
+  if (cb.checked) _asSelected.set(appId, { name, email });
+  else             _asSelected.delete(appId);
+}
+
+async function doAddSelectedStudents() {
+  if (!_asCenterId) return;
+  if (!_asSelected.size) {
+    showToast('Select at least one student', 'error');
+    return;
+  }
+  const applicationIds = Array.from(_asSelected.keys());
+  try {
+    const res = await apiFetchChecked(`${API}/management/centers/${_asCenterId}/assign-students`, {
+      method: 'POST', body: JSON.stringify({ applicationIds })
+    });
+    const data = await res.json();
+    showToast(`${data.assigned} student(s) assigned to center`, 'success');
+    _asSelected = new Map();
+    document.getElementById('asSearchInput').value = '';
+    document.getElementById('asSearchResults').innerHTML = 'Type a name or email to search.';
+    // refresh the currently-assigned list
+    _reloadAsCurrentList();
+  } catch(e) {
+    showToast(e.message, 'error');
+  }
+}
+
+async function _reloadAsCurrentList() {
+  if (!_asCenterId) return;
+  try {
+    const res = await apiFetch(`${API}/management/centers/${_asCenterId}/students`);
+    const list = await res.json();
+    const el = document.getElementById('asCurrentList');
+    if (!list.length) {
+      el.innerHTML = '<span style="color:var(--muted);">No students assigned yet.</span>';
+    } else {
+      el.innerHTML = list.map(s =>
+        `<div style="padding:5px 0;border-bottom:1px solid var(--border);">
+          <span style="font-weight:600;">${esc(s.studentFullName || '')}</span>
+          <span style="color:var(--muted);margin-left:8px;font-size:12px;">${esc(s.email || '')}</span>
+          <span style="margin-left:8px;font-size:11px;color:var(--green);">${esc(s.currentStatus || '')}</span>
+        </div>`
+      ).join('');
+    }
+  } catch(e) {}
 }
 
 function toggleIqUserForm() {
